@@ -1,5 +1,6 @@
 ﻿// Objects/StampObject.cs
 using System;
+using System.ComponentModel;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
@@ -12,14 +13,41 @@ namespace CrimeSketcher.Objects
     public class StampObject : BaseSketchObject
     {
         // Propriedades específicas do StampObject
+        [Browsable(false)]
         public string CaminhoImagem { get; set; }
+
+        [Category("Identificação")]
+        [DisplayName("Categoria")]
+        [Description("Categoria de origem do símbolo")]
+        [ReadOnly(true)]
         public string CategoriaOrigem { get; set; }
+
+        [Category("Dimensões")]
+        [DisplayName("Largura")]
+        [Description("Largura do símbolo em pixels")]
         public float Largura { get; set; } = 40f;
+
+        [Category("Dimensões")]
+        [DisplayName("Altura")]
+        [Description("Altura do símbolo em pixels")]
         public float Altura { get; set; } = 40f;
+
+        [Category("Dimensões")]
+        [DisplayName("Manter Proporção")]
+        [Description("Mantém a proporção original da imagem ao redimensionar")]
         public bool ManterProporcao { get; set; } = true;
+
+        [Category("Descrição")]
+        [DisplayName("Descrição")]
+        [Description("Texto descritivo do símbolo")]
         public string Descricao { get; set; } = "";
+
+        [Category("Descrição")]
+        [DisplayName("Mostrar Descrição")]
+        [Description("Exibe a descrição abaixo do símbolo")]
         public bool MostrarDescricao { get; set; } = true;
 
+        [Browsable(false)]
         [JsonIgnore]
         private Image _imagemCache;
 

@@ -1,19 +1,56 @@
 ﻿// Objects/TextLabel.cs
 using System;
+using System.ComponentModel;
 using System.Drawing;
+using System.Text.Json.Serialization;
 
 namespace CrimeSketcher.Objects
 {
     [Serializable]
     public class TextLabel : BaseSketchObject
     {
+        [Category("Conteúdo")]
+        [DisplayName("Texto")]
+        [Description("Conteúdo do texto a ser exibido")]
         public string Texto { get; set; } = "Texto";
+
+        [Category("Fonte")]
+        [DisplayName("Nome da Fonte")]
+        [Description("Nome da família da fonte (ex: Segoe UI, Arial)")]
         public string FonteNome { get; set; } = "Segoe UI";
+
+        [Category("Fonte")]
+        [DisplayName("Tamanho da Fonte")]
+        [Description("Tamanho da fonte em pontos")]
         public float FonteTamanho { get; set; } = 12f;
+
+        [Category("Fonte")]
+        [DisplayName("Negrito")]
+        [Description("Aplica estilo negrito ao texto")]
         public bool Negrito { get; set; } = false;
+
+        [Category("Fonte")]
+        [DisplayName("Itálico")]
+        [Description("Aplica estilo itálico ao texto")]
         public bool Italico { get; set; } = false;
+
+        [Category("Aparência")]
+        [DisplayName("Possui Fundo")]
+        [Description("Desenha um retângulo de fundo atrás do texto")]
         public bool ComFundo { get; set; } = false;
+
+        [Browsable(false)]
         public int CorFundoArgb { get; set; } = Color.White.ToArgb();
+
+        [Category("Aparência")]
+        [DisplayName("Cor do Fundo")]
+        [Description("Cor do retângulo de fundo")]
+        [JsonIgnore]
+        public Color CorFundo
+        {
+            get => Color.FromArgb(CorFundoArgb);
+            set => CorFundoArgb = value.ToArgb();
+        }
 
         public TextLabel()
         {
@@ -94,6 +131,21 @@ namespace CrimeSketcher.Objects
                 var size = g.MeasureString(Texto, font);
                 return new RectangleF(Posicao, size);
             }
+        }
+
+        public override void EscalarAoRedor(PointF centro, float fatorX, float fatorY)
+        {
+            float media = (Math.Abs(fatorX) + Math.Abs(fatorY)) / 2f;
+            FonteTamanho = Math.Max(6f, FonteTamanho * media);
+            Posicao = EscalarPonto(Posicao, centro, fatorX, fatorY);
+            EscalaX *= fatorX;
+            EscalaY *= fatorY;
+        }
+
+        public override void RotacionarAoRedor(PointF centro, float deltaGraus)
+        {
+            Posicao = RotacionarPonto(Posicao, centro, deltaGraus);
+            Rotacao += deltaGraus;
         }
     }
 }

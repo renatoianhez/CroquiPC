@@ -1,9 +1,12 @@
 ﻿// Forms/FormPrincipal.cs
 using System;
+using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Windows.Forms;
+using System.Text.Json;
+using Microsoft.Win32;
 using CrimeSketcher.Core;
 using CrimeSketcher.Library;
 using CrimeSketcher.Objects;
@@ -26,13 +29,15 @@ namespace CrimeSketcher.Forms
         // Ferramentas
         private SelectTool selectTool;
         private WallTool wallTool;
-        private RoomTool roomTool;
         private StreetTool streetTool;
         private DimensionTool dimensionTool;
         private StampTool stampTool;
         private StickFigureTool stickFigureTool;
         private TextTool textTool;
         private ArrowTool arrowTool;
+        private IntersectionTool intersectionTool;
+        private RoundaboutTool roundaboutTool;
+        private MarkTool markTool;
 
         // UI Principal
         private MenuStrip menuStrip;
@@ -63,12 +68,35 @@ namespace CrimeSketcher.Forms
         private string _arquivoAtual;
         private Button _botaoFerramentaAtiva;
 
+        // Clipboard para copiar/colar
+        private string _objetosCopiados = null;
+
         #endregion
 
         public FormPrincipal()
         {
             InitializeComponent();
             InicializarSistema();
+            AplicarTemaSistemaUI();
+
+            this.Shown += (s, e) => AjustarLarguraPainelPropriedades();
+            this.Resize += (s, e) => AjustarLarguraPainelPropriedades();
+
+            SystemEvents.UserPreferenceChanged += OnUserPreferenceChanged;
+            this.FormClosed += (s, e) =>
+            {
+                SystemEvents.UserPreferenceChanged -= OnUserPreferenceChanged;
+            };
+        }
+
+        private void OnUserPreferenceChanged(object sender, UserPreferenceChangedEventArgs e)
+        {
+            if (e.Category == UserPreferenceCategory.Color ||
+                e.Category == UserPreferenceCategory.General ||
+                e.Category == UserPreferenceCategory.VisualStyle)
+            {
+                AplicarTemaSistemaUI();
+            }
         }
 
         #region Inicialização da Interface
@@ -104,9 +132,26 @@ namespace CrimeSketcher.Forms
             this.Controls.Add(menuStrip);
             this.Controls.Add(statusStrip);
             this.MainMenuStrip = menuStrip;
-            
+
             // Agora é seguro definir o SplitterDistance
             splitPrincipal.SplitterDistance = 240;
+
+            // Ajustar largura do painel de propriedades (redução de 40% em relação ao layout anterior)
+            AjustarLarguraPainelPropriedades();
+        }
+
+        private void AjustarLarguraPainelPropriedades()
+        {
+            if (splitCentroDireita == null || splitCentroDireita.Width <= 0)
+                return;
+
+            int larguraBase = Math.Max(320, Screen.PrimaryScreen.Bounds.Width / 5);
+            int larguraPropriedades = Math.Max(190, (int)(larguraBase * 0.8f)); // -40%
+
+            if (splitCentroDireita.Width > larguraPropriedades)
+            {
+                splitCentroDireita.SplitterDistance = splitCentroDireita.Width - larguraPropriedades;
+            }
         }
 
         private void CriarMenu()
@@ -366,7 +411,7 @@ namespace CrimeSketcher.Forms
                 SplitterWidth = 3,
                 BackColor = Color.FromArgb(45, 45, 48)
             };
-            // Definir os MinSize DEPOIS ou configurar após adicionar ao form
+            // Definir os MinSize DEPOIS o configurar após adicionar ao form
 
             // ===== SPLIT CENTRO/DIREITA: Canvas | Propriedades =====
             splitCentroDireita = new SplitContainer
@@ -481,13 +526,17 @@ namespace CrimeSketcher.Forms
                 ("🧱 Parede", "Parede", "W"),
                 ("🚪 Parede + Porta", "ParedePorta", ""),
                 ("🪟 Parede + Janela", "ParedeJanela", ""),
-                ("🏠 Cômodo", "Comodo", "R"),
+                ("🚪🪟 Parede + Porta + Janela", "ParedePortaJanela", ""),
             }));
 
             // ===== GRUPO: VIAS =====
             container.Controls.Add(CriarGrupoFerramentas("Vias e Externos", new[]
             {
                 ("🛣️ Rua", "Rua", "S"),
+                ("➕ Cruzamento Cruz", "CruzamentoCruz", ""),
+                ("⊤ Cruzamento T", "CruzamentoT", ""),
+                ("⭕ Rotatória", "Rotatoria", ""),
+                ("🔴 Marca", "Marca", "M"),
             }));
 
             // ===== GRUPO: MEDIÇÕES =====
@@ -501,11 +550,8 @@ namespace CrimeSketcher.Forms
             // ===== GRUPO: CORPOS =====
             container.Controls.Add(CriarGrupoFerramentas("Representação de Corpos", new[]
             {
-                ("🧍 Em Pé", "CorpoEmPe", ""),
-                ("🛌 Deitado (Supino)", "CorpoDeitado", ""),
-                ("🙇 Deitado (Bruços)", "CorpoBrucos", ""),
-                ("🪑 Sentado", "CorpoSentado", ""),
-                ("🧎 Ajoelhado", "CorpoAjoelhado", ""),
+                ("🧍 Corpo Masculino", "CorpoMasculino", ""),
+                ("👩 Corpo Feminino", "CorpoFeminino", ""),
             }));
 
             painelFerramentas.Controls.Add(container);
@@ -562,14 +608,24 @@ namespace CrimeSketcher.Forms
             // Desmarcar anterior
             if (_botaoFerramentaAtiva != null)
             {
-                _botaoFerramentaAtiva.BackColor = Color.FromArgb(55, 55, 58);
-                _botaoFerramentaAtiva.ForeColor = Color.White;
+                _botaoFerramentaAtiva.BackColor = SystemColors.Control;
+                _botaoFerramentaAtiva.ForeColor = SystemColors.ControlText;
             }
 
             // Marcar novo
             _botaoFerramentaAtiva = btn;
-            btn.BackColor = Color.FromArgb(0, 122, 204);
-            btn.ForeColor = Color.White;
+            btn.BackColor = SystemColors.Highlight;
+            btn.ForeColor = SystemColors.HighlightText;
+        }
+
+        private void DesmarcarBotaoFerramenta()
+        {
+            if (_botaoFerramentaAtiva != null)
+            {
+                _botaoFerramentaAtiva.BackColor = SystemColors.Control;
+                _botaoFerramentaAtiva.ForeColor = SystemColors.ControlText;
+                _botaoFerramentaAtiva = null;
+            }
         }
 
         private void CriarPainelBiblioteca()
@@ -665,6 +721,154 @@ namespace CrimeSketcher.Forms
             painelDireito.Controls.Add(lblTitulo);
         }
 
+        private void AplicarTemaSistemaUI()
+        {
+            bool temaEscuro = SystemColors.Window.GetBrightness() < 0.5f;
+
+            Color corFundo = SystemColors.Control;
+            Color corFundoPainel = temaEscuro
+                ? ControlPaint.Dark(SystemColors.Control, 0.2f)
+                : ControlPaint.Light(SystemColors.Control, 0.1f);
+            Color corTexto = SystemColors.ControlText;
+            Color corDestaque = SystemColors.Highlight;
+            Color corTextoDestaque = SystemColors.HighlightText;
+            Color corBorda = SystemColors.ActiveBorder;
+
+            this.BackColor = corFundo;
+            this.ForeColor = corTexto;
+
+            if (menuStrip != null)
+            {
+                menuStrip.BackColor = corFundoPainel;
+                menuStrip.ForeColor = corTexto;
+                AplicarTemaToolStripItems(menuStrip.Items, corTexto, corFundoPainel);
+            }
+
+            if (toolStrip != null)
+            {
+                toolStrip.BackColor = corFundoPainel;
+                toolStrip.ForeColor = corTexto;
+                AplicarTemaToolStripItems(toolStrip.Items, corTexto, corFundoPainel);
+            }
+
+            if (statusStrip != null)
+            {
+                statusStrip.BackColor = corFundoPainel;
+                statusStrip.ForeColor = corTexto;
+                foreach (ToolStripItem item in statusStrip.Items)
+                    item.ForeColor = corTexto;
+            }
+
+            if (splitPrincipal != null)
+                splitPrincipal.BackColor = corBorda;
+            if (splitCentroDireita != null)
+                splitCentroDireita.BackColor = corBorda;
+
+            if (painelEsquerdo != null)
+                painelEsquerdo.BackColor = corFundoPainel;
+            if (painelFerramentas != null)
+                painelFerramentas.BackColor = corFundoPainel;
+            if (painelDireito != null)
+                painelDireito.BackColor = corFundoPainel;
+
+            AplicarTemaControles(this.Controls, corFundoPainel, corTexto, corDestaque, corTextoDestaque, corBorda);
+
+            if (propGrid != null)
+            {
+                propGrid.BackColor = corFundoPainel;
+                propGrid.ViewBackColor = SystemColors.Window;
+                propGrid.ViewForeColor = SystemColors.WindowText;
+                propGrid.HelpBackColor = corFundoPainel;
+                propGrid.HelpForeColor = corTexto;
+                propGrid.LineColor = corBorda;
+                propGrid.CategoryForeColor = corTexto;
+            }
+
+            canvas?.AplicarTemaSistema();
+            AtualizarStatusSnap();
+
+            if (_botaoFerramentaAtiva != null)
+            {
+                _botaoFerramentaAtiva.BackColor = corDestaque;
+                _botaoFerramentaAtiva.ForeColor = corTextoDestaque;
+            }
+        }
+
+        private void AplicarTemaToolStripItems(ToolStripItemCollection items, Color corTexto, Color corFundo)
+        {
+            foreach (ToolStripItem item in items)
+            {
+                item.ForeColor = corTexto;
+                if (item is ToolStripDropDownItem dropDown)
+                {
+                    dropDown.DropDown.BackColor = corFundo;
+                    AplicarTemaToolStripItems(dropDown.DropDownItems, corTexto, corFundo);
+                }
+            }
+        }
+
+        private void AplicarTemaControles(Control.ControlCollection controls,
+            Color corFundo, Color corTexto, Color corDestaque, Color corTextoDestaque, Color corBorda)
+        {
+            foreach (Control ctrl in controls)
+            {
+                switch (ctrl)
+                {
+                    case FlowLayoutPanel flow:
+                        flow.BackColor = corFundo;
+                        flow.ForeColor = corTexto;
+                        break;
+                    case TabPage tabPage:
+                        tabPage.BackColor = corFundo;
+                        tabPage.ForeColor = corTexto;
+                        break;
+                    case Panel panel:
+                        panel.BackColor = corFundo;
+                        panel.ForeColor = corTexto;
+                        break;
+                    case SplitContainer split:
+                        split.BackColor = corBorda;
+                        break;
+                    case GroupBox group:
+                        group.ForeColor = corTexto;
+                        group.BackColor = corFundo;
+                        break;
+                    case Label label:
+                        if (label.Dock == DockStyle.Top && label.Height <= 40)
+                        {
+                            label.BackColor = corDestaque;
+                            label.ForeColor = corTextoDestaque;
+                        }
+                        else
+                        {
+                            label.BackColor = corFundo;
+                            label.ForeColor = corTexto;
+                        }
+                        break;
+                    case Button btn:
+                        btn.BackColor = corFundo;
+                        btn.ForeColor = corTexto;
+                        btn.FlatAppearance.BorderColor = corBorda;
+                        btn.FlatAppearance.MouseOverBackColor = ControlPaint.Light(corFundo, 0.15f);
+                        btn.FlatAppearance.MouseDownBackColor = corDestaque;
+                        break;
+                    case TabControl tab:
+                        tab.BackColor = corFundo;
+                        tab.ForeColor = corTexto;
+                        break;
+                    case ListView listView:
+                        listView.BackColor = SystemColors.Window;
+                        listView.ForeColor = SystemColors.WindowText;
+                        break;
+                }
+
+                if (ctrl.HasChildren)
+                {
+                    AplicarTemaControles(ctrl.Controls, corFundo, corTexto, corDestaque, corTextoDestaque, corBorda);
+                }
+            }
+        }
+
         #endregion
 
         #region Inicialização do Sistema
@@ -684,6 +888,14 @@ namespace CrimeSketcher.Forms
             canvas.Escala = escala;
             canvas.Grid = grid;
             canvas.Documento = documento;
+
+            // Handler para desativação de ferramenta
+            canvas.ToolDeactivated += (s, e) =>
+            {
+                canvas.FerramentaAtual = selectTool;
+                statusLabel.Text = "Ferramenta Selecionar ativada";
+                DesmarcarBotaoFerramenta();
+            };
 
             // Criar todas as ferramentas
             CriarFerramentas();
@@ -714,13 +926,15 @@ namespace CrimeSketcher.Forms
             };
 
             wallTool = new WallTool(documento, grid);
-            roomTool = new RoomTool(documento, grid);
             streetTool = new StreetTool(documento, grid);
+            intersectionTool = new IntersectionTool(documento, grid);
+            roundaboutTool = new RoundaboutTool(documento, grid);
             dimensionTool = new DimensionTool(documento, grid, escala);
             stampTool = new StampTool(documento, grid);
             stickFigureTool = new StickFigureTool(documento, grid);
             textTool = new TextTool(documento, grid);
             arrowTool = new ArrowTool(documento, grid);
+            markTool = new MarkTool(documento, undoRedo);
         }
 
         private void RecriarFerramentas()
@@ -738,13 +952,15 @@ namespace CrimeSketcher.Forms
             };
 
             wallTool = new WallTool(documento, grid);
-            roomTool = new RoomTool(documento, grid);
             streetTool = new StreetTool(documento, grid);
+            intersectionTool = new IntersectionTool(documento, grid);
+            roundaboutTool = new RoundaboutTool(documento, grid);
             dimensionTool = new DimensionTool(documento, grid, escala);
             stampTool = new StampTool(documento, grid);
             stickFigureTool = new StickFigureTool(documento, grid);
             textTool = new TextTool(documento, grid);
             arrowTool = new ArrowTool(documento, grid);
+            markTool = new MarkTool(documento, undoRedo);
 
             canvas.FerramentaAtual = selectTool;
         }
@@ -860,19 +1076,72 @@ namespace CrimeSketcher.Forms
                     canvas.FerramentaAtual = wallTool;
                     break;
 
-                case "Comodo":
-                    string nomeComodo = InputBox("Nome do cômodo:", "Novo Cômodo", "Sala");
-                    if (!string.IsNullOrEmpty(nomeComodo))
-                    {
-                        roomTool.NomeComodo = nomeComodo;
-                        canvas.FerramentaAtual = roomTool;
-                    }
+                case "ParedePortaJanela":
+                    wallTool.ComPorta = true;
+                    wallTool.ComJanela = true;
+                    canvas.FerramentaAtual = wallTool;
                     break;
 
                 case "Rua":
                     string nomeRua = InputBox("Nome da rua:", "Nova Rua", "");
                     streetTool.NomeRua = nomeRua;
                     canvas.FerramentaAtual = streetTool;
+                    break;
+
+                case "RuaConfig":
+                    using (var dlg = new FormConfiguracaoRua(streetTool))
+                    {
+                        if (dlg.ShowDialog() == DialogResult.OK)
+                        {
+                            canvas.FerramentaAtual = streetTool;
+                        }
+                    }
+                    break;
+
+                case "CruzamentoCruz":
+                    intersectionTool.TipoCruzamento = TipoCruzamento.Cruz;
+                    canvas.FerramentaAtual = intersectionTool;
+                    break;
+
+                case "CruzamentoT":
+                    // Mostrar submenu para direção do T
+                    var menuT = new ContextMenuStrip();
+                    menuT.Items.Add("T para cima ⊥", null, (s2, e2) => {
+                        intersectionTool.TipoCruzamento = TipoCruzamento.TParaCima;
+                        canvas.FerramentaAtual = intersectionTool;
+                    });
+                    menuT.Items.Add("T para baixo ⊤", null, (s2, e2) => {
+                        intersectionTool.TipoCruzamento = TipoCruzamento.TParaBaixo;
+                        canvas.FerramentaAtual = intersectionTool;
+                    });
+                    menuT.Items.Add("T para esquerda ⊣", null, (s2, e2) => {
+                        intersectionTool.TipoCruzamento = TipoCruzamento.TParaEsquerda;
+                        canvas.FerramentaAtual = intersectionTool;
+                    });
+                    menuT.Items.Add("T para direita ⊢", null, (s2, e2) => {
+                        intersectionTool.TipoCruzamento = TipoCruzamento.TParaDireita;
+                        canvas.FerramentaAtual = intersectionTool;
+                    });
+                    menuT.Show(Cursor.Position);
+                    break;
+
+                case "Rotatoria":
+                    string numSaidas = InputBox("Número de saídas:", "Rotatória", "4");
+                    if (int.TryParse(numSaidas, out int saidas) && saidas >= 3)
+                    {
+                        roundaboutTool.NumeroSaidas = saidas;
+                        canvas.FerramentaAtual = roundaboutTool;
+                    }
+                    break;
+
+                case "Marca":
+                    using (var dlg = new FormConfiguracaoMarca(markTool))
+                    {
+                        if (dlg.ShowDialog() == DialogResult.OK)
+                        {
+                            canvas.FerramentaAtual = markTool;
+                        }
+                    }
                     break;
 
                 case "Cota":
@@ -887,34 +1156,25 @@ namespace CrimeSketcher.Forms
                     canvas.FerramentaAtual = arrowTool;
                     break;
 
-                case "CorpoEmPe":
-                    ConfigurarCorpo("EmPe");
+                case "CorpoMasculino":
+                    stickFigureTool.Genero = GeneroCorpo.Masculino;
+                    stickFigureTool.Pose = PoseCorpo.EmPe;
+                    ConfigurarCorpo();
                     break;
 
-                case "CorpoDeitado":
-                    ConfigurarCorpo("Deitado");
-                    break;
-
-                case "CorpoBrucos":
-                    ConfigurarCorpo("DeitadoBrucos");
-                    break;
-
-                case "CorpoSentado":
-                    ConfigurarCorpo("Sentado");
-                    break;
-
-                case "CorpoAjoelhado":
-                    ConfigurarCorpo("Ajoelhado");
+                case "CorpoFeminino":
+                    stickFigureTool.Genero = GeneroCorpo.Feminino;
+                    stickFigureTool.Pose = PoseCorpo.EmPe;
+                    ConfigurarCorpo();
                     break;
             }
 
             statusLabel.Text = $"Ferramenta: {ferramenta}";
         }
 
-        private void ConfigurarCorpo(string pose)
+        private void ConfigurarCorpo()
         {
             string rotulo = InputBox("Identificação do corpo:", "Corpo", "Vítima");
-            stickFigureTool.PoseInicial = pose;
             stickFigureTool.Rotulo = rotulo;
             canvas.FerramentaAtual = stickFigureTool;
         }
@@ -1084,63 +1344,234 @@ namespace CrimeSketcher.Forms
 
         private void Copiar()
         {
-            if (selectTool.ObjetoSelecionado != null)
+            var selecionados = selectTool.ObjetosSelecionados.ToList();
+            if (selecionados.Count == 0)
             {
-                _objetoCopiado = selectTool.ObjetoSelecionado;
-                statusLabel.Text = $"Copiado: {_objetoCopiado.Tipo}";
+                statusLabel.Text = "Nenhum objeto selecionado para copiar";
+                return;
             }
-        }
 
-        private void Colar()
-        {
-            // Implementação simplificada - seria necessário clonar o objeto
-            if (_objetoCopiado != null)
+            try
             {
-                statusLabel.Text = "Função Colar em desenvolvimento";
+                // Serializar objetos selecionados para JSON
+                var options = new JsonSerializerOptions
+                {
+                    WriteIndented = true,
+                    Converters = { new SketchObjectConverter() }
+                };
+                _objetosCopiados = JsonSerializer.Serialize(selecionados, options);
+                
+                statusLabel.Text = $"✓ {selecionados.Count} objeto(s) copiado(s)";
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Erro ao copiar objetos:\n{ex.Message}", 
+                    "Erro", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                statusLabel.Text = "Erro ao copiar objetos";
             }
         }
 
         private void Recortar()
         {
-            if (selectTool.ObjetoSelecionado != null)
+            var selecionados = selectTool.ObjetosSelecionados.ToList();
+            if (selecionados.Count == 0)
             {
-                _objetoCopiado = selectTool.ObjetoSelecionado;
-                documento.RemoverObjeto(selectTool.ObjetoSelecionado);
+                statusLabel.Text = "Nenhum objeto selecionado para recortar";
+                return;
+            }
+
+            try
+            {
+                // Copiar objetos primeiro
+                var options = new JsonSerializerOptions
+                {
+                    WriteIndented = true,
+                    Converters = { new SketchObjectConverter() }
+                };
+                _objetosCopiados = JsonSerializer.Serialize(selecionados, options);
+                
+                // Remover objetos do documento
+                foreach (var obj in selecionados)
+                {
+                    documento.RemoverObjeto(obj);
+                }
+                
+                selectTool.LimparSelecao();
                 propGrid.SelectedObject = null;
                 canvas.Invalidate();
-                statusLabel.Text = $"Recortado: {_objetoCopiado.Tipo}";
+                
+                statusLabel.Text = $"✓ {selecionados.Count} objeto(s) recortado(s)";
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Erro ao recortar objetos:\n{ex.Message}", 
+                    "Erro", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                statusLabel.Text = "Erro ao recortar objetos";
+            }
+        }
+
+        private void Colar()
+        {
+            if (string.IsNullOrEmpty(_objetosCopiados))
+            {
+                statusLabel.Text = "Nenhum objeto copiado na área de transferência";
+                return;
+            }
+
+            try
+            {
+                // Desserializar objetos da área de transferência
+                var options = new JsonSerializerOptions
+                {
+                    Converters = { new SketchObjectConverter() }
+                };
+                var objetos = JsonSerializer.Deserialize<List<BaseSketchObject>>(_objetosCopiados, options);
+                
+                if (objetos == null || objetos.Count == 0)
+                {
+                    statusLabel.Text = "Erro ao colar: dados inválidos";
+                    return;
+                }
+
+                // Offset para não colar exatamente no mesmo local
+                float offset = 20f;
+                
+                // Adicionar objetos ao documento com novo ID e posição offset
+                var objetosColados = new List<BaseSketchObject>();
+                foreach (var obj in objetos)
+                {
+                    // Gerar novo ID para evitar duplicação
+                    obj.Id = Guid.NewGuid().ToString();
+                    
+                    // Aplicar offset na posição
+                    obj.Posicao = new PointF(obj.Posicao.X + offset, obj.Posicao.Y + offset);
+                    
+                    // Adicionar ao documento
+                    documento.AdicionarObjeto(obj);
+                    objetosColados.Add(obj);
+                }
+                
+                // Selecionar objetos colados
+                selectTool.LimparSelecao();
+                foreach (var obj in objetosColados)
+                {
+                    obj.Selecionado = true;
+                }
+                
+                if (objetosColados.Count > 0)
+                {
+                    selectTool.SelecionarObjeto(objetosColados[objetosColados.Count - 1]);
+                    propGrid.SelectedObject = objetosColados[objetosColados.Count - 1];
+                }
+                
+                canvas.Invalidate();
+                statusLabel.Text = $"✓ {objetosColados.Count} objeto(s) colado(s)";
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Erro ao colar objetos:\n{ex.Message}", 
+                    "Erro", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                statusLabel.Text = "Erro ao colar objetos";
             }
         }
 
         private void ExcluirSelecao()
         {
-            if (selectTool.ObjetoSelecionado != null)
+            var selecionados = selectTool.ObjetosSelecionados.ToList();
+            if (selecionados.Count == 0)
             {
-                documento.RemoverObjeto(selectTool.ObjetoSelecionado);
-                propGrid.SelectedObject = null;
-                canvas.Invalidate();
-                statusLabel.Text = "Objeto excluído";
+                statusLabel.Text = "Nenhum objeto selecionado para excluir";
+                return;
             }
+
+            foreach (var obj in selecionados)
+            {
+                documento.RemoverObjeto(obj);
+            }
+
+            selectTool.LimparSelecao();
+            propGrid.SelectedObject = null;
+            canvas.Invalidate();
+            statusLabel.Text = $"✓ {selecionados.Count} objeto(s) excluído(s)";
         }
 
         private void SelecionarTudo()
         {
+            if (documento.Objetos.Count == 0)
+            {
+                statusLabel.Text = "Nenhum objeto para selecionar";
+                return;
+            }
+
             foreach (var obj in documento.Objetos)
             {
                 obj.Selecionado = true;
             }
+
+            var ultimo = documento.Objetos.Last();
+            selectTool.SelecionarObjeto(ultimo);
+            propGrid.SelectedObject = ultimo;
             canvas.Invalidate();
-            statusLabel.Text = $"{documento.Objetos.Count} objetos selecionados";
+            statusLabel.Text = $"✓ {documento.Objetos.Count} objeto(s) selecionado(s)";
         }
 
         private void Agrupar()
         {
-            statusLabel.Text = "Função Agrupar em desenvolvimento";
+            var selecionados = selectTool.ObjetosSelecionados.Where(o => o is not GroupObject).ToList();
+            if (selecionados.Count < 2)
+            {
+                statusLabel.Text = "Selecione pelo menos 2 objetos para agrupar";
+                return;
+            }
+
+            var grupo = documento.AgruparObjetos(selecionados);
+            if (grupo == null)
+            {
+                statusLabel.Text = "Não foi possível agrupar os objetos selecionados";
+                return;
+            }
+
+            selectTool.SelecionarObjeto(grupo);
+            propGrid.SelectedObject = grupo;
+            canvas.Invalidate();
+            statusLabel.Text = $"✓ {selecionados.Count} objeto(s) agrupado(s)";
         }
 
         private void Desagrupar()
         {
-            statusLabel.Text = "Função Desagrupar em desenvolvimento";
+            var grupos = selectTool.ObjetosSelecionados.OfType<GroupObject>().ToList();
+            if (grupos.Count == 0)
+            {
+                statusLabel.Text = "Selecione ao menos um grupo para desagrupar";
+                return;
+            }
+
+            BaseSketchObject? ultimoMembro = null;
+            int totalMembros = 0;
+
+            foreach (var grupo in grupos)
+            {
+                var membros = documento.DesagruparObjetos(grupo);
+                totalMembros += membros.Count;
+                if (membros.Count > 0)
+                {
+                    ultimoMembro = membros[membros.Count - 1];
+                }
+            }
+
+            if (ultimoMembro != null)
+            {
+                selectTool.SelecionarObjeto(ultimoMembro);
+                propGrid.SelectedObject = ultimoMembro;
+            }
+            else
+            {
+                selectTool.LimparSelecao();
+                propGrid.SelectedObject = null;
+            }
+
+            canvas.Invalidate();
+            statusLabel.Text = $"✓ {grupos.Count} grupo(s) desagrupado(s)";
         }
 
         private void AlterarZoom(float fator)

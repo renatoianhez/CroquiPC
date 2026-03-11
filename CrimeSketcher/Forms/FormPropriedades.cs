@@ -18,17 +18,30 @@ namespace CrimeSketcher.Forms
 
         private void InitializeComponent()
         {
-            this.Text = "Propriedades";
-            this.Size = new Size(300, 500);
-            this.FormBorderStyle = FormBorderStyle.SizableToolWindow;
-
-            propertyGrid = new PropertyGrid
-            {
-                Dock = DockStyle.Fill,
-                PropertySort = PropertySort.Categorized
-            };
-
-            this.Controls.Add(propertyGrid);
+            propertyGrid = new PropertyGrid();
+            SuspendLayout();
+            // 
+            // propertyGrid
+            // 
+            propertyGrid.Dock = DockStyle.Fill;
+            propertyGrid.Name = "propertyGrid";
+            propertyGrid.TabIndex = 0;
+            propertyGrid.ViewBackColor = SystemColors.Window;
+            propertyGrid.ViewForeColor = SystemColors.WindowText;
+            propertyGrid.HelpBackColor = SystemColors.Control;
+            propertyGrid.HelpForeColor = SystemColors.ControlText;
+            propertyGrid.LineColor = SystemColors.ActiveBorder;
+            // 
+            // FormPropriedades
+            // 
+            BackColor = SystemColors.Control;
+            ForeColor = SystemColors.ControlText;
+            ClientSize = new Size((int)(Screen.PrimaryScreen.Bounds.Width / 6f * 0.6f), 461);
+            Controls.Add(propertyGrid);
+            FormBorderStyle = FormBorderStyle.SizableToolWindow;
+            Name = "FormPropriedades";
+            Text = "Propriedades";
+            ResumeLayout(false);
         }
 
         public void MostrarPropriedades(BaseSketchObject obj)

@@ -1,5 +1,6 @@
 ﻿// Objects/DimensionLine.cs - Linha de Cota/Medida
 using System;
+using System.ComponentModel;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 
@@ -8,15 +9,39 @@ namespace CrimeSketcher.Objects
     [Serializable]
     public class DimensionLine : BaseSketchObject
     {
+        [Browsable(false)]
         public PointF PontoInicial { get; set; }
+
+        [Browsable(false)]
         public PointF PontoFinal { get; set; }
+
+        [Category("Aparência")]
+        [DisplayName("Offset da Linha")]
+        [Description("Distância da linha de cota em relação ao objeto medido")]
         public float Offset { get; set; } = 25f;
+
+        [Category("Aparência")]
+        [DisplayName("Extensão da Linha")]
+        [Description("Comprimento das linhas de extensão")]
         public float ExtensaoLinha { get; set; } = 8f;
+
+        [Category("Texto")]
+        [DisplayName("Texto Customizado")]
+        [Description("Texto customizado para a medida (deixe em branco para automático)")]
         public string TextoCustomizado { get; set; } = null;
+
+        [Category("Texto")]
+        [DisplayName("Mostrar Texto")]
+        [Description("Exibe o texto da medida")]
         public bool MostrarTexto { get; set; } = true;
+
+        [Category("Texto")]
+        [DisplayName("Tamanho da Fonte")]
+        [Description("Tamanho da fonte do texto da medida")]
         public float TamanhoFonte { get; set; } = 8f;
 
         // Referência à escala para converter pixels em medida real
+        [Browsable(false)]
         [System.Text.Json.Serialization.JsonIgnore]
         public Core.ScaleManager Escala { get; set; }
 
@@ -170,6 +195,26 @@ namespace CrimeSketcher.Objects
         {
             PontoInicial = new PointF(PontoInicial.X + dx, PontoInicial.Y + dy);
             PontoFinal = new PointF(PontoFinal.X + dx, PontoFinal.Y + dy);
+            Posicao = new PointF(Posicao.X + dx, Posicao.Y + dy);
+        }
+
+        public override void EscalarAoRedor(PointF centro, float fatorX, float fatorY)
+        {
+            PontoInicial = EscalarPonto(PontoInicial, centro, fatorX, fatorY);
+            PontoFinal = EscalarPonto(PontoFinal, centro, fatorX, fatorY);
+            float media = (Math.Abs(fatorX) + Math.Abs(fatorY)) / 2f;
+            Offset *= media;
+            ExtensaoLinha *= media;
+            TamanhoFonte = Math.Max(6f, TamanhoFonte * media);
+            base.EscalarAoRedor(centro, fatorX, fatorY);
+        }
+
+        public override void RotacionarAoRedor(PointF centro, float deltaGraus)
+        {
+            PontoInicial = RotacionarPonto(PontoInicial, centro, deltaGraus);
+            PontoFinal = RotacionarPonto(PontoFinal, centro, deltaGraus);
+            Posicao = RotacionarPonto(Posicao, centro, deltaGraus);
+            Rotacao += deltaGraus;
         }
     }
 }

@@ -1,4 +1,5 @@
 ﻿// Tools/StickFigureTool.cs
+using System;
 using System.Drawing;
 using System.Windows.Forms;
 using CrimeSketcher.Core;
@@ -15,8 +16,10 @@ namespace CrimeSketcher.Tools
         private GridManager _grid;
         private PointF _posAtual;
 
-        public string PoseInicial { get; set; } = "EmPe";
+        public PoseCorpo Pose { get; set; } = PoseCorpo.EmPe;
+        public GeneroCorpo Genero { get; set; } = GeneroCorpo.Masculino;
         public string Rotulo { get; set; } = "Vítima";
+        public int NumeroMarcador { get; set; } = 0;
 
         public StickFigureTool(SketchDocument doc, GridManager grid)
         {
@@ -29,13 +32,23 @@ namespace CrimeSketcher.Tools
             if (e.Button == MouseButtons.Left)
             {
                 var snapped = _grid.Snap(worldPos);
+
                 var figure = new StickFigure
                 {
                     Posicao = snapped,
-                    Rotulo = Rotulo
+                    Pose = Pose,
+                    Genero = Genero,
+                    Rotulo = Rotulo,
+                    NumeroMarcador = NumeroMarcador,
+                    BracosEstendidos = Pose == PoseCorpo.VistaAerea
                 };
-                figure.DefinirPose(PoseInicial);
+                figure.AplicarProporcoesGenero();
+
                 _doc.AdicionarObjeto(figure);
+
+                // Incrementar marcador para próximo corpo
+                if (NumeroMarcador > 0)
+                    NumeroMarcador++;
             }
         }
 
@@ -53,10 +66,14 @@ namespace CrimeSketcher.Tools
             var preview = new StickFigure
             {
                 Posicao = _posAtual,
-                Opacidade = 0.5f,
-                CorContorno = Color.FromArgb(128, 139, 0, 0)
+                Pose = Pose,
+                Genero = Genero,
+                Rotulo = Rotulo,
+                NumeroMarcador = NumeroMarcador,
+                BracosEstendidos = Pose == PoseCorpo.VistaAerea,
+                Opacidade = 0.6f
             };
-            preview.DefinirPose(PoseInicial);
+            preview.AplicarProporcoesGenero();
             preview.Desenhar(g);
         }
 

@@ -25,6 +25,14 @@ namespace CrimeSketcher.Core
         // Cursor info
         private PointF _cursorWorld;
 
+        // Tema
+        private Color _corFundoCanvas;
+        private Color _corHudFundo;
+        private Color _corHudTexto;
+        private Color _corReguaFundo;
+        private Color _corReguaLinha;
+        private Color _corReguaTexto;
+
         public SketchDocument Documento
         {
             get => _documento;
@@ -64,6 +72,7 @@ namespace CrimeSketcher.Core
 
         public event EventHandler<PointF> CursorMoved;
         public event EventHandler<float> ZoomChanged;
+        public event EventHandler ToolDeactivated;
 
         public SketchCanvas()
         {
@@ -72,10 +81,36 @@ namespace CrimeSketcher.Core
                      ControlStyles.OptimizedDoubleBuffer |
                      ControlStyles.ResizeRedraw, true);
 
-            BackColor = Color.White;
+            BackColor = SystemColors.Window;
 
             _escala = new ScaleManager();
             _grid = new GridManager(_escala);
+            AplicarTemaSistema();
+        }
+
+        public void AplicarTemaSistema()
+        {
+            bool temaEscuro = SystemColors.Window.GetBrightness() < 0.5f;
+
+            _corFundoCanvas = SystemColors.Window;
+            _corHudTexto = SystemColors.WindowText;
+            _corReguaFundo = ControlPaint.Light(SystemColors.Control, temaEscuro ? 0.1f : 0.35f);
+            _corReguaLinha = SystemColors.GrayText;
+            _corReguaTexto = SystemColors.ControlText;
+
+            _corHudFundo = temaEscuro
+                ? Color.FromArgb(180, 20, 20, 20)
+                : Color.FromArgb(180, 245, 245, 245);
+
+            _grid.CorGrade = temaEscuro
+                ? Color.FromArgb(45, 220, 220, 220)
+                : Color.FromArgb(40, 100, 100, 100);
+
+            _grid.CorGradePrincipal = temaEscuro
+                ? Color.FromArgb(80, 235, 235, 235)
+                : Color.FromArgb(60, 80, 80, 80);
+
+            Invalidate();
         }
 
         /// <summary>
@@ -108,7 +143,7 @@ namespace CrimeSketcher.Core
                 System.Drawing.Text.TextRenderingHint.ClearTypeGridFit;
 
             // Fundo
-            g.Clear(Color.FromArgb(245, 245, 240));
+            g.Clear(_corFundoCanvas);
 
             // Aplicar transformação (pan + zoom)
             g.TranslateTransform(_panOffset.X, _panOffset.Y);
@@ -136,6 +171,12 @@ namespace CrimeSketcher.Core
                         obj.Desenhar(g);
                     }
                 }
+
+                // Desenhar seleções após todos os objetos
+                foreach (var obj in _documento.Objetos)
+                {
+                    obj.DesenharSelecao(g);
+                }
             }
 
             // Preview da ferramenta atual
@@ -152,9 +193,8 @@ namespace CrimeSketcher.Core
         {
             // Escala no canto inferior esquerdo
             using (var font = new Font("Segoe UI", 9f))
-            using (var bgBrush = new SolidBrush(
-                Color.FromArgb(200, 40, 40, 40)))
-            using (var textBrush = new SolidBrush(Color.White))
+            using (var bgBrush = new SolidBrush(_corHudFundo))
+            using (var textBrush = new SolidBrush(_corHudTexto))
             {
                 string info = $"Escala: {_escala.TextoEscala}  |  " +
                     $"Zoom: {_escala.ZoomLevel * 100:F0}%  |  " +
@@ -181,9 +221,8 @@ namespace CrimeSketcher.Core
         private void DesenharRegua(Graphics g, bool horizontal)
         {
             float rulerSize = 20f;
-            using (var bgBrush = new SolidBrush(
-                Color.FromArgb(230, 250, 250, 245)))
-            using (var pen = new Pen(Color.Gray, 0.5f))
+            using (var bgBrush = new SolidBrush(_corReguaFundo))
+            using (var pen = new Pen(_corReguaLinha, 0.5f))
             using (var font = new Font("Segoe UI", 6f))
             {
                 if (horizontal)
@@ -202,9 +241,12 @@ namespace CrimeSketcher.Core
                         if (Math.Abs(worldX % (_grid.EspacamentoPixels *
                             _grid.SubdivisoesPrincipais)) < 1)
                         {
-                            g.DrawLine(Pens.DimGray, x, 0, x, rulerSize);
-                            g.DrawString($"{worldX:F0}", font,
-                                Brushes.DimGray, x + 2, 2);
+                            g.DrawLine(pen, x, 0, x, rulerSize);
+                            using (var textBrush = new SolidBrush(_corReguaTexto))
+                            {
+                                g.DrawString($"{worldX:F0}", font,
+                                    textBrush, x + 2, 2);
+                            }
                         }
                     }
                 }
@@ -224,12 +266,15 @@ namespace CrimeSketcher.Core
                         if (Math.Abs(worldY % (_grid.EspacamentoPixels *
                             _grid.SubdivisoesPrincipais)) < 1)
                         {
-                            g.DrawLine(Pens.DimGray, 0, y, rulerSize, y);
+                            g.DrawLine(pen, 0, y, rulerSize, y);
                             var state = g.Save();
                             g.TranslateTransform(2, y + 2);
                             g.RotateTransform(90);
-                            g.DrawString($"{worldY:F0}", font,
-                                Brushes.DimGray, 0, 0);
+                            using (var textBrush = new SolidBrush(_corReguaTexto))
+                            {
+                                g.DrawString($"{worldY:F0}", font,
+                                    textBrush, 0, 0);
+                            }
                             g.Restore(state);
                         }
                     }
@@ -281,8 +326,60 @@ namespace CrimeSketcher.Core
             if (_grid.SnapAtivo)
                 worldPos = _grid.Snap(worldPos);
 
+            // Mudar cursor se estiver sobre ponto de controle de curva
+            AtualizarCursor(worldPos);
+
             _ferramentaAtual?.OnMouseMove(e, worldPos);
             Invalidate();
+        }
+
+        private void AtualizarCursor(PointF worldPos)
+        {
+            // Verificar se o cursor está sobre ponto de controle de curva
+            if (_ferramentaAtual is Tools.SelectTool selectTool)
+            {
+                var objetoSelecionado = selectTool.ObjetoSelecionado;
+
+                if (objetoSelecionado != null)
+                {
+                    int handle = objetoSelecionado.GetHandleAtPoint(worldPos, 8f);
+                    if (handle == 8)
+                    {
+                        this.Cursor = Cursors.Hand;
+                        return;
+                    }
+                    if (handle >= 0)
+                    {
+                        this.Cursor = Cursors.SizeNWSE;
+                        return;
+                    }
+                }
+
+                // Verificar StreetObject
+                if (objetoSelecionado is Objects.StreetObject street && street.TemCurva)
+                {
+                    if (street.ContemPontoCurva(worldPos, 12f))
+                    {
+                        this.Cursor = Cursors.SizeAll;
+                        return;
+                    }
+                }
+                // Verificar MarkObject
+                else if (objetoSelecionado is Objects.MarkObject mark && mark.TemCurva)
+                {
+                    if (mark.ContemPontoCurva(worldPos, 12f))
+                    {
+                        this.Cursor = Cursors.SizeAll;
+                        return;
+                    }
+                }
+            }
+
+            // Cursor padrão da ferramenta
+            if (_ferramentaAtual != null)
+            {
+                this.Cursor = _ferramentaAtual.Cursor;
+            }
         }
 
         protected override void OnMouseUp(MouseEventArgs e)
@@ -293,6 +390,20 @@ namespace CrimeSketcher.Core
             {
                 _panning = false;
                 this.Cursor = _ferramentaAtual?.Cursor ?? Cursors.Default;
+                return;
+            }
+
+            // Desativar ferramenta com clique do botão direito (sem Ctrl)
+            if (e.Button == MouseButtons.Right && !ModifierKeys.HasFlag(Keys.Control))
+            {
+                if (_ferramentaAtual != null && _ferramentaAtual.Nome != "Selecionar")
+                {
+                    _ferramentaAtual?.Cancelar();
+                    _ferramentaAtual = null;
+                    this.Cursor = Cursors.Default;
+                    ToolDeactivated?.Invoke(this, EventArgs.Empty);
+                    Invalidate();
+                }
                 return;
             }
 

@@ -102,6 +102,68 @@ namespace CrimeSketcher.Core
         {
             DocumentoAlterado?.Invoke(this, EventArgs.Empty);
         }
+
+        /// <summary>
+        /// Agrupa múltiplos objetos em um GroupObject
+        /// </summary>
+        public GroupObject AgruparObjetos(List<BaseSketchObject> objetos, bool comUndo = true)
+        {
+            if (objetos.Count < 2)
+                return null;
+
+            // Remover grupos da lista se existirem
+            var agrupar = objetos.Where(o => !(o is GroupObject)).ToList();
+            if (agrupar.Count < 2)
+                return null;
+
+            // Criar novo grupo
+            var grupo = new GroupObject(agrupar);
+
+            // Remover objetos individuais do documento
+            foreach (var obj in agrupar)
+            {
+                Objetos.Remove(obj);
+            }
+
+            // Adicionar grupo
+            Objetos.Add(grupo);
+
+            if (comUndo)
+            {
+                UndoRedo.RegistrarAcao(new GroupAction(this, grupo, agrupar));
+            }
+
+            DocumentoAlterado?.Invoke(this, EventArgs.Empty);
+            return grupo;
+        }
+
+        /// <summary>
+        /// Desagrupa um GroupObject
+        /// </summary>
+        public List<BaseSketchObject> DesagruparObjetos(GroupObject grupo, bool comUndo = true)
+        {
+            if (grupo == null || grupo.ObjetosMembro.Count == 0)
+                return new List<BaseSketchObject>();
+
+            var membros = new List<BaseSketchObject>(grupo.ObjetosMembro);
+
+            // Remover grupo
+            Objetos.Remove(grupo);
+
+            // Adicionar membros novamente
+            foreach (var obj in membros)
+            {
+                Objetos.Add(obj);
+            }
+
+            if (comUndo)
+            {
+                UndoRedo.RegistrarAcao(new UngroupAction(this, grupo, membros));
+            }
+
+            DocumentoAlterado?.Invoke(this, EventArgs.Empty);
+            return membros;
+        }
     }
 
     /// <summary>
@@ -124,11 +186,15 @@ namespace CrimeSketcher.Core
                     "Parede" => JsonSerializer.Deserialize<WallObject>(json, options),
                     "Cômodo" => JsonSerializer.Deserialize<RoomObject>(json, options),
                     "Rua" => JsonSerializer.Deserialize<StreetObject>(json, options),
+                    "Cruzamento" => JsonSerializer.Deserialize<IntersectionObject>(json, options),
+                    "Rotatória" => JsonSerializer.Deserialize<RoundaboutObject>(json, options),
                     "Cota" => JsonSerializer.Deserialize<DimensionLine>(json, options),
                     "Corpo" => JsonSerializer.Deserialize<StickFigure>(json, options),
                     "Símbolo" => JsonSerializer.Deserialize<StampObject>(json, options),
                     "Texto" => JsonSerializer.Deserialize<TextLabel>(json, options),
                     "Seta" => JsonSerializer.Deserialize<ArrowObject>(json, options),
+                    "Marca" => JsonSerializer.Deserialize<MarkObject>(json, options),
+                    "Grupo" => JsonSerializer.Deserialize<GroupObject>(json, options),
                     _ => throw new JsonException($"Tipo desconhecido: {tipo}")
                 };
             }
@@ -138,6 +204,84 @@ namespace CrimeSketcher.Core
             BaseSketchObject value, JsonSerializerOptions options)
         {
             JsonSerializer.Serialize(writer, value, value.GetType(), options);
+        }
+    }
+
+    /// <summary>
+    /// Ação de Undo/Redo para agrupar objetos
+    /// </summary>
+    public class GroupAction : IUndoableAction
+    {
+        private readonly SketchDocument _doc;
+        private readonly GroupObject _grupo;
+        private readonly List<BaseSketchObject> _membros;
+
+        public string Descricao => $"Agrupar {_membros.Count} objetos";
+
+        public GroupAction(SketchDocument doc, GroupObject grupo, List<BaseSketchObject> membros)
+        {
+            _doc = doc;
+            _grupo = grupo;
+            _membros = new List<BaseSketchObject>(membros);
+        }
+
+        public void Executar()
+        {
+            foreach (var obj in _membros)
+            {
+                _doc.Objetos.Remove(obj);
+            }
+            _doc.Objetos.Add(_grupo);
+            _doc.NotificarAlteracao();
+        }
+
+        public void Desfazer()
+        {
+            _doc.Objetos.Remove(_grupo);
+            foreach (var obj in _membros)
+            {
+                _doc.Objetos.Add(obj);
+            }
+            _doc.NotificarAlteracao();
+        }
+    }
+
+    /// <summary>
+    /// Ação de Undo/Redo para desagrupar objetos
+    /// </summary>
+    public class UngroupAction : IUndoableAction
+    {
+        private readonly SketchDocument _doc;
+        private readonly GroupObject _grupo;
+        private readonly List<BaseSketchObject> _membros;
+
+        public string Descricao => $"Desagrupar {_membros.Count} objetos";
+
+        public UngroupAction(SketchDocument doc, GroupObject grupo, List<BaseSketchObject> membros)
+        {
+            _doc = doc;
+            _grupo = grupo;
+            _membros = new List<BaseSketchObject>(membros);
+        }
+
+        public void Executar()
+        {
+            _doc.Objetos.Remove(_grupo);
+            foreach (var obj in _membros)
+            {
+                _doc.Objetos.Add(obj);
+            }
+            _doc.NotificarAlteracao();
+        }
+
+        public void Desfazer()
+        {
+            foreach (var obj in _membros)
+            {
+                _doc.Objetos.Remove(obj);
+            }
+            _doc.Objetos.Add(_grupo);
+            _doc.NotificarAlteracao();
         }
     }
 }
