@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Windows.Forms;
 using System.Text.Json;
 using Microsoft.Win32;
@@ -188,6 +189,9 @@ namespace CrimeSketcher.Forms
                 CriarMenuItem("C&olar", "Ctrl+V", Colar),
                 CriarMenuItem("Recor&tar", "Ctrl+X", Recortar),
                 new ToolStripSeparator(),
+                CriarMenuItem("Inverter &Horizontal", "", InverterHorizontalSelecionados),
+                CriarMenuItem("Inverter &Vertical", "", InverterVerticalSelecionados),
+                new ToolStripSeparator(),
                 CriarMenuItem("&Excluir", "Delete", ExcluirSelecao),
                 CriarMenuItem("Selecionar &Tudo", "Ctrl+A", SelecionarTudo)
             });
@@ -329,6 +333,12 @@ namespace CrimeSketcher.Forms
             toolStrip.Items.Add(CriarBotaoToolbar("⬆", "Alinhar ao Topo", () => Alinhar("topo")));
             toolStrip.Items.Add(CriarBotaoToolbar("⬍", "Centralizar Vertical", () => Alinhar("centro_v")));
             toolStrip.Items.Add(CriarBotaoToolbar("⬇", "Alinhar à Base", () => Alinhar("base")));
+
+            toolStrip.Items.Add(new ToolStripSeparator());
+
+            // ===== INVERSÃO =====
+            toolStrip.Items.Add(CriarBotaoToolbar("↔", "Inverter Horizontal", InverterHorizontalSelecionados));
+            toolStrip.Items.Add(CriarBotaoToolbar("↕", "Inverter Vertical", InverterVerticalSelecionados));
 
             toolStrip.Items.Add(new ToolStripSeparator());
 
@@ -920,6 +930,7 @@ namespace CrimeSketcher.Forms
             selectTool.SelectionChanged += (s, obj) =>
             {
                 propGrid.SelectedObject = obj;
+                AjustarColunaNomesPropriedades();
                 statusLabel.Text = obj != null
                     ? $"Selecionado: {obj.Tipo} - {obj.Nome}"
                     : "Pronto";
@@ -946,6 +957,7 @@ namespace CrimeSketcher.Forms
             selectTool.SelectionChanged += (s, obj) =>
             {
                 propGrid.SelectedObject = obj;
+                AjustarColunaNomesPropriedades();
                 statusLabel.Text = obj != null
                     ? $"Selecionado: {obj.Tipo} - {obj.Nome}"
                     : "Pronto";
@@ -1174,7 +1186,7 @@ namespace CrimeSketcher.Forms
 
         private void ConfigurarCorpo()
         {
-            string rotulo = InputBox("Identificação do corpo:", "Corpo", "Vítima");
+            string rotulo = InputBox("Identificação do corpo:", "Corpo", "");
             stickFigureTool.Rotulo = rotulo;
             canvas.FerramentaAtual = stickFigureTool;
         }
@@ -2123,6 +2135,88 @@ namespace CrimeSketcher.Forms
             form.CancelButton = buttonCancel;
 
             return form.ShowDialog() == DialogResult.OK ? textBox.Text : "";
+        }
+
+        private void InverterHorizontalSelecionados()
+        {
+            InverterSelecionados(horizontal: true);
+        }
+
+        private void InverterVerticalSelecionados()
+        {
+            InverterSelecionados(horizontal: false);
+        }
+
+        private void InverterSelecionados(bool horizontal)
+        {
+            var selecionados = selectTool?.ObjetosSelecionados?.ToList()
+                ?? new List<BaseSketchObject>();
+
+            if (selecionados.Count == 0)
+            {
+                statusLabel.Text = "Nenhum objeto selecionado para inverter";
+                return;
+            }
+
+            int invertidos = 0;
+
+            foreach (var obj in selecionados)
+            {
+                if (obj.Bloqueado)
+                    continue;
+
+                var bounds = obj.GetBounds();
+                var centro = new PointF(
+                    bounds.Left + bounds.Width / 2f,
+                    bounds.Top + bounds.Height / 2f);
+
+                if (horizontal)
+                    obj.EscalarAoRedor(centro, -1f, 1f);
+                else
+                    obj.EscalarAoRedor(centro, 1f, -1f);
+
+                invertidos++;
+            }
+
+            if (invertidos == 0)
+            {
+                statusLabel.Text = "Nenhum objeto pôde ser invertido (bloqueado)";
+                return;
+            }
+
+            documento.NotificarAlteracao();
+            canvas.Invalidate();
+            statusLabel.Text = horizontal
+                ? $"✓ {invertidos} objeto(s) invertido(s) horizontalmente"
+                : $"✓ {invertidos} objeto(s) invertido(s) verticalmente";
+        }
+
+        private void AjustarColunaNomesPropriedades()
+        {
+            if (propGrid == null || !propGrid.IsHandleCreated)
+                return;
+
+            const int larguraColunaNomes = 160;
+
+            propGrid.BeginInvoke(new Action(() =>
+            {
+                try
+                {
+                    var gridViewField = typeof(PropertyGrid).GetField("gridView",
+                        BindingFlags.Instance | BindingFlags.NonPublic);
+                    var gridView = gridViewField?.GetValue(propGrid);
+                    if (gridView == null)
+                        return;
+
+                    var moveSplitter = gridView.GetType().GetMethod("MoveSplitterTo",
+                        BindingFlags.Instance | BindingFlags.NonPublic)
+                        ?? gridView.GetType().GetMethod("MoveSplitter",
+                        BindingFlags.Instance | BindingFlags.NonPublic);
+
+                    moveSplitter?.Invoke(gridView, new object[] { larguraColunaNomes });
+                }
+                catch { }
+            }));
         }
 
         #endregion

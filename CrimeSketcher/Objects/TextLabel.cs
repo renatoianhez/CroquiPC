@@ -113,9 +113,38 @@ namespace CrimeSketcher.Objects
 
         public override bool ContemPonto(PointF ponto, float tolerancia)
         {
-            var bounds = GetBounds();
-            bounds.Inflate(tolerancia, tolerancia);
-            return bounds.Contains(ponto);
+            FontStyle style = FontStyle.Regular;
+            if (Negrito) style |= FontStyle.Bold;
+            if (Italico) style |= FontStyle.Italic;
+
+            using (var bmp = new Bitmap(1, 1))
+            using (var g = Graphics.FromImage(bmp))
+            using (var font = new Font(FonteNome, FonteTamanho, style))
+            {
+                var size = g.MeasureString(Texto, font);
+
+                float sx = EscalaX;
+                float sy = EscalaY;
+                if (Math.Abs(sx) < 0.0001f || Math.Abs(sy) < 0.0001f)
+                    return false;
+
+                float dx = ponto.X - Posicao.X;
+                float dy = ponto.Y - Posicao.Y;
+
+                double rad = -Rotacao * Math.PI / 180.0;
+                float cos = (float)Math.Cos(rad);
+                float sin = (float)Math.Sin(rad);
+
+                float xr = dx * cos - dy * sin;
+                float yr = dx * sin + dy * cos;
+
+                float lx = xr / sx;
+                float ly = yr / sy;
+
+                var local = new RectangleF(0, 0, size.Width, size.Height);
+                local.Inflate(tolerancia, tolerancia);
+                return local.Contains(lx, ly);
+            }
         }
 
         public override RectangleF GetBounds()
@@ -129,7 +158,39 @@ namespace CrimeSketcher.Objects
             using (var font = new Font(FonteNome, FonteTamanho, style))
             {
                 var size = g.MeasureString(Texto, font);
-                return new RectangleF(Posicao, size);
+
+                float sx = EscalaX;
+                float sy = EscalaY;
+                double rad = Rotacao * Math.PI / 180.0;
+                float cos = (float)Math.Cos(rad);
+                float sin = (float)Math.Sin(rad);
+
+                PointF[] local = new[]
+                {
+                    new PointF(0, 0),
+                    new PointF(size.Width, 0),
+                    new PointF(size.Width, size.Height),
+                    new PointF(0, size.Height)
+                };
+
+                float minX = float.MaxValue, minY = float.MaxValue;
+                float maxX = float.MinValue, maxY = float.MinValue;
+
+                foreach (var p in local)
+                {
+                    float x = p.X * sx;
+                    float y = p.Y * sy;
+
+                    float wx = Posicao.X + (x * cos - y * sin);
+                    float wy = Posicao.Y + (x * sin + y * cos);
+
+                    minX = Math.Min(minX, wx);
+                    minY = Math.Min(minY, wy);
+                    maxX = Math.Max(maxX, wx);
+                    maxY = Math.Max(maxY, wy);
+                }
+
+                return RectangleF.FromLTRB(minX, minY, maxX, maxY);
             }
         }
 

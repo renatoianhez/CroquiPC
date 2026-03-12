@@ -1,6 +1,8 @@
 ﻿// Tools/StampTool.cs
+using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Drawing2D;
+using System.IO;
 using System.Windows.Forms;
 using CrimeSketcher.Core;
 using CrimeSketcher.Library;
@@ -16,6 +18,8 @@ namespace CrimeSketcher.Tools
         private SketchDocument _doc;
         private GridManager _grid;
         private PointF _posAtual;
+        private readonly Dictionary<string, Image> _previewCache =
+            new Dictionary<string, Image>();
 
         public SymbolItem SimboloAtual { get; set; }
 
@@ -56,14 +60,22 @@ namespace CrimeSketcher.Tools
 
         public void Desenhar(Graphics g)
         {
-            if (SimboloAtual?.Thumbnail == null) return;
+            if (SimboloAtual == null) return;
 
-            // Preview do símbolo no cursor
             float w = SimboloAtual.LarguraPadrao;
             float h = SimboloAtual.AlturaPadrao;
 
-            g.DrawImage(SimboloAtual.Thumbnail,
-                _posAtual.X - w / 2, _posAtual.Y - h / 2, w, h);
+            var preview = ObterImagemPreview(SimboloAtual);
+            if (preview != null)
+            {
+                g.DrawImage(preview,
+                    _posAtual.X - w / 2, _posAtual.Y - h / 2, w, h);
+            }
+            else if (SimboloAtual.Thumbnail != null)
+            {
+                g.DrawImage(SimboloAtual.Thumbnail,
+                    _posAtual.X - w / 2, _posAtual.Y - h / 2, w, h);
+            }
 
             using (var pen = new Pen(Color.FromArgb(100, 0, 120, 255), 1f))
             {
@@ -71,6 +83,28 @@ namespace CrimeSketcher.Tools
                 g.DrawRectangle(pen,
                     _posAtual.X - w / 2, _posAtual.Y - h / 2, w, h);
             }
+        }
+
+        private Image ObterImagemPreview(SymbolItem simbolo)
+        {
+            if (simbolo == null || string.IsNullOrEmpty(simbolo.CaminhoImagem))
+                return null;
+
+            if (_previewCache.TryGetValue(simbolo.CaminhoImagem, out var img))
+                return img;
+
+            try
+            {
+                if (File.Exists(simbolo.CaminhoImagem))
+                {
+                    img = Image.FromFile(simbolo.CaminhoImagem);
+                    _previewCache[simbolo.CaminhoImagem] = img;
+                    return img;
+                }
+            }
+            catch { }
+
+            return null;
         }
 
         public void Cancelar() { }

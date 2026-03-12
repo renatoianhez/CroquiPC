@@ -827,21 +827,73 @@ namespace CrimeSketcher.Objects
 
         public override bool ContemPonto(PointF ponto, float tolerancia)
         {
-            var bounds = GetBounds();
-            bounds.Inflate(tolerancia, tolerancia);
-            return bounds.Contains(ponto);
+            float baseLargura = LarguraTotal / Math.Max(0.0001f, EscalaCorpo);
+            float baseAltura = AlturaTotal / Math.Max(0.0001f, EscalaCorpo);
+
+            float sx = EscalaCorpo * EscalaX;
+            float sy = EscalaCorpo * EscalaY;
+            if (Math.Abs(sx) < 0.0001f || Math.Abs(sy) < 0.0001f)
+                return false;
+
+            float angulo = Rotacao + AnguloCorpo;
+
+            float dx = ponto.X - Posicao.X;
+            float dy = ponto.Y - Posicao.Y;
+
+            double rad = -angulo * Math.PI / 180.0;
+            float cos = (float)Math.Cos(rad);
+            float sin = (float)Math.Sin(rad);
+
+            float xr = dx * cos - dy * sin;
+            float yr = dx * sin + dy * cos;
+
+            float lx = xr / sx;
+            float ly = yr / sy;
+
+            var local = new RectangleF(-baseLargura / 2f, -baseAltura / 2f, baseLargura, baseAltura);
+            local.Inflate(tolerancia, tolerancia);
+            return local.Contains(lx, ly);
         }
 
         public override RectangleF GetBounds()
         {
-            float largura = LarguraTotal;
-            float altura = AlturaTotal;
+            float baseLargura = LarguraTotal / Math.Max(0.0001f, EscalaCorpo);
+            float baseAltura = AlturaTotal / Math.Max(0.0001f, EscalaCorpo);
 
-            return new RectangleF(
-                Posicao.X - largura / 2,
-                Posicao.Y - altura / 2,
-                largura,
-                altura);
+            float sx = EscalaCorpo * EscalaX;
+            float sy = EscalaCorpo * EscalaY;
+            float angulo = Rotacao + AnguloCorpo;
+
+            double rad = angulo * Math.PI / 180.0;
+            float cos = (float)Math.Cos(rad);
+            float sin = (float)Math.Sin(rad);
+
+            PointF[] local = new[]
+            {
+                new PointF(-baseLargura / 2f, -baseAltura / 2f),
+                new PointF(baseLargura / 2f, -baseAltura / 2f),
+                new PointF(baseLargura / 2f, baseAltura / 2f),
+                new PointF(-baseLargura / 2f, baseAltura / 2f)
+            };
+
+            float minX = float.MaxValue, minY = float.MaxValue;
+            float maxX = float.MinValue, maxY = float.MinValue;
+
+            foreach (var p in local)
+            {
+                float x = p.X * sx;
+                float y = p.Y * sy;
+
+                float wx = Posicao.X + (x * cos - y * sin);
+                float wy = Posicao.Y + (x * sin + y * cos);
+
+                minX = Math.Min(minX, wx);
+                minY = Math.Min(minY, wy);
+                maxX = Math.Max(maxX, wx);
+                maxY = Math.Max(maxY, wy);
+            }
+
+            return RectangleF.FromLTRB(minX, minY, maxX, maxY);
         }
 
         #endregion
