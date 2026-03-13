@@ -144,7 +144,10 @@ namespace CrimeSketcher.Objects
                 }
             }
 
-            // 2. Asfalto (anel)
+            // 2. Saídas (extensões para ruas) - desenhar cedo para o asfalto circular sobrepor
+            DesenharSaidas(g, raioTotal);
+
+            // 3. Asfalto circular (anel)
             using (var brush = new SolidBrush(Color.FromArgb(CorAsfaltoArgb)))
             {
                 g.FillEllipse(brush, -RaioExterno, -RaioExterno,
@@ -159,7 +162,7 @@ namespace CrimeSketcher.Objects
                     RaioExterno * 2, RaioExterno * 2);
             }
 
-            // 3. Ilha central
+            // 4. Ilha central
             if (TemIlhaCentral)
             {
                 // Meio-fio da ilha
@@ -195,11 +198,8 @@ namespace CrimeSketcher.Objects
                 }
             }
 
-            // 4. Faixa tracejada circular
+            // 5. Faixa tracejada circular
             DesenharFaixaCircular(g);
-
-            // 5. Saídas (extensões para ruas)
-            DesenharSaidas(g, raioTotal);
 
             // 6. Setas de direção
             DesenharSetasDirecao(g);
