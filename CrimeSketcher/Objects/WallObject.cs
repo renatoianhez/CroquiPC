@@ -51,7 +51,7 @@ namespace CrimeSketcher.Objects
         [Category("Aberturas")]
         [DisplayName("Largura da Porta")]
         [Description("Largura da porta em pixels")]
-        public float LarguraPorta { get; set; } = 30f;
+        public float LarguraPorta { get; set; } = 50f;
 
         [Category("Aberturas")]
         [DisplayName("Posição da Janela")]
@@ -61,7 +61,7 @@ namespace CrimeSketcher.Objects
         [Category("Aberturas")]
         [DisplayName("Largura da Janela")]
         [Description("Largura da janela em pixels")]
-        public float LarguraJanela { get; set; } = 30f;
+        public float LarguraJanela { get; set; } = 50f;
 
         [Category("Aberturas")]
         [DisplayName("Cor da Porta")]
@@ -134,8 +134,53 @@ namespace CrimeSketcher.Objects
             using (var path = new GraphicsPath())
             {
                 float halfW = Espessura / 2;
-                path.AddRectangle(new RectangleF(0, -halfW,
-                    comprimento, Espessura));
+
+                if (TemPorta || TemJanela)
+                {
+                    var aberturas = new List<(float Inicio, float Fim)>();
+
+                    if (TemPorta && TentarCalcularAbertura(PosicaoPorta, LarguraPorta, comprimento, out var inicioPorta, out var fimPorta))
+                    {
+                        aberturas.Add((inicioPorta, fimPorta));
+                    }
+
+                    if (TemJanela && TentarCalcularAbertura(PosicaoJanela, LarguraJanela, comprimento, out var inicioJanela, out var fimJanela))
+                    {
+                        aberturas.Add((inicioJanela, fimJanela));
+                    }
+
+                    if (aberturas.Count == 0)
+                    {
+                        path.AddRectangle(new RectangleF(0, -halfW, comprimento, Espessura));
+                    }
+                    else
+                    {
+                        aberturas.Sort((a, b) => a.Inicio.CompareTo(b.Inicio));
+
+                        float cursor = 0f;
+                        foreach (var abertura in aberturas)
+                        {
+                            float ini = Math.Max(0f, abertura.Inicio);
+                            float fim = Math.Min(comprimento, abertura.Fim);
+
+                            if (ini > cursor)
+                            {
+                                path.AddRectangle(new RectangleF(cursor, -halfW, ini - cursor, Espessura));
+                            }
+
+                            cursor = Math.Max(cursor, fim);
+                        }
+
+                        if (cursor < comprimento)
+                        {
+                            path.AddRectangle(new RectangleF(cursor, -halfW, comprimento - cursor, Espessura));
+                        }
+                    }
+                }
+                else
+                {
+                    path.AddRectangle(new RectangleF(0, -halfW, comprimento, Espessura));
+                }
 
                 var matrix = new Matrix();
                 matrix.Translate(PontoInicial.X, PontoInicial.Y);

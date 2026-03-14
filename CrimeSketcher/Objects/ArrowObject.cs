@@ -6,6 +6,20 @@ using System.Drawing.Drawing2D;
 
 namespace CrimeSketcher.Objects
 {
+    public enum TipoLinhaSeta
+    {
+        Solida,
+        Tracejada,
+        Pontilhada,
+        TracoPonto
+    }
+
+    public enum TipoPontaSeta
+    {
+        Fechada,
+        Aberta
+    }
+
     [Serializable]
     public class ArrowObject : BaseSketchObject
     {
@@ -19,6 +33,16 @@ namespace CrimeSketcher.Objects
         [DisplayName("Tamanho da Seta")]
         [Description("Tamanho da ponta da seta em pixels")]
         public float TamanhoSeta { get; set; } = 12f;
+
+        [Category("Aparência")]
+        [DisplayName("Tipo de Linha")]
+        [Description("Define o estilo da linha da seta")]
+        public TipoLinhaSeta TipoLinha { get; set; } = TipoLinhaSeta.Solida;
+
+        [Category("Aparência")]
+        [DisplayName("Tipo de Ponta")]
+        [Description("Define o tipo da ponta da seta")]
+        public TipoPontaSeta TipoPonta { get; set; } = TipoPontaSeta.Fechada;
 
         [Category("Aparência")]
         [DisplayName("Seta no Início")]
@@ -50,15 +74,25 @@ namespace CrimeSketcher.Objects
 
             using (var pen = new Pen(CorContorno, EspessuraContorno))
             {
+                pen.DashStyle = TipoLinha switch
+                {
+                    TipoLinhaSeta.Tracejada => DashStyle.Dash,
+                    TipoLinhaSeta.Pontilhada => DashStyle.Dot,
+                    TipoLinhaSeta.TracoPonto => DashStyle.DashDot,
+                    _ => DashStyle.Solid
+                };
+
+                bool pontaFechada = TipoPonta == TipoPontaSeta.Fechada;
+
                 if (SetaFim)
                 {
                     pen.CustomEndCap = new AdjustableArrowCap(
-                        TamanhoSeta / 2, TamanhoSeta / 2);
+                        TamanhoSeta / 2, TamanhoSeta / 2, pontaFechada);
                 }
                 if (SetaInicio)
                 {
                     pen.CustomStartCap = new AdjustableArrowCap(
-                        TamanhoSeta / 2, TamanhoSeta / 2);
+                        TamanhoSeta / 2, TamanhoSeta / 2, pontaFechada);
                 }
 
                 g.DrawLine(pen, pontoInicial, pontoFinal);
