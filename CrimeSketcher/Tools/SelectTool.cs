@@ -111,6 +111,16 @@ namespace CrimeSketcher.Tools
                     return;
                 }
             }
+            else if (ObjetoSelecionado is ArrowObject arrow && arrow.TemCurva)
+            {
+                if (arrow.ContemPontoCurva(worldPos, 12f))
+                {
+                    _arrastandoPontoCurva = true;
+                    _objetoComCurva = arrow;
+                    _pontoCurvaAnterior = arrow.PontoCurva.Value;
+                    return;
+                }
+            }
 
             if (ObjetoSelecionado != null && !ObjetoSelecionado.Bloqueado)
             {
@@ -192,6 +202,10 @@ namespace CrimeSketcher.Tools
                 {
                     mark.MoverPontoCurva(worldPos);
                 }
+                else if (_objetoComCurva is ArrowObject arrow)
+                {
+                    arrow.MoverPontoCurva(worldPos);
+                }
             }
             else if (_redimensionando && _objetoTransformando != null)
             {
@@ -238,6 +252,10 @@ namespace CrimeSketcher.Tools
                 else if (_objetoComCurva is MarkObject mark && mark.PontoCurva.HasValue)
                 {
                     _ = _pontoCurvaAnterior != mark.PontoCurva.Value;
+                }
+                else if (_objetoComCurva is ArrowObject arrow && arrow.PontoCurva.HasValue)
+                {
+                    _ = _pontoCurvaAnterior != arrow.PontoCurva.Value;
                 }
 
                 _arrastandoPontoCurva = false;
@@ -356,6 +374,19 @@ namespace CrimeSketcher.Tools
             if (_alcaAtiva == 4 || _alcaAtiva == 5) fatorX = 1f;
             if (_alcaAtiva == 6 || _alcaAtiva == 7) fatorY = 1f;
 
+            if (obj is StampObject stamp && stamp.ManterProporcao)
+            {
+                float fatorUniforme = _alcaAtiva switch
+                {
+                    4 or 5 => fatorY,
+                    6 or 7 => fatorX,
+                    _ => Math.Abs(fatorX - 1f) >= Math.Abs(fatorY - 1f) ? fatorX : fatorY
+                };
+
+                fatorX = fatorUniforme;
+                fatorY = fatorUniforme;
+            }
+
             var centroAntigo = new PointF(bounds.Left + bounds.Width / 2f, bounds.Top + bounds.Height / 2f);
             var centroNovo = new PointF(novo.Left + novo.Width / 2f, novo.Top + novo.Height / 2f);
 
@@ -382,18 +413,22 @@ namespace CrimeSketcher.Tools
                     var lista = _objetosSelecionados.ToList();
                     MultiSelectionChanged?.Invoke(this, lista);
                     break;
+
                 case Keys.Up:
                     foreach (var obj in _objetosSelecionados)
                         obj.Mover(0, -step);
                     break;
+
                 case Keys.Down:
                     foreach (var obj in _objetosSelecionados)
                         obj.Mover(0, step);
                     break;
+
                 case Keys.Left:
                     foreach (var obj in _objetosSelecionados)
                         obj.Mover(-step, 0);
                     break;
+
                 case Keys.Right:
                     foreach (var obj in _objetosSelecionados)
                         obj.Mover(step, 0);

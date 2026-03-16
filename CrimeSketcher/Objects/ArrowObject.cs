@@ -29,6 +29,30 @@ namespace CrimeSketcher.Objects
         [Browsable(false)]
         public PointF PontoFinal { get; set; }
 
+        [Browsable(false)]
+        public PointF? PontoCurva { get; set; } = null;
+
+        [Category("Curvatura")]
+        [DisplayName("Tem Curva")]
+        [Description("Define se a seta possui curvatura")]
+        public bool TemCurva
+        {
+            get => PontoCurva.HasValue;
+            set
+            {
+                if (value && !PontoCurva.HasValue)
+                {
+                    PontoCurva = new PointF(
+                        (PontoInicial.X + PontoFinal.X) / 2f,
+                        (PontoInicial.Y + PontoFinal.Y) / 2f);
+                }
+                else if (!value)
+                {
+                    PontoCurva = null;
+                }
+            }
+        }
+
         [Category("Aparência")]
         [DisplayName("Tamanho da Seta")]
         [Description("Tamanho da ponta da seta em pixels")]
@@ -70,7 +94,7 @@ namespace CrimeSketcher.Objects
         {
             if (!Visivel) return;
 
-            ObterPontosRotacionados(out var pontoInicial, out var pontoFinal);
+            ObterPontosRotacionados(out var pontoInicial, out var pontoFinal, out var pontoCurva);
 
             using (var pen = new Pen(CorContorno, EspessuraContorno))
             {
@@ -95,14 +119,15 @@ namespace CrimeSketcher.Objects
                         TamanhoSeta / 2, TamanhoSeta / 2, pontaFechada);
                 }
 
-                g.DrawLine(pen, pontoInicial, pontoFinal);
+                using (var path = CriarCaminhoSeta(pontoInicial, pontoFinal, pontoCurva))
+                {
+                    g.DrawPath(pen, path);
+                }
             }
 
             if (!string.IsNullOrEmpty(Rotulo))
             {
-                var centro = new PointF(
-                    (pontoInicial.X + pontoFinal.X) / 2,
-                    (pontoInicial.Y + pontoFinal.Y) / 2);
+                var centro = ObterPontoRotulo(pontoInicial, pontoFinal, pontoCurva);
 
                 using (var font = new Font("Segoe UI", 8f))
                 using (var sf = new StringFormat())
@@ -120,39 +145,130 @@ namespace CrimeSketcher.Objects
                             size.Width + 4, size.Height + 2);
                     }
 
-                    g.DrawString(Rotulo, font,
-                        new SolidBrush(CorContorno), centro, sf);
+                    using (var brushTexto = new SolidBrush(CorContorno))
+                    {
+                        g.DrawString(Rotulo, font, brushTexto, centro, sf);
+                    }
                 }
             }
 
-            if (Selecionado) DesenharSelecao(g);
+            if (Selecionado)
+            {
+                if (TemCurva && pontoCurva.HasValue)
+                {
+                    DesenharPontoCurva(g, pontoInicial, pontoFinal, pontoCurva.Value);
+                }
+
+                DesenharSelecao(g);
+            }
         }
 
         public override bool ContemPonto(PointF ponto, float tolerancia)
         {
-            ObterPontosRotacionados(out var pontoInicial, out var pontoFinal);
-            return Utils.GeometryHelper.DistanciaPontoSegmento(
-                ponto, pontoInicial, pontoFinal) <= tolerancia + 5;
+            ObterPontosRotacionados(out var pontoInicial, out var pontoFinal, out var pontoCurva);
+
+            using (var path = CriarCaminhoSeta(pontoInicial, pontoFinal, pontoCurva))
+            using (var pen = new Pen(Color.Black, EspessuraContorno + tolerancia + 5f))
+            {
+                return path.IsOutlineVisible(ponto, pen);
+            }
         }
 
         public override RectangleF GetBounds()
         {
-            ObterPontosRotacionados(out var pontoInicial, out var pontoFinal);
+            ObterPontosRotacionados(out var pontoInicial, out var pontoFinal, out var pontoCurva);
 
-            float margin = TamanhoSeta;
-            float minX = Math.Min(pontoInicial.X, pontoFinal.X) - margin;
-            float minY = Math.Min(pontoInicial.Y, pontoFinal.Y) - margin;
-            float maxX = Math.Max(pontoInicial.X, pontoFinal.X) + margin;
-            float maxY = Math.Max(pontoInicial.Y, pontoFinal.Y) + margin;
-            return new RectangleF(minX, minY, maxX - minX, maxY - minY);
+            using (var path = CriarCaminhoSeta(pontoInicial, pontoFinal, pontoCurva))
+            {
+                var bounds = path.GetBounds();
+                bounds.Inflate(TamanhoSeta + 8f, TamanhoSeta + 8f);
+                return bounds;
+            }
         }
 
-        private void ObterPontosRotacionados(out PointF pInicial, out PointF pFinal)
+        public bool ContemPontoCurva(PointF ponto, float tolerancia = 10f)
+        {
+            if (!TemCurva || !PontoCurva.HasValue) return false;
+
+            float dx = ponto.X - PontoCurva.Value.X;
+            float dy = ponto.Y - PontoCurva.Value.Y;
+            return Math.Sqrt(dx * dx + dy * dy) <= tolerancia;
+        }
+
+        public void MoverPontoCurva(PointF novaPosicao)
+        {
+            if (TemCurva)
+            {
+                PontoCurva = novaPosicao;
+            }
+        }
+
+        private void DesenharPontoCurva(Graphics g, PointF pontoInicial, PointF pontoFinal, PointF pontoCurva)
+        {
+            using (var pen = new Pen(Color.DodgerBlue, 1f))
+            {
+                pen.DashStyle = DashStyle.Dash;
+                g.DrawLine(pen, pontoInicial, pontoCurva);
+                g.DrawLine(pen, pontoCurva, pontoFinal);
+            }
+
+            float curveRadius = 7f;
+            PointF[] diamond =
+            {
+                new PointF(pontoCurva.X, pontoCurva.Y - curveRadius),
+                new PointF(pontoCurva.X + curveRadius, pontoCurva.Y),
+                new PointF(pontoCurva.X, pontoCurva.Y + curveRadius),
+                new PointF(pontoCurva.X - curveRadius, pontoCurva.Y)
+            };
+
+            using (var brush = new SolidBrush(Color.Cyan))
+            {
+                g.FillPolygon(brush, diamond);
+            }
+            using (var pen = new Pen(Color.DodgerBlue, 2f))
+            {
+                g.DrawPolygon(pen, diamond);
+            }
+        }
+
+        private GraphicsPath CriarCaminhoSeta(PointF pontoInicial, PointF pontoFinal, PointF? pontoCurva)
+        {
+            var path = new GraphicsPath();
+
+            if (!TemCurva || !pontoCurva.HasValue)
+            {
+                path.AddLine(pontoInicial, pontoFinal);
+                return path;
+            }
+
+            path.AddBezier(pontoInicial, pontoCurva.Value, pontoCurva.Value, pontoFinal);
+            return path;
+        }
+
+        private PointF ObterPontoRotulo(PointF pontoInicial, PointF pontoFinal, PointF? pontoCurva)
+        {
+            if (!TemCurva || !pontoCurva.HasValue)
+            {
+                return new PointF(
+                    (pontoInicial.X + pontoFinal.X) / 2f,
+                    (pontoInicial.Y + pontoFinal.Y) / 2f);
+            }
+
+            // Quadrática em t=0.5
+            float t = 0.5f;
+            float u = 1f - t;
+            return new PointF(
+                u * u * pontoInicial.X + 2f * u * t * pontoCurva.Value.X + t * t * pontoFinal.X,
+                u * u * pontoInicial.Y + 2f * u * t * pontoCurva.Value.Y + t * t * pontoFinal.Y);
+        }
+
+        private void ObterPontosRotacionados(out PointF pInicial, out PointF pFinal, out PointF? pCurva)
         {
             if (Math.Abs(Rotacao) < 0.001f)
             {
                 pInicial = PontoInicial;
                 pFinal = PontoFinal;
+                pCurva = PontoCurva;
                 return;
             }
 
@@ -162,6 +278,9 @@ namespace CrimeSketcher.Objects
 
             pInicial = RotacionarPonto(PontoInicial, centro, Rotacao);
             pFinal = RotacionarPonto(PontoFinal, centro, Rotacao);
+            pCurva = PontoCurva.HasValue
+                ? RotacionarPonto(PontoCurva.Value, centro, Rotacao)
+                : null;
         }
 
         private static PointF RotacionarPonto(PointF ponto, PointF centro, float anguloGraus)
@@ -183,12 +302,23 @@ namespace CrimeSketcher.Objects
             PontoInicial = new PointF(PontoInicial.X + dx, PontoInicial.Y + dy);
             PontoFinal = new PointF(PontoFinal.X + dx, PontoFinal.Y + dy);
             Posicao = new PointF(Posicao.X + dx, Posicao.Y + dy);
+
+            if (PontoCurva.HasValue)
+            {
+                PontoCurva = new PointF(PontoCurva.Value.X + dx, PontoCurva.Value.Y + dy);
+            }
         }
 
         public override void EscalarAoRedor(PointF centro, float fatorX, float fatorY)
         {
             PontoInicial = EscalarPonto(PontoInicial, centro, fatorX, fatorY);
             PontoFinal = EscalarPonto(PontoFinal, centro, fatorX, fatorY);
+
+            if (PontoCurva.HasValue)
+            {
+                PontoCurva = EscalarPonto(PontoCurva.Value, centro, fatorX, fatorY);
+            }
+
             base.EscalarAoRedor(centro, fatorX, fatorY);
         }
 
@@ -196,6 +326,12 @@ namespace CrimeSketcher.Objects
         {
             PontoInicial = RotacionarPonto(PontoInicial, centro, deltaGraus);
             PontoFinal = RotacionarPonto(PontoFinal, centro, deltaGraus);
+
+            if (PontoCurva.HasValue)
+            {
+                PontoCurva = RotacionarPonto(PontoCurva.Value, centro, deltaGraus);
+            }
+
             Rotacao += deltaGraus;
             Posicao = RotacionarPonto(Posicao, centro, deltaGraus);
         }

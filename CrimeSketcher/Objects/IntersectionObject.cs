@@ -92,6 +92,36 @@ namespace CrimeSketcher.Objects
         [Browsable(false)]
         public List<string> RuasConectadas { get; set; } = new List<string>();
 
+        [Category("Sinalização")]
+        [DisplayName("Possui PARE")]
+        [Description("Desenha marcação PARE e faixa transversal antes do cruzamento")]
+        public bool TemSinalPare { get; set; } = false;
+
+        [Category("Sinalização")]
+        [DisplayName("Via de Duas Mãos")]
+        [Description("Quando ativo, a marcação PARE e a faixa transversal ocupam apenas meia pista")]
+        public bool ViaDuasMaos { get; set; } = true;
+
+        [Category("Sinalização")]
+        [DisplayName("PARE na Rua Norte")]
+        [Description("Desenha PARE no acesso da rua norte")]
+        public bool PareRuaNorte { get; set; } = true;
+
+        [Category("Sinalização")]
+        [DisplayName("PARE na Rua Leste")]
+        [Description("Desenha PARE no acesso da rua leste")]
+        public bool PareRuaLeste { get; set; } = true;
+
+        [Category("Sinalização")]
+        [DisplayName("PARE na Rua Sul")]
+        [Description("Desenha PARE no acesso da rua sul")]
+        public bool PareRuaSul { get; set; } = true;
+
+        [Category("Sinalização")]
+        [DisplayName("PARE na Rua Oeste")]
+        [Description("Desenha PARE no acesso da rua oeste")]
+        public bool PareRuaOeste { get; set; } = true;
+
         public IntersectionObject()
         {
             Tipo = "Cruzamento";
@@ -183,6 +213,15 @@ namespace CrimeSketcher.Objects
             {
                 DesenharFaixasPedestre(g, meiaRua, meiaTamanho);
             }
+
+            if (TemSinalPare)
+            {
+                DesenharSinalPare(g, meiaRua, meiaTamanho,
+                    cima: PareRuaNorte,
+                    baixo: PareRuaSul,
+                    esquerda: PareRuaOeste,
+                    direita: PareRuaLeste);
+            }
         }
 
         private void DesenharT(Graphics g, float meiaRua, float meiaTamanho)
@@ -214,6 +253,12 @@ namespace CrimeSketcher.Objects
                         g.FillRectangle(brush, -meiaTamanho, meiaRua, calc, calc);
                         g.FillRectangle(brush, meiaRua, meiaRua, calc, calc);
                     }
+
+                    if (!temEsquerda)
+                        g.FillRectangle(brush, -meiaTamanho, -meiaTamanho, calc, meiaTamanho * 2);
+
+                    if (!temDireita)
+                        g.FillRectangle(brush, meiaRua, -meiaTamanho, calc, meiaTamanho * 2);
 
                     // Extensões de calçada acompanhando os braços existentes
                     if (temEsquerda)
@@ -273,6 +318,18 @@ namespace CrimeSketcher.Objects
                     g.FillRectangle(brush, -meiaRua, 0, LarguraRua, meiaTamanho + ext);
             }
 
+            if (TemCalcada)
+            {
+                using (var brush = new SolidBrush(Color.FromArgb(CorCalcadaArgb)))
+                {
+                    if (!temEsquerda)
+                        g.FillRectangle(brush, -meiaTamanho, -meiaRua, LarguraCalcada, LarguraRua);
+
+                    if (!temDireita)
+                        g.FillRectangle(brush, meiaRua, -meiaRua, LarguraCalcada, LarguraRua);
+                }
+            }
+
             // Meio-fio sem atravessar a pista
             DesenharMeioFioBracos(g, meiaRua, meiaTamanho, ext,
                 temCima, temBaixo, temEsquerda, temDireita);
@@ -280,6 +337,15 @@ namespace CrimeSketcher.Objects
             if (TemFaixaPedestre)
             {
                 DesenharFaixasPedestreT(g, meiaRua, meiaTamanho, temCima, temBaixo, temEsquerda, temDireita);
+            }
+
+            if (TemSinalPare)
+            {
+                DesenharSinalPare(g, meiaRua, meiaTamanho,
+                    temCima && PareRuaNorte,
+                    temBaixo && PareRuaSul,
+                    temEsquerda && PareRuaOeste,
+                    temDireita && PareRuaLeste);
             }
         }
 
@@ -340,6 +406,92 @@ namespace CrimeSketcher.Objects
                         largura, espLista);
                 }
             }
+        }
+
+        private void DesenharSinalPare(Graphics g, float meiaRua, float meiaTamanho,
+            bool cima, bool baixo, bool esquerda, bool direita)
+        {
+            using (var pen = new Pen(Color.FromArgb(CorFaixaArgb), 3f))
+            using (var brush = new SolidBrush(Color.FromArgb(CorFaixaArgb)))
+            using (var fonte = new Font("Arial", Math.Max(8f, LarguraRua * 0.18f), FontStyle.Bold, GraphicsUnit.Pixel))
+            {
+                float deslocLinha = 6f;
+                float deslocTexto = 16f;
+
+                if (cima)
+                {
+                    float yLinha = -meiaTamanho - deslocLinha;
+                    float yTexto = yLinha - deslocTexto;
+                    float xTexto = ViaDuasMaos ? -meiaRua * 0.5f : 0f;
+
+                    if (ViaDuasMaos)
+                        g.DrawLine(pen, -meiaRua, yLinha, 0f, yLinha);
+                    else
+                        g.DrawLine(pen, -meiaRua, yLinha, meiaRua, yLinha);
+
+                    DesenharTextoCentralizadoRotacionado(g, "PARE", fonte, brush, xTexto, yTexto, 180f);
+                }
+
+                if (baixo)
+                {
+                    float yLinha = meiaTamanho + deslocLinha;
+                    float yTexto = yLinha + deslocTexto;
+                    float xTexto = ViaDuasMaos ? meiaRua * 0.5f : 0f;
+
+                    if (ViaDuasMaos)
+                        g.DrawLine(pen, 0f, yLinha, meiaRua, yLinha);
+                    else
+                        g.DrawLine(pen, -meiaRua, yLinha, meiaRua, yLinha);
+
+                    DesenharTextoCentralizadoRotacionado(g, "PARE", fonte, brush, xTexto, yTexto, 0f);
+                }
+
+                if (esquerda)
+                {
+                    float xLinha = -meiaTamanho - deslocLinha;
+                    float xTexto = xLinha - deslocTexto;
+                    float yTexto = ViaDuasMaos ? meiaRua * 0.5f : 0f;
+
+                    if (ViaDuasMaos)
+                        g.DrawLine(pen, xLinha, 0f, xLinha, meiaRua);
+                    else
+                        g.DrawLine(pen, xLinha, -meiaRua, xLinha, meiaRua);
+
+                    DesenharTextoCentralizadoRotacionado(g, "PARE", fonte, brush, xTexto, yTexto, 90f);
+                }
+
+                if (direita)
+                {
+                    float xLinha = meiaTamanho + deslocLinha;
+                    float xTexto = xLinha + deslocTexto;
+                    float yTexto = ViaDuasMaos ? -meiaRua * 0.5f : 0f;
+
+                    if (ViaDuasMaos)
+                        g.DrawLine(pen, xLinha, -meiaRua, xLinha, 0f);
+                    else
+                        g.DrawLine(pen, xLinha, -meiaRua, xLinha, meiaRua);
+
+                    DesenharTextoCentralizadoRotacionado(g, "PARE", fonte, brush, xTexto, yTexto, -90f);
+                }
+            }
+        }
+
+        private void DesenharTextoCentralizado(Graphics g, string texto, Font fonte, Brush brush, float x, float y)
+        {
+            var tamanho = g.MeasureString(texto, fonte);
+            g.DrawString(texto, fonte, brush, x - tamanho.Width / 2f, y - tamanho.Height / 2f);
+        }
+
+        private void DesenharTextoCentralizadoRotacionado(Graphics g, string texto, Font fonte, Brush brush, float x, float y, float angulo)
+        {
+            var state = g.Save();
+            g.TranslateTransform(x, y);
+            g.RotateTransform(angulo);
+
+            var tamanho = g.MeasureString(texto, fonte);
+            g.DrawString(texto, fonte, brush, -tamanho.Width / 2f, -tamanho.Height / 2f);
+
+            g.Restore(state);
         }
 
         private GraphicsPath CriarContornoCruz(float meiaRua)
@@ -487,6 +639,19 @@ namespace CrimeSketcher.Objects
                     g.DrawLine(pen, -meiaRua, meiaRua, -meiaRua, meiaTamanho + ext);
                     g.DrawLine(pen, meiaRua, meiaRua, meiaRua, meiaTamanho + ext);
                 }
+
+                // Fechamento da face sem braço no cruzamento em T
+                if (!cima)
+                    g.DrawLine(pen, -meiaTamanho, -meiaRua, meiaTamanho, -meiaRua);
+
+                if (!baixo)
+                    g.DrawLine(pen, -meiaTamanho, meiaRua, meiaTamanho, meiaRua);
+
+                if (!esquerda)
+                    g.DrawLine(pen, -meiaRua, -meiaTamanho, -meiaRua, meiaTamanho);
+
+                if (!direita)
+                    g.DrawLine(pen, meiaRua, -meiaTamanho, meiaRua, meiaTamanho);
             }
         }
     }
