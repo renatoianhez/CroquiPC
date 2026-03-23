@@ -12,6 +12,19 @@ namespace CrimeSketcher.Tools
 {
     public class SelectTool : ITool
     {
+        private enum ArticulacaoCorpoHandle
+        {
+            Nenhuma = -1,
+            CotoveloDireito = 0,
+            MaoDireita = 1,
+            JoelhoDireito = 2,
+            PeDireito = 3,
+            CotoveloEsquerdo = 4,
+            MaoEsquerda = 5,
+            JoelhoEsquerdo = 6,
+            PeEsquerdo = 7
+        }
+
         public string Nome => "Selecionar";
         public Cursor Cursor => Cursors.Default;
 
@@ -32,6 +45,11 @@ namespace CrimeSketcher.Tools
         private bool _arrastandoPontoCurva = false;
         private BaseSketchObject? _objetoComCurva = null;
         private PointF _pontoCurvaAnterior;
+
+        // Controle de arraste de articulações do corpo
+        private bool _arrastandoArticulacaoCorpo = false;
+        private StickFigure? _corpoArticulando = null;
+        private ArticulacaoCorpoHandle _articulacaoCorpoAtiva = ArticulacaoCorpoHandle.Nenhuma;
 
         // Múltipla seleção
         private readonly HashSet<BaseSketchObject> _objetosSelecionados = new HashSet<BaseSketchObject>();
@@ -122,6 +140,18 @@ namespace CrimeSketcher.Tools
                 }
             }
 
+            if (ObjetoSelecionado is StickFigure corpoSelecionado && !corpoSelecionado.Bloqueado)
+            {
+                var articulacao = GetArticulacaoAtPoint(corpoSelecionado, worldPos, 10f);
+                if (articulacao != ArticulacaoCorpoHandle.Nenhuma)
+                {
+                    _arrastandoArticulacaoCorpo = true;
+                    _corpoArticulando = corpoSelecionado;
+                    _articulacaoCorpoAtiva = articulacao;
+                    return;
+                }
+            }
+
             if (ObjetoSelecionado != null && !ObjetoSelecionado.Bloqueado)
             {
                 int handle = ObjetoSelecionado.GetHandleAtPoint(worldPos, 8f);
@@ -207,6 +237,10 @@ namespace CrimeSketcher.Tools
                     arrow.MoverPontoCurva(worldPos);
                 }
             }
+            else if (_arrastandoArticulacaoCorpo && _corpoArticulando != null)
+            {
+                AjustarArticulacaoPorArraste(_corpoArticulando, _articulacaoCorpoAtiva, worldPos);
+            }
             else if (_redimensionando && _objetoTransformando != null)
             {
                 AplicarRedimensionamento(_objetoTransformando, worldPos);
@@ -260,6 +294,12 @@ namespace CrimeSketcher.Tools
 
                 _arrastandoPontoCurva = false;
                 _objetoComCurva = null;
+            }
+            else if (_arrastandoArticulacaoCorpo)
+            {
+                _arrastandoArticulacaoCorpo = false;
+                _corpoArticulando = null;
+                _articulacaoCorpoAtiva = ArticulacaoCorpoHandle.Nenhuma;
             }
             else if (_arrastando && _objetoArrastando != null)
             {
@@ -318,6 +358,211 @@ namespace CrimeSketcher.Tools
             _objetoTransformando = null;
             _selecionandoArea = false;
             _posicoesAnterioresGrupo.Clear();
+        }
+
+        public bool EstaSobreArticulacaoCorpo(PointF worldPos, float tolerancia = 10f)
+        {
+            if (ObjetoSelecionado is not StickFigure corpo || corpo.Bloqueado)
+                return false;
+
+            return GetArticulacaoAtPoint(corpo, worldPos, tolerancia) != ArticulacaoCorpoHandle.Nenhuma;
+        }
+
+        private ArticulacaoCorpoHandle GetArticulacaoAtPoint(StickFigure corpo, PointF pontoMundo, float tolerancia)
+        {
+            var pontos = ObterPontosArticulacoesMundo(corpo);
+            ArticulacaoCorpoHandle melhor = ArticulacaoCorpoHandle.Nenhuma;
+            float melhorDist = float.MaxValue;
+
+            foreach (var kv in pontos)
+            {
+                float dx = pontoMundo.X - kv.Value.X;
+                float dy = pontoMundo.Y - kv.Value.Y;
+                float dist = (float)Math.Sqrt(dx * dx + dy * dy);
+
+                if (dist <= tolerancia && dist < melhorDist)
+                {
+                    melhorDist = dist;
+                    melhor = kv.Key;
+                }
+            }
+
+            return melhor;
+        }
+
+        private bool AjustarArticulacaoPorArraste(StickFigure corpo, ArticulacaoCorpoHandle articulacao, PointF pontoMundo)
+        {
+            if (articulacao == ArticulacaoCorpoHandle.Nenhuma)
+                return false;
+
+            PointF local = WorldToLocal(corpo, pontoMundo);
+
+            float yTroncoTop = -corpo.AlturaTronco / 2f;
+            float yQuadril = corpo.AlturaTronco / 2f;
+
+            float compBracoSuperior = 18f;
+            float compAntebraco = 17f;
+            float compCoxa = corpo.AlturaPerna * 0.55f;
+
+            var ombroDir = new PointF(corpo.LarguraOmbros / 2f, yTroncoTop + 8f);
+            var ombroEsq = new PointF(-corpo.LarguraOmbros / 2f, yTroncoTop + 8f);
+            var quadrilDir = new PointF(corpo.LarguraQuadril / 4f, yQuadril);
+            var quadrilEsq = new PointF(-corpo.LarguraQuadril / 4f, yQuadril);
+
+            var cotoveloDir = Somar(ombroDir, VetorRotacionado(compBracoSuperior, corpo.AnguloBracoDireito));
+            var cotoveloEsq = Somar(ombroEsq, VetorRotacionado(compBracoSuperior, corpo.AnguloBracoEsquerdo));
+            var joelhoDir = Somar(quadrilDir, VetorRotacionado(compCoxa, corpo.AnguloPernaDireita));
+            var joelhoEsq = Somar(quadrilEsq, VetorRotacionado(compCoxa, corpo.AnguloPernaEsquerda));
+
+            switch (articulacao)
+            {
+                case ArticulacaoCorpoHandle.CotoveloDireito:
+                    corpo.AnguloBracoDireito = NormalizarAngulo(AnguloDoEixoYPositivo(ombroDir, local));
+                    return true;
+
+                case ArticulacaoCorpoHandle.MaoDireita:
+                    {
+                        float alvoAbsoluto = AnguloDoEixoYPositivo(cotoveloDir, local);
+                        corpo.AnguloCotoveloDireito = NormalizarAngulo(alvoAbsoluto - corpo.AnguloBracoDireito);
+                        return true;
+                    }
+
+                case ArticulacaoCorpoHandle.CotoveloEsquerdo:
+                    corpo.AnguloBracoEsquerdo = NormalizarAngulo(AnguloDoEixoYPositivo(ombroEsq, local));
+                    return true;
+
+                case ArticulacaoCorpoHandle.MaoEsquerda:
+                    {
+                        float alvoAbsoluto = AnguloDoEixoYPositivo(cotoveloEsq, local);
+                        corpo.AnguloCotoveloEsquerdo = NormalizarAngulo(alvoAbsoluto - corpo.AnguloBracoEsquerdo);
+                        return true;
+                    }
+
+                case ArticulacaoCorpoHandle.JoelhoDireito:
+                    corpo.AnguloPernaDireita = NormalizarAngulo(AnguloDoEixoYPositivo(quadrilDir, local));
+                    return true;
+
+                case ArticulacaoCorpoHandle.PeDireito:
+                    {
+                        float alvoAbsoluto = AnguloDoEixoYPositivo(joelhoDir, local);
+                        corpo.AnguloJoelhoDireito = NormalizarAngulo(alvoAbsoluto - corpo.AnguloPernaDireita);
+                        return true;
+                    }
+
+                case ArticulacaoCorpoHandle.JoelhoEsquerdo:
+                    corpo.AnguloPernaEsquerda = NormalizarAngulo(AnguloDoEixoYPositivo(quadrilEsq, local));
+                    return true;
+
+                case ArticulacaoCorpoHandle.PeEsquerdo:
+                    {
+                        float alvoAbsoluto = AnguloDoEixoYPositivo(joelhoEsq, local);
+                        corpo.AnguloJoelhoEsquerdo = NormalizarAngulo(alvoAbsoluto - corpo.AnguloPernaEsquerda);
+                        return true;
+                    }
+            }
+
+            return false;
+        }
+
+        private Dictionary<ArticulacaoCorpoHandle, PointF> ObterPontosArticulacoesMundo(StickFigure corpo)
+        {
+            float yTroncoTop = -corpo.AlturaTronco / 2f;
+            float yQuadril = corpo.AlturaTronco / 2f;
+
+            float compBracoSuperior = 18f;
+            float compAntebraco = 17f;
+            float compCoxa = corpo.AlturaPerna * 0.55f;
+            float compCanela = corpo.AlturaPerna * 0.45f;
+
+            var ombroDir = new PointF(corpo.LarguraOmbros / 2f, yTroncoTop + 8f);
+            var ombroEsq = new PointF(-corpo.LarguraOmbros / 2f, yTroncoTop + 8f);
+            var quadrilDir = new PointF(corpo.LarguraQuadril / 4f, yQuadril);
+            var quadrilEsq = new PointF(-corpo.LarguraQuadril / 4f, yQuadril);
+
+            var cotoveloDir = Somar(ombroDir, VetorRotacionado(compBracoSuperior, corpo.AnguloBracoDireito));
+            var cotoveloEsq = Somar(ombroEsq, VetorRotacionado(compBracoSuperior, corpo.AnguloBracoEsquerdo));
+
+            var maoDir = Somar(cotoveloDir, VetorRotacionado(compAntebraco, corpo.AnguloBracoDireito + corpo.AnguloCotoveloDireito));
+            var maoEsq = Somar(cotoveloEsq, VetorRotacionado(compAntebraco, corpo.AnguloBracoEsquerdo + corpo.AnguloCotoveloEsquerdo));
+
+            var joelhoDir = Somar(quadrilDir, VetorRotacionado(compCoxa, corpo.AnguloPernaDireita));
+            var joelhoEsq = Somar(quadrilEsq, VetorRotacionado(compCoxa, corpo.AnguloPernaEsquerda));
+
+            var peDir = Somar(joelhoDir, VetorRotacionado(compCanela, corpo.AnguloPernaDireita + corpo.AnguloJoelhoDireito));
+            var peEsq = Somar(joelhoEsq, VetorRotacionado(compCanela, corpo.AnguloPernaEsquerda + corpo.AnguloJoelhoEsquerdo));
+
+            return new Dictionary<ArticulacaoCorpoHandle, PointF>
+            {
+                [ArticulacaoCorpoHandle.CotoveloDireito] = LocalToWorld(corpo, cotoveloDir),
+                [ArticulacaoCorpoHandle.MaoDireita] = LocalToWorld(corpo, maoDir),
+                [ArticulacaoCorpoHandle.JoelhoDireito] = LocalToWorld(corpo, joelhoDir),
+                [ArticulacaoCorpoHandle.PeDireito] = LocalToWorld(corpo, peDir),
+                [ArticulacaoCorpoHandle.CotoveloEsquerdo] = LocalToWorld(corpo, cotoveloEsq),
+                [ArticulacaoCorpoHandle.MaoEsquerda] = LocalToWorld(corpo, maoEsq),
+                [ArticulacaoCorpoHandle.JoelhoEsquerdo] = LocalToWorld(corpo, joelhoEsq),
+                [ArticulacaoCorpoHandle.PeEsquerdo] = LocalToWorld(corpo, peEsq)
+            };
+        }
+
+        private static PointF LocalToWorld(StickFigure corpo, PointF local)
+        {
+            float sx = corpo.EscalaCorpo * corpo.EscalaX;
+            float sy = corpo.EscalaCorpo * corpo.EscalaY;
+            float angulo = corpo.Rotacao + corpo.AnguloCorpo;
+
+            float x = local.X * sx;
+            float y = local.Y * sy;
+
+            double rad = angulo * Math.PI / 180.0;
+            float cos = (float)Math.Cos(rad);
+            float sin = (float)Math.Sin(rad);
+
+            return new PointF(
+                corpo.Posicao.X + (x * cos - y * sin),
+                corpo.Posicao.Y + (x * sin + y * cos));
+        }
+
+        private static PointF WorldToLocal(StickFigure corpo, PointF world)
+        {
+            float sx = corpo.EscalaCorpo * corpo.EscalaX;
+            float sy = corpo.EscalaCorpo * corpo.EscalaY;
+
+            if (Math.Abs(sx) < 0.0001f || Math.Abs(sy) < 0.0001f)
+                return PointF.Empty;
+
+            float dx = world.X - corpo.Posicao.X;
+            float dy = world.Y - corpo.Posicao.Y;
+
+            double rad = -(corpo.Rotacao + corpo.AnguloCorpo) * Math.PI / 180.0;
+            float cos = (float)Math.Cos(rad);
+            float sin = (float)Math.Sin(rad);
+
+            float xr = dx * cos - dy * sin;
+            float yr = dx * sin + dy * cos;
+
+            return new PointF(xr / sx, yr / sy);
+        }
+
+        private static PointF VetorRotacionado(float comprimento, float anguloGraus)
+        {
+            double rad = anguloGraus * Math.PI / 180.0;
+            return new PointF((float)(-Math.Sin(rad) * comprimento), (float)(Math.Cos(rad) * comprimento));
+        }
+
+        private static PointF Somar(PointF a, PointF b) => new PointF(a.X + b.X, a.Y + b.Y);
+
+        private static float AnguloDoEixoYPositivo(PointF origem, PointF destino)
+        {
+            float dx = destino.X - origem.X;
+            float dy = destino.Y - origem.Y;
+            return (float)(Math.Atan2(dy, dx) * 180.0 / Math.PI - 90.0);
+        }
+
+        private static float NormalizarAngulo(float angulo)
+        {
+            while (angulo > 180f) angulo -= 360f;
+            while (angulo < -180f) angulo += 360f;
+            return angulo;
         }
 
         private void AplicarRotacao(BaseSketchObject obj, PointF worldPos)
@@ -465,6 +710,9 @@ namespace CrimeSketcher.Tools
             _selecionandoArea = false;
             _arrastandoPontoCurva = false;
             _objetoComCurva = null;
+            _arrastandoArticulacaoCorpo = false;
+            _corpoArticulando = null;
+            _articulacaoCorpoAtiva = ArticulacaoCorpoHandle.Nenhuma;
             DesselcionarTodos();
         }
 

@@ -35,7 +35,7 @@ namespace CrimeSketcher.Objects
         public float EscalaCorpo { get; set; } = 1f;
 
         // Dimensões base (serão escaladas)
-        public float LarguraCabeca { get; set; } = 22f;
+        public float LarguraCabeca { get; set; } = 20f;
         public float AlturaCabeca { get; set; } = 26f;
 
         public float LarguraOmbros { get; set; } = 40f;
@@ -50,12 +50,12 @@ namespace CrimeSketcher.Objects
         public float AlturaPe { get; set; } = 16f;
 
         // Ângulos de articulação (em graus)
-        public float AnguloBracoDireito { get; set; } = 15f;
-        public float AnguloBracoEsquerdo { get; set; } = -15f;
+        public float AnguloBracoDireito { get; set; } = -15f;
+        public float AnguloBracoEsquerdo { get; set; } = 15f;
         public float AnguloCotoveloDireito { get; set; } = 12f;
         public float AnguloCotoveloEsquerdo { get; set; } = -12f;
-        public float AnguloPernaDireita { get; set; } = 5f;
-        public float AnguloPernaEsquerda { get; set; } = -5f;
+        public float AnguloPernaDireita { get; set; } = -5f;
+        public float AnguloPernaEsquerda { get; set; } = 5f;
         public float AnguloJoelhoDireito { get; set; } = 8f;
         public float AnguloJoelhoEsquerdo { get; set; } = -8f;
 
@@ -87,6 +87,16 @@ namespace CrimeSketcher.Objects
         public bool MostrarContorno { get; set; } = true;
         public bool Preenchido { get; set; } = true;
         public float EspessuraContorno { get; set; } = 1.5f;
+
+        [Category("Camadas")]
+        [DisplayName("Antebraço Direito à Frente da Cabeça")]
+        [Description("Quando ativo, o antebraço direito é desenhado à frente da cabeça")]
+        public bool AntebracoDireitoFrenteCabeca { get; set; } = false;
+
+        [Category("Camadas")]
+        [DisplayName("Antebraço Esquerdo à Frente da Cabeça")]
+        [Description("Quando ativo, o antebraço esquerdo é desenhado à frente da cabeça")]
+        public bool AntebracoEsquerdoFrenteCabeca { get; set; } = false;
 
         #endregion
 
@@ -169,12 +179,12 @@ namespace CrimeSketcher.Objects
         {
             if (Genero == GeneroCorpo.Feminino)
             {
-                LarguraOmbros = 36f;
-                LarguraCintura = 28f;
-                LarguraQuadril = 38f;
+                LarguraOmbros = 30f;
+                LarguraCintura = 22f;
+                LarguraQuadril = 32f;
                 AlturaTronco = 45f;
-                LarguraCabeca = 20f;
-                AlturaCabeca = 24f;
+                LarguraCabeca = 19f;
+                AlturaCabeca = 26f;
                 LarguraPerna = 11f;
                 AlturaPerna = 43f;
             }
@@ -184,7 +194,7 @@ namespace CrimeSketcher.Objects
                 LarguraCintura = 34f;
                 LarguraQuadril = 34f;
                 AlturaTronco = 52f;
-                LarguraCabeca = 22f;
+                LarguraCabeca = 20f;
                 AlturaCabeca = 26f;
                 LarguraPerna = 13f;
                 AlturaPerna = 46f;
@@ -281,10 +291,26 @@ namespace CrimeSketcher.Objects
 
             DesenharTronco(g, yTroncoTop, opacidade);
 
-            DesenharBraco(g, LarguraOmbros / 2, yTroncoTop + 8, AnguloBracoDireito, AnguloCotoveloDireito, opacidade);
-            DesenharBraco(g, -LarguraOmbros / 2, yTroncoTop + 8, AnguloBracoEsquerdo, AnguloCotoveloEsquerdo, opacidade);
+            float xOmbroDir = LarguraOmbros / 2;
+            float xOmbroEsq = -LarguraOmbros / 2;
+            float yOmbro = yTroncoTop + 8;
+
+            DesenharBracoSuperiorECotovelo(g, xOmbroDir, yOmbro, AnguloBracoDireito, opacidade);
+            DesenharBracoSuperiorECotovelo(g, xOmbroEsq, yOmbro, AnguloBracoEsquerdo, opacidade);
+
+            if (!AntebracoDireitoFrenteCabeca)
+                DesenharAntebracoEMao(g, xOmbroDir, yOmbro, AnguloBracoDireito, AnguloCotoveloDireito, opacidade);
+
+            if (!AntebracoEsquerdoFrenteCabeca)
+                DesenharAntebracoEMao(g, xOmbroEsq, yOmbro, AnguloBracoEsquerdo, AnguloCotoveloEsquerdo, opacidade);
 
             DesenharCabeca(g, 0, yCabecaCenter, opacidade);
+
+            if (AntebracoDireitoFrenteCabeca)
+                DesenharAntebracoEMao(g, xOmbroDir, yOmbro, AnguloBracoDireito, AnguloCotoveloDireito, opacidade);
+
+            if (AntebracoEsquerdoFrenteCabeca)
+                DesenharAntebracoEMao(g, xOmbroEsq, yOmbro, AnguloBracoEsquerdo, AnguloCotoveloEsquerdo, opacidade);
         }
 
         private void DesenharCorpoVistaAerea(Graphics g, float opacidade)
@@ -318,15 +344,32 @@ namespace CrimeSketcher.Objects
             }
 
             float yCabeca = yOmbros - alturaOmbrosTopo / 2 - AlturaCabeca * 0.3f;
-            DesenharTopoCabeca(g, 0, yCabeca, opacidade);
 
             float anguloDir = BracosEstendidos ? 90f : AnguloBracoDireito;
             float anguloEsq = BracosEstendidos ? -90f : AnguloBracoEsquerdo;
             float cotoveloDir = BracosEstendidos ? 0f : AnguloCotoveloDireito;
             float cotoveloEsq = BracosEstendidos ? 0f : AnguloCotoveloEsquerdo;
 
-            DesenharBraco(g, larguraOmbrosTopo / 2 - 2, yOmbros - 3, anguloDir, cotoveloDir, opacidade);
-            DesenharBraco(g, -larguraOmbrosTopo / 2 + 2, yOmbros - 3, anguloEsq, cotoveloEsq, opacidade);
+            float xOmbroDir = larguraOmbrosTopo / 2 - 2;
+            float xOmbroEsq = -larguraOmbrosTopo / 2 + 2;
+            float yOmbro = yOmbros - 3;
+
+            DesenharBracoSuperiorECotovelo(g, xOmbroDir, yOmbro, anguloDir, opacidade);
+            DesenharBracoSuperiorECotovelo(g, xOmbroEsq, yOmbro, anguloEsq, opacidade);
+
+            if (!AntebracoDireitoFrenteCabeca)
+                DesenharAntebracoEMao(g, xOmbroDir, yOmbro, anguloDir, cotoveloDir, opacidade);
+
+            if (!AntebracoEsquerdoFrenteCabeca)
+                DesenharAntebracoEMao(g, xOmbroEsq, yOmbro, anguloEsq, cotoveloEsq, opacidade);
+
+            DesenharTopoCabeca(g, 0, yCabeca, opacidade);
+
+            if (AntebracoDireitoFrenteCabeca)
+                DesenharAntebracoEMao(g, xOmbroDir, yOmbro, anguloDir, cotoveloDir, opacidade);
+
+            if (AntebracoEsquerdoFrenteCabeca)
+                DesenharAntebracoEMao(g, xOmbroEsq, yOmbro, anguloEsq, cotoveloEsq, opacidade);
         }
 
         #endregion
@@ -531,16 +574,20 @@ namespace CrimeSketcher.Objects
         private void DesenharBraco(Graphics g, float xOmbro, float yOmbro, float angulo,
             float anguloCotovelo, float opacidade)
         {
+            DesenharBracoSuperiorECotovelo(g, xOmbro, yOmbro, angulo, opacidade);
+            DesenharAntebracoEMao(g, xOmbro, yOmbro, angulo, anguloCotovelo, opacidade);
+        }
+
+        private void DesenharBracoSuperiorECotovelo(Graphics g, float xOmbro, float yOmbro, float angulo,
+            float opacidade)
+        {
             var state = g.Save();
             g.TranslateTransform(xOmbro, yOmbro);
             g.RotateTransform(angulo);
 
             float larguraBraco = 8.5f;
             float compBracoSuperior = 18f;
-            float compAntebraco = 17f;
             float diametroCotovelo = larguraBraco + 2f;
-            float larguraMao = 8f;
-            float alturaMao = 9f;
 
             using (var path = CriarRetanguloArredondado(-larguraBraco / 2, 0, larguraBraco, compBracoSuperior, 3.5f))
             {
@@ -580,6 +627,22 @@ namespace CrimeSketcher.Objects
                         diametroCotovelo);
                 }
             }
+
+            g.Restore(state);
+        }
+
+        private void DesenharAntebracoEMao(Graphics g, float xOmbro, float yOmbro, float angulo,
+            float anguloCotovelo, float opacidade)
+        {
+            var state = g.Save();
+            g.TranslateTransform(xOmbro, yOmbro);
+            g.RotateTransform(angulo);
+
+            float larguraBraco = 8.5f;
+            float compBracoSuperior = 18f;
+            float compAntebraco = 17f;
+            float larguraMao = 8f;
+            float alturaMao = 9f;
 
             g.TranslateTransform(0, compBracoSuperior);
             g.RotateTransform(anguloCotovelo);
