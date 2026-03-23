@@ -1,4 +1,4 @@
-﻿// Objects/StickFigure.cs
+// Objects/StickFigure.cs
 using System;
 using System.ComponentModel;
 using System.Drawing;
@@ -79,6 +79,16 @@ namespace CrimeSketcher.Objects
         [Browsable(false)]
         public int CorRoupaArgb { get; set; } = Color.FromArgb(70, 130, 180).ToArgb();
         [Browsable(false)]
+        public int CorTroncoArgb { get; set; } = Color.FromArgb(70, 130, 180).ToArgb();
+        [Browsable(false)]
+        public int CorBracoArgb { get; set; } = Color.FromArgb(70, 130, 180).ToArgb();
+        [Browsable(false)]
+        public int CorAntebracoArgb { get; set; } = Color.FromArgb(70, 130, 180).ToArgb();
+        [Browsable(false)]
+        public int CorCoxaArgb { get; set; } = Color.FromArgb(70, 130, 180).ToArgb();
+        [Browsable(false)]
+        public int CorCanelaArgb { get; set; } = Color.FromArgb(70, 130, 180).ToArgb();
+        [Browsable(false)]
         public int CorCabeloArgb { get; set; } = Color.FromArgb(60, 40, 30).ToArgb();
         [Browsable(false)]
         public int CorSapatoArgb { get; set; } = Color.FromArgb(40, 40, 40).ToArgb();
@@ -111,11 +121,60 @@ namespace CrimeSketcher.Objects
         }
 
         [JsonIgnore]
-        [Category("Aparência"), DisplayName("Cor da Roupa")]
-        public Color CorRoupa 
-        { 
-            get => Color.FromArgb(CorRoupaArgb); 
-            set => CorRoupaArgb = value.ToArgb(); 
+        [Category("Aparência"), DisplayName("Cor da Roupa (Base)")]
+        public Color CorRoupa
+        {
+            get => Color.FromArgb(CorRoupaArgb);
+            set
+            {
+                int argb = value.ToArgb();
+                CorRoupaArgb = argb;
+                CorTroncoArgb = argb;
+                CorBracoArgb = argb;
+                CorAntebracoArgb = argb;
+                CorCoxaArgb = argb;
+                CorCanelaArgb = argb;
+            }
+        }
+
+        [JsonIgnore]
+        [Category("Aparência - Vestimenta"), DisplayName("Cor do Tronco")]
+        public Color CorTronco
+        {
+            get => Color.FromArgb(CorTroncoArgb);
+            set => CorTroncoArgb = value.ToArgb();
+        }
+
+        [JsonIgnore]
+        [Category("Aparência - Vestimenta"), DisplayName("Cor dos Braços")]
+        public Color CorBraco
+        {
+            get => Color.FromArgb(CorBracoArgb);
+            set => CorBracoArgb = value.ToArgb();
+        }
+
+        [JsonIgnore]
+        [Category("Aparência - Vestimenta"), DisplayName("Cor dos Antebraços")]
+        public Color CorAntebraco
+        {
+            get => Color.FromArgb(CorAntebracoArgb);
+            set => CorAntebracoArgb = value.ToArgb();
+        }
+
+        [JsonIgnore]
+        [Category("Aparência - Vestimenta"), DisplayName("Cor das Coxas")]
+        public Color CorCoxa
+        {
+            get => Color.FromArgb(CorCoxaArgb);
+            set => CorCoxaArgb = value.ToArgb();
+        }
+
+        [JsonIgnore]
+        [Category("Aparência - Vestimenta"), DisplayName("Cor das Canelas")]
+        public Color CorCanela
+        {
+            get => Color.FromArgb(CorCanelaArgb);
+            set => CorCanelaArgb = value.ToArgb();
         }
 
         [JsonIgnore]
@@ -321,7 +380,7 @@ namespace CrimeSketcher.Objects
 
             if (Preenchido)
             {
-                using (var brush = new SolidBrush(AplicarOpacidade(EscurecerCor(CorRoupa, 0.1f), opacidade)))
+                using (var brush = new SolidBrush(AplicarOpacidade(EscurecerCor(CorTronco, 0.1f), opacidade)))
                 {
                     g.FillEllipse(brush,
                         -larguraOmbrosTopo / 2,
@@ -532,7 +591,7 @@ namespace CrimeSketcher.Objects
                 // Preencher
                 if (Preenchido)
                 {
-                    using (var brush = new SolidBrush(AplicarOpacidade(CorRoupa, opacidade)))
+                    using (var brush = new SolidBrush(AplicarOpacidade(CorTronco, opacidade)))
                     {
                         g.FillPath(brush, path);
                     }
@@ -593,7 +652,7 @@ namespace CrimeSketcher.Objects
             {
                 if (Preenchido)
                 {
-                    using (var brush = new SolidBrush(AplicarOpacidade(CorRoupa, opacidade)))
+                    using (var brush = new SolidBrush(AplicarOpacidade(CorBraco, opacidade)))
                     {
                         g.FillPath(brush, path);
                     }
@@ -608,7 +667,7 @@ namespace CrimeSketcher.Objects
                 }
             }
 
-            using (var brush = new SolidBrush(AplicarOpacidade(EscurecerCor(CorRoupa, 0.2f), opacidade)))
+            using (var brush = new SolidBrush(AplicarOpacidade(EscurecerCor(CorCanela, 0.2f), opacidade)))
             {
                 g.FillEllipse(brush,
                     -diametroCotovelo / 2,
@@ -651,7 +710,7 @@ namespace CrimeSketcher.Objects
             {
                 if (Preenchido)
                 {
-                    using (var brush = new SolidBrush(AplicarOpacidade(EscurecerCor(CorRoupa, 0.08f), opacidade)))
+                    using (var brush = new SolidBrush(AplicarOpacidade(EscurecerCor(CorAntebraco, 0.08f), opacidade)))
                     {
                         g.FillPath(brush, path);
                     }
@@ -709,7 +768,7 @@ namespace CrimeSketcher.Objects
 
                 if (Preenchido)
                 {
-                    using (var brush = new SolidBrush(AplicarOpacidade(EscurecerCor(CorRoupa, 0.15f), opacidade)))
+                    using (var brush = new SolidBrush(AplicarOpacidade(EscurecerCor(CorCoxa, 0.15f), opacidade)))
                     {
                         g.FillPath(brush, path);
                     }
@@ -724,7 +783,7 @@ namespace CrimeSketcher.Objects
                 }
             }
 
-            using (var brush = new SolidBrush(AplicarOpacidade(EscurecerCor(CorRoupa, 0.22f), opacidade)))
+            using (var brush = new SolidBrush(AplicarOpacidade(EscurecerCor(CorCoxa, 0.22f), opacidade)))
             {
                 g.FillEllipse(brush,
                     -diametroJoelho / 2,
@@ -760,7 +819,7 @@ namespace CrimeSketcher.Objects
 
                 if (Preenchido)
                 {
-                    using (var brush = new SolidBrush(AplicarOpacidade(EscurecerCor(CorRoupa, 0.2f), opacidade)))
+                    using (var brush = new SolidBrush(AplicarOpacidade(EscurecerCor(CorCanela, 0.2f), opacidade)))
                     {
                         g.FillPath(brush, path);
                     }

@@ -698,6 +698,27 @@ namespace CrimeSketcher.Tools
                     g.FillRectangle(brush, _selecaoRetangular);
                 }
             }
+
+            foreach (var corpo in _objetosSelecionados.OfType<StickFigure>())
+            {
+                if (!corpo.Bloqueado)
+                    DesenharPontosArticulacao(g, corpo);
+            }
+        }
+
+        private void DesenharPontosArticulacao(Graphics g, StickFigure corpo)
+        {
+            var pontos = ObterPontosArticulacoesMundo(corpo).Values;
+
+            const float raio = 4.5f;
+            using var brush = new SolidBrush(Color.FromArgb(235, 0, 122, 204));
+            using var pen = new Pen(Color.White, 1f);
+
+            foreach (var p in pontos)
+            {
+                g.FillEllipse(brush, p.X - raio, p.Y - raio, raio * 2f, raio * 2f);
+                g.DrawEllipse(pen, p.X - raio, p.Y - raio, raio * 2f, raio * 2f);
+            }
         }
 
         public void Cancelar()
