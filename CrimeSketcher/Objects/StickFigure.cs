@@ -68,6 +68,11 @@ namespace CrimeSketcher.Objects
         // Ângulo geral de rotação do corpo
         public float AnguloCorpo { get; set; } = 0f;
 
+        [Category("Articulações")]
+        [DisplayName("Ângulo da Cabeça")]
+        [Description("Rotação da cabeça em torno do pescoço")]
+        public float AnguloCabeca { get; set; } = 0f;
+
         // Identificação
         public string Rotulo { get; set; } = "Vítima";
         public bool MostrarRotulo { get; set; } = true;
@@ -278,6 +283,7 @@ namespace CrimeSketcher.Objects
                     AnguloPernaEsquerda = -5f;
                     AnguloJoelhoDireito = 8f;
                     AnguloJoelhoEsquerdo = -8f;
+                    AnguloCabeca = 0f;
                     BracosEstendidos = false;
                     break;
 
@@ -289,6 +295,7 @@ namespace CrimeSketcher.Objects
                     AnguloBracoEsquerdo = -90f;
                     AnguloCotoveloDireito = 0f;
                     AnguloCotoveloEsquerdo = 0f;
+                    AnguloCabeca = 0f;
                     BracosEstendidos = true;
                     break;
             }
@@ -340,6 +347,7 @@ namespace CrimeSketcher.Objects
             float yTroncoTop = -AlturaTronco / 2;
             float yTroncoBottom = AlturaTronco / 2;
             float yCabecaCenter = yTroncoTop - AlturaCabeca / 2 - 3;
+            float yPescoco = yTroncoTop - 2f;
             float yQuadril = yTroncoBottom;
 
             DesenharPe(g, LarguraQuadril / 4, yQuadril, AnguloPernaDireita, AnguloJoelhoDireito, opacidade);
@@ -363,7 +371,7 @@ namespace CrimeSketcher.Objects
             if (!AntebracoEsquerdoFrenteCabeca)
                 DesenharAntebracoEMao(g, xOmbroEsq, yOmbro, AnguloBracoEsquerdo, AnguloCotoveloEsquerdo, opacidade);
 
-            DesenharCabeca(g, 0, yCabecaCenter, opacidade);
+            DesenharCabecaComRotacao(g, 0, yCabecaCenter, 0, yPescoco, AnguloCabeca, opacidade);
 
             if (AntebracoDireitoFrenteCabeca)
                 DesenharAntebracoEMao(g, xOmbroDir, yOmbro, AnguloBracoDireito, AnguloCotoveloDireito, opacidade);
@@ -403,6 +411,7 @@ namespace CrimeSketcher.Objects
             }
 
             float yCabeca = yOmbros - alturaOmbrosTopo / 2 - AlturaCabeca * 0.3f;
+            float yPescoco = yCabeca + AlturaCabeca * 0.35f;
 
             float anguloDir = BracosEstendidos ? 90f : AnguloBracoDireito;
             float anguloEsq = BracosEstendidos ? -90f : AnguloBracoEsquerdo;
@@ -422,7 +431,7 @@ namespace CrimeSketcher.Objects
             if (!AntebracoEsquerdoFrenteCabeca)
                 DesenharAntebracoEMao(g, xOmbroEsq, yOmbro, anguloEsq, cotoveloEsq, opacidade);
 
-            DesenharTopoCabeca(g, 0, yCabeca, opacidade);
+            DesenharTopoCabecaComRotacao(g, 0, yCabeca, 0, yPescoco, AnguloCabeca, opacidade);
 
             if (AntebracoDireitoFrenteCabeca)
                 DesenharAntebracoEMao(g, xOmbroDir, yOmbro, anguloDir, cotoveloDir, opacidade);
@@ -516,6 +525,26 @@ namespace CrimeSketcher.Objects
                         diametro);
                 }
             }
+        }
+
+        private void DesenharCabecaComRotacao(Graphics g, float cx, float cy, float px, float py, float angulo, float opacidade)
+        {
+            var state = g.Save();
+            g.TranslateTransform(px, py);
+            g.RotateTransform(angulo);
+            g.TranslateTransform(-px, -py);
+            DesenharCabeca(g, cx, cy, opacidade);
+            g.Restore(state);
+        }
+
+        private void DesenharTopoCabecaComRotacao(Graphics g, float cx, float cy, float px, float py, float angulo, float opacidade)
+        {
+            var state = g.Save();
+            g.TranslateTransform(px, py);
+            g.RotateTransform(angulo);
+            g.TranslateTransform(-px, -py);
+            DesenharTopoCabeca(g, cx, cy, opacidade);
+            g.Restore(state);
         }
 
         private void DesenharTronco(Graphics g, float yTop, float opacidade)
@@ -667,7 +696,7 @@ namespace CrimeSketcher.Objects
                 }
             }
 
-            using (var brush = new SolidBrush(AplicarOpacidade(EscurecerCor(CorCanela, 0.2f), opacidade)))
+            using (var brush = new SolidBrush(AplicarOpacidade(EscurecerCor(CorBraco, 0.2f), opacidade)))
             {
                 g.FillEllipse(brush,
                     -diametroCotovelo / 2,
@@ -1021,3 +1050,4 @@ namespace CrimeSketcher.Objects
         #endregion
     }
 }
+

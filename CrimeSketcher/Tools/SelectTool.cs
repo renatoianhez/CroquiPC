@@ -15,14 +15,15 @@ namespace CrimeSketcher.Tools
         private enum ArticulacaoCorpoHandle
         {
             Nenhuma = -1,
-            CotoveloDireito = 0,
-            MaoDireita = 1,
-            JoelhoDireito = 2,
-            PeDireito = 3,
-            CotoveloEsquerdo = 4,
-            MaoEsquerda = 5,
-            JoelhoEsquerdo = 6,
-            PeEsquerdo = 7
+            Pescoco = 0,
+            CotoveloDireito = 1,
+            MaoDireita = 2,
+            JoelhoDireito = 3,
+            PeDireito = 4,
+            CotoveloEsquerdo = 5,
+            MaoEsquerda = 6,
+            JoelhoEsquerdo = 7,
+            PeEsquerdo = 8
         }
 
         public string Nome => "Selecionar";
@@ -404,6 +405,7 @@ namespace CrimeSketcher.Tools
             float compAntebraco = 17f;
             float compCoxa = corpo.AlturaPerna * 0.55f;
 
+            var pescoco = new PointF(0f, yTroncoTop - 2f);
             var ombroDir = new PointF(corpo.LarguraOmbros / 2f, yTroncoTop + 8f);
             var ombroEsq = new PointF(-corpo.LarguraOmbros / 2f, yTroncoTop + 8f);
             var quadrilDir = new PointF(corpo.LarguraQuadril / 4f, yQuadril);
@@ -416,6 +418,10 @@ namespace CrimeSketcher.Tools
 
             switch (articulacao)
             {
+                case ArticulacaoCorpoHandle.Pescoco:
+                    corpo.AnguloCabeca = NormalizarAngulo(AnguloDoEixoYPositivo(pescoco, local) - 180f);
+                    return true;
+
                 case ArticulacaoCorpoHandle.CotoveloDireito:
                     corpo.AnguloBracoDireito = NormalizarAngulo(AnguloDoEixoYPositivo(ombroDir, local));
                     return true;
@@ -474,6 +480,7 @@ namespace CrimeSketcher.Tools
             float compCoxa = corpo.AlturaPerna * 0.55f;
             float compCanela = corpo.AlturaPerna * 0.45f;
 
+            var pescoco = new PointF(0f, yTroncoTop - 2f);
             var ombroDir = new PointF(corpo.LarguraOmbros / 2f, yTroncoTop + 8f);
             var ombroEsq = new PointF(-corpo.LarguraOmbros / 2f, yTroncoTop + 8f);
             var quadrilDir = new PointF(corpo.LarguraQuadril / 4f, yQuadril);
@@ -493,6 +500,7 @@ namespace CrimeSketcher.Tools
 
             return new Dictionary<ArticulacaoCorpoHandle, PointF>
             {
+                [ArticulacaoCorpoHandle.Pescoco] = LocalToWorld(corpo, pescoco),
                 [ArticulacaoCorpoHandle.CotoveloDireito] = LocalToWorld(corpo, cotoveloDir),
                 [ArticulacaoCorpoHandle.MaoDireita] = LocalToWorld(corpo, maoDir),
                 [ArticulacaoCorpoHandle.JoelhoDireito] = LocalToWorld(corpo, joelhoDir),
