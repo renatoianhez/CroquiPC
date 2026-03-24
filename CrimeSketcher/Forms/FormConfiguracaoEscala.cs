@@ -1,7 +1,7 @@
 ﻿// Forms/FormConfiguracaoEscala.cs
+using CrimeSketcher.Core;
 using System;
 using System.Windows.Forms;
-using CrimeSketcher.Core;
 
 namespace CrimeSketcher.Forms
 {

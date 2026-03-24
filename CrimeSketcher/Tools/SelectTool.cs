@@ -1,12 +1,12 @@
 // Tools/SelectTool.cs
+using CrimeSketcher.Core;
+using CrimeSketcher.Objects;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Linq;
 using System.Windows.Forms;
-using CrimeSketcher.Core;
-using CrimeSketcher.Objects;
 
 namespace CrimeSketcher.Tools
 {

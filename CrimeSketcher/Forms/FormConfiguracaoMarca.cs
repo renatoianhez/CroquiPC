@@ -1,9 +1,9 @@
 // Forms/FormConfiguracaoMarca.cs - Formulário de Configuração de Marca
+using CrimeSketcher.Objects;
+using CrimeSketcher.Tools;
 using System;
 using System.Drawing;
 using System.Windows.Forms;
-using CrimeSketcher.Objects;
-using CrimeSketcher.Tools;
 
 namespace CrimeSketcher.Forms
 {

@@ -1,17 +1,17 @@
 ﻿// Forms/FormPrincipal.cs
+using CrimeSketcher.Core;
+using CrimeSketcher.Library;
+using CrimeSketcher.Objects;
+using CrimeSketcher.Tools;
+using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Windows.Forms;
 using System.Text.Json;
-using Microsoft.Win32;
-using CrimeSketcher.Core;
-using CrimeSketcher.Library;
-using CrimeSketcher.Objects;
-using CrimeSketcher.Tools;
+using System.Windows.Forms;
 
 namespace CrimeSketcher.Forms
 {
@@ -371,7 +371,7 @@ namespace CrimeSketcher.Forms
             var btnSnap = new ToolStripButton("⊞ SNAP");
             btnSnap.CheckOnClick = true;
             btnSnap.Checked = true;
-            btnSnap.ToolTipText = "Snap to Grid (G)";
+            btnSnap.ToolTipText = "Snap to Grid (Ctrl+Alt+G)";
             btnSnap.ForeColor = Color.LightGreen;
             btnSnap.CheckedChanged += (s, e) =>
             {
@@ -588,41 +588,41 @@ namespace CrimeSketcher.Forms
             // ===== GRUPO: SELEÇÃO =====
             container.Controls.Add(CriarGrupoFerramentas("Seleção", new[]
             {
-                ("🖱️ Selecionar", "Selecionar", "V"),
+                ("🖱️ Selecionar", "Selecionar", "Esc"),
             }));
 
             // ===== GRUPO: CONSTRUÇÃO =====
             container.Controls.Add(CriarGrupoFerramentas("Construção", new[]
             {
-                ("🧱 Parede", "Parede", "W"),
-                ("🚪 Parede + Porta", "ParedePorta", "P"),
-                ("🪟 Parede + Janela", "ParedeJanela", "J"),
+                ("🧱 Parede", "Parede", "Ctrl+W"),
+                ("🚪 Parede + Porta", "ParedePorta", "Ctrl+Alt+P"),
+                ("🪟 Parede + Janela", "ParedeJanela", "Ctrl+J"),
                 ("🚪🪟 Parede + Porta + Janela", "ParedePortaJanela", "Ctrl+P"),
             }));
 
             // ===== GRUPO: VIAS =====
             container.Controls.Add(CriarGrupoFerramentas("Elementos de Trânsito", new[]
             {
-                ("🛣️ Rua", "Rua", "S"),
-                ("➕ Cruzamento Cruz", "CruzamentoCruz", "X"),
+                ("🛣️ Rua", "Rua", "Ctrl+Alt+S"),
+                ("➕ Cruzamento Cruz", "CruzamentoCruz", "Ctrl+Alt+X"),
                 ("⊤ Cruzamento T", "CruzamentoT", "Ctrl+T"),
-                ("⭕ Rotatória", "Rotatoria", "R"),
-                ("🔴 Marca", "Marca", "M"),
+                ("⭕ Rotatória", "Rotatoria", "Ctrl+R"),
+                ("🔴 Marca", "Marca", "Ctrl+M"),
             }));
 
             // ===== GRUPO: MEDIÇÕES =====
             container.Controls.Add(CriarGrupoFerramentas("Medições e Indicações", new[]
             {
-                ("📏 Cota/Medida", "Cota", "D"),
-                ("➡️ Seta", "Seta", "A"),
-                ("🏷️ Texto", "Texto", "T"),
+                ("📏 Cota/Medida", "Cota", "Ctrl+D"),
+                ("➡️ Seta", "Seta", "Ctrl+Alt+A"),
+                ("🏷️ Texto", "Texto", "Ctrl+Alt+T"),
             }));
 
             // ===== GRUPO: CORPOS =====
             container.Controls.Add(CriarGrupoFerramentas("Representação de Corpos", new[]
             {
-                ("🧍 Corpo Masculino", "CorpoMasculino", "H"),
-                ("👩 Corpo Feminino", "CorpoFeminino", "F"),
+                ("🧍 Corpo Masculino", "CorpoMasculino", "Ctrl+H"),
+                ("👩 Corpo Feminino", "CorpoFeminino", "Ctrl+F"),
             }));
 
             painelFerramentas.Controls.Add(container);
@@ -1179,19 +1179,23 @@ namespace CrimeSketcher.Forms
                 case "CruzamentoT":
                     // Mostrar submenu para direção do T
                     var menuT = new ContextMenuStrip();
-                    menuT.Items.Add("T para cima ⊥", null, (s2, e2) => {
+                    menuT.Items.Add("T para cima ⊥", null, (s2, e2) =>
+                    {
                         intersectionTool.TipoCruzamento = TipoCruzamento.TParaCima;
                         canvas.FerramentaAtual = intersectionTool;
                     });
-                    menuT.Items.Add("T para baixo ⊤", null, (s2, e2) => {
+                    menuT.Items.Add("T para baixo ⊤", null, (s2, e2) =>
+                    {
                         intersectionTool.TipoCruzamento = TipoCruzamento.TParaBaixo;
                         canvas.FerramentaAtual = intersectionTool;
                     });
-                    menuT.Items.Add("T para esquerda ⊣", null, (s2, e2) => {
+                    menuT.Items.Add("T para esquerda ⊣", null, (s2, e2) =>
+                    {
                         intersectionTool.TipoCruzamento = TipoCruzamento.TParaEsquerda;
                         canvas.FerramentaAtual = intersectionTool;
                     });
-                    menuT.Items.Add("T para direita ⊢", null, (s2, e2) => {
+                    menuT.Items.Add("T para direita ⊢", null, (s2, e2) =>
+                    {
                         intersectionTool.TipoCruzamento = TipoCruzamento.TParaDireita;
                         canvas.FerramentaAtual = intersectionTool;
                     });
@@ -1433,12 +1437,12 @@ namespace CrimeSketcher.Forms
                     Converters = { new SketchObjectConverter() }
                 };
                 _objetosCopiados = JsonSerializer.Serialize(selecionados, options);
-                
+
                 statusLabel.Text = $"✓ {selecionados.Count} objeto(s) copiado(s)";
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Erro ao copiar objetos:\n{ex.Message}", 
+                MessageBox.Show($"Erro ao copiar objetos:\n{ex.Message}",
                     "Erro", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 statusLabel.Text = "Erro ao copiar objetos";
             }
@@ -1462,22 +1466,22 @@ namespace CrimeSketcher.Forms
                     Converters = { new SketchObjectConverter() }
                 };
                 _objetosCopiados = JsonSerializer.Serialize(selecionados, options);
-                
+
                 // Remover objetos do documento
                 foreach (var obj in selecionados)
                 {
                     documento.RemoverObjeto(obj);
                 }
-                
+
                 selectTool.LimparSelecao();
                 propGrid.SelectedObject = null;
                 canvas.Invalidate();
-                
+
                 statusLabel.Text = $"✓ {selecionados.Count} objeto(s) recortado(s)";
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Erro ao recortar objetos:\n{ex.Message}", 
+                MessageBox.Show($"Erro ao recortar objetos:\n{ex.Message}",
                     "Erro", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 statusLabel.Text = "Erro ao recortar objetos";
             }
@@ -1499,7 +1503,7 @@ namespace CrimeSketcher.Forms
                     Converters = { new SketchObjectConverter() }
                 };
                 var objetos = JsonSerializer.Deserialize<List<BaseSketchObject>>(_objetosCopiados, options);
-                
+
                 if (objetos == null || objetos.Count == 0)
                 {
                     statusLabel.Text = "Erro ao colar: dados inválidos";
@@ -1508,41 +1512,41 @@ namespace CrimeSketcher.Forms
 
                 // Offset para não colar exatamente no mesmo local
                 float offset = 20f;
-                
+
                 // Adicionar objetos ao documento com novo ID e posição offset
                 var objetosColados = new List<BaseSketchObject>();
                 foreach (var obj in objetos)
                 {
                     // Gerar novo ID para evitar duplicação
                     obj.Id = Guid.NewGuid().ToString();
-                    
+
                     // Aplicar offset na posição
                     obj.Posicao = new PointF(obj.Posicao.X + offset, obj.Posicao.Y + offset);
-                    
+
                     // Adicionar ao documento
                     documento.AdicionarObjeto(obj);
                     objetosColados.Add(obj);
                 }
-                
+
                 // Selecionar objetos colados
                 selectTool.LimparSelecao();
                 foreach (var obj in objetosColados)
                 {
                     obj.Selecionado = true;
                 }
-                
+
                 if (objetosColados.Count > 0)
                 {
                     selectTool.SelecionarObjeto(objetosColados[objetosColados.Count - 1]);
                     propGrid.SelectedObject = objetosColados[objetosColados.Count - 1];
                 }
-                
+
                 canvas.Invalidate();
                 statusLabel.Text = $"✓ {objetosColados.Count} objeto(s) colado(s)";
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Erro ao colar objetos:\n{ex.Message}", 
+                MessageBox.Show($"Erro ao colar objetos:\n{ex.Message}",
                     "Erro", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 statusLabel.Text = "Erro ao colar objetos";
             }
@@ -1996,23 +2000,23 @@ namespace CrimeSketcher.Forms
                 "  Ctrl+Shift+G   Desagrupar\n" +
                 "  Delete         Excluir seleção\n\n" +
                 "FERRAMENTAS:\n" +
-                "  V / Esc        Selecionar\n" +
-                "  W              Parede\n" +
-                "  P              Parede + Porta\n" +
-                "  J              Parede + Janela\n" +
+                "  Esc            Selecionar\n" +
+                "  Ctrl+W         Parede\n" +
+                "  Ctrl+Alt+P     Parede + Porta\n" +
+                "  Ctrl+J         Parede + Janela\n" +
                 "  Ctrl+P         Parede + Porta + Janela\n" +
-                "  S              Rua\n" +
-                "  X              Cruzamento Cruz\n" +
+                "  Ctrl+Alt+S     Rua\n" +
+                "  Ctrl+Alt+X     Cruzamento Cruz\n" +
                 "  Ctrl+T         Cruzamento T\n" +
-                "  R              Rotatória\n" +
-                "  M              Marca\n" +
-                "  D              Cota/Medida\n" +
-                "  T              Texto\n" +
-                "  A              Seta\n" +
-                "  H              Corpo Masculino\n" +
-                "  F              Corpo Feminino\n\n" +
+                "  Ctrl+R         Rotatória\n" +
+                "  Ctrl+M         Marca\n" +
+                "  Ctrl+D         Cota/Medida\n" +
+                "  Ctrl+Alt+T     Texto\n" +
+                "  Ctrl+Alt+A     Seta\n" +
+                "  Ctrl+H         Corpo Masculino\n" +
+                "  Ctrl+F         Corpo Feminino\n\n" +
                 "VISUALIZAÇÃO:\n" +
-                "  G              Toggle Snap\n" +
+                "  Ctrl+Alt+G     Toggle Snap\n" +
                 "  Ctrl+0         Zoom para ver tudo\n" +
                 "  Ctrl+1         Zoom 100%\n" +
                 "  Ctrl++         Ampliar zoom\n" +
@@ -2105,10 +2109,17 @@ namespace CrimeSketcher.Forms
                     case Keys.D1: DefinirZoom(1f); e.Handled = true; break;
                     case Keys.Oemplus: AlterarZoom(1.25f); e.Handled = true; break;
                     case Keys.OemMinus: AlterarZoom(1f / 1.25f); e.Handled = true; break;
+                    case Keys.W: DefinirFerramenta("Parede"); e.Handled = true; break;
+                    case Keys.J: DefinirFerramenta("ParedeJanela"); e.Handled = true; break;
+                    case Keys.R: DefinirFerramenta("Rotatoria"); e.Handled = true; break;
+                    case Keys.M: DefinirFerramenta("Marca"); e.Handled = true; break;
+                    case Keys.D: DefinirFerramenta("Cota"); e.Handled = true; break;
+                    case Keys.H: DefinirFerramenta("CorpoMasculino"); e.Handled = true; break;
+                    case Keys.F: DefinirFerramenta("CorpoFeminino"); e.Handled = true; break;
                 }
             }
             // Ctrl+Shift
-            else if (e.Control && e.Shift)
+            else if (e.Control && e.Shift && !e.Alt)
             {
                 switch (e.KeyCode)
                 {
@@ -2117,32 +2128,31 @@ namespace CrimeSketcher.Forms
                     case Keys.I: Imprimir(); e.Handled = true; break;
                 }
             }
-            // Sem modificadores
-            else if (!e.Control && !e.Alt && !e.Shift)
+            // Ctrl+Alt (ferramentas com conflito em Ctrl)
+            else if (e.Control && e.Alt && !e.Shift)
             {
                 switch (e.KeyCode)
                 {
-                    case Keys.V:
-                    case Keys.Escape:
-                        DefinirFerramenta("Selecionar");
-                        e.Handled = true;
-                        break;
-                    case Keys.W: DefinirFerramenta("Parede"); e.Handled = true; break;
                     case Keys.P: DefinirFerramenta("ParedePorta"); e.Handled = true; break;
-                    case Keys.J: DefinirFerramenta("ParedeJanela"); e.Handled = true; break;
                     case Keys.S: DefinirFerramenta("Rua"); e.Handled = true; break;
                     case Keys.X: DefinirFerramenta("CruzamentoCruz"); e.Handled = true; break;
-                    case Keys.R: DefinirFerramenta("Rotatoria"); e.Handled = true; break;
-                    case Keys.M: DefinirFerramenta("Marca"); e.Handled = true; break;
-                    case Keys.D: DefinirFerramenta("Cota"); e.Handled = true; break;
                     case Keys.T: DefinirFerramenta("Texto"); e.Handled = true; break;
                     case Keys.A: DefinirFerramenta("Seta"); e.Handled = true; break;
-                    case Keys.H: DefinirFerramenta("CorpoMasculino"); e.Handled = true; break;
-                    case Keys.F: DefinirFerramenta("CorpoFeminino"); e.Handled = true; break;
                     case Keys.G:
                         grid.SnapAtivo = !grid.SnapAtivo;
                         AtualizarStatusSnap();
                         canvas.Invalidate();
+                        e.Handled = true;
+                        break;
+                }
+            }
+            // Teclas especiais (sem modificadores)
+            else if (!e.Control && !e.Alt && !e.Shift)
+            {
+                switch (e.KeyCode)
+                {
+                    case Keys.Escape:
+                        DefinirFerramenta("Selecionar");
                         e.Handled = true;
                         break;
                     case Keys.Delete:

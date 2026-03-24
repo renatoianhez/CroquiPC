@@ -1,6 +1,4 @@
 ﻿// Objects/StreetEnums.cs
-using System;
-
 namespace CrimeSketcher.Objects
 {
     /// <summary>

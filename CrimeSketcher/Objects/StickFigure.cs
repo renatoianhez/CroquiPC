@@ -119,10 +119,10 @@ namespace CrimeSketcher.Objects
 
         [JsonIgnore]
         [Category("Aparência"), DisplayName("Cor da Pele")]
-        public Color CorPele 
-        { 
-            get => Color.FromArgb(CorPeleArgb); 
-            set => CorPeleArgb = value.ToArgb(); 
+        public Color CorPele
+        {
+            get => Color.FromArgb(CorPeleArgb);
+            set => CorPeleArgb = value.ToArgb();
         }
 
         [JsonIgnore]
@@ -184,18 +184,18 @@ namespace CrimeSketcher.Objects
 
         [JsonIgnore]
         [Category("Aparência"), DisplayName("Cor do Cabelo")]
-        public Color CorCabelo 
-        { 
-            get => Color.FromArgb(CorCabeloArgb); 
-            set => CorCabeloArgb = value.ToArgb(); 
+        public Color CorCabelo
+        {
+            get => Color.FromArgb(CorCabeloArgb);
+            set => CorCabeloArgb = value.ToArgb();
         }
 
         [JsonIgnore]
         [Category("Aparência"), DisplayName("Cor do Sapato")]
-        public Color CorSapato 
-        { 
-            get => Color.FromArgb(CorSapatoArgb); 
-            set => CorSapatoArgb = value.ToArgb(); 
+        public Color CorSapato
+        {
+            get => Color.FromArgb(CorSapatoArgb);
+            set => CorSapatoArgb = value.ToArgb();
         }
 
         [JsonIgnore]

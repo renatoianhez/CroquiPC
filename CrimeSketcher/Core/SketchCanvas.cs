@@ -1,6 +1,5 @@
 ﻿// Core/SketchCanvas.cs
 using CrimeSketcher.Library;
-using CrimeSketcher.Objects;
 using CrimeSketcher.Tools;
 using System;
 using System.Drawing;

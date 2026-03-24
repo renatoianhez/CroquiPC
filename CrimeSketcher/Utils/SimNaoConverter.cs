@@ -21,7 +21,7 @@ namespace CrimeSketcher.Utils
             {
                 if (string.Equals(stringValue, "Sim", StringComparison.OrdinalIgnoreCase))
                     return true;
-                if (string.Equals(stringValue, "Não", StringComparison.OrdinalIgnoreCase) || 
+                if (string.Equals(stringValue, "Não", StringComparison.OrdinalIgnoreCase) ||
                     string.Equals(stringValue, "Nao", StringComparison.OrdinalIgnoreCase))
                     return false;
             }

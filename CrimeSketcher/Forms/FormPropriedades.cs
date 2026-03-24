@@ -1,8 +1,7 @@
 ﻿// Forms/FormPropriedades.cs
-using System;
+using CrimeSketcher.Objects;
 using System.Drawing;
 using System.Windows.Forms;
-using CrimeSketcher.Objects;
 
 namespace CrimeSketcher.Forms
 {

@@ -1,12 +1,12 @@
 ﻿// Tools/StampTool.cs
+using CrimeSketcher.Core;
+using CrimeSketcher.Library;
+using CrimeSketcher.Objects;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.IO;
 using System.Windows.Forms;
-using CrimeSketcher.Core;
-using CrimeSketcher.Library;
-using CrimeSketcher.Objects;
 
 namespace CrimeSketcher.Tools
 {

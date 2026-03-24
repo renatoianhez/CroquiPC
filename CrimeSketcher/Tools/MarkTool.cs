@@ -1,9 +1,9 @@
 // Tools/MarkTool.cs - Ferramenta de Marcas
+using CrimeSketcher.Core;
+using CrimeSketcher.Objects;
 using System;
 using System.Drawing;
 using System.Windows.Forms;
-using CrimeSketcher.Core;
-using CrimeSketcher.Objects;
 
 namespace CrimeSketcher.Tools
 {
