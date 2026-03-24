@@ -30,7 +30,6 @@ namespace CrimeSketcher.Library
                 ("Móveis", "Moveis"),
                 ("Vestígios", "Vestigios"),
                 ("Armas", "Armas"),
-                ("Corpos", "Corpos"),
                 ("Sinais", "Sinais"),
                 ("Diversos", "Diversos")
             };
