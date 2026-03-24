@@ -1,9 +1,8 @@
 ﻿// Tools/IntersectionTool.cs
-using System;
-using System.Drawing;
-using System.Windows.Forms;
 using CrimeSketcher.Core;
 using CrimeSketcher.Objects;
+using System.Drawing;
+using System.Windows.Forms;
 
 namespace CrimeSketcher.Tools
 {

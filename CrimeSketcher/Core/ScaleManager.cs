@@ -1,7 +1,4 @@
 ﻿// Core/ScaleManager.cs
-using System;
-using System.Drawing;
-
 namespace CrimeSketcher.Core
 {
     /// <summary>

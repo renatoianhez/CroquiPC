@@ -1,12 +1,9 @@
 ﻿// Tools/StreetTool.cs
-using System;
-using System.Collections.Generic;
-using System.Drawing;
-using System.Drawing.Drawing2D;
-using System.Linq;
-using System.Windows.Forms;
 using CrimeSketcher.Core;
 using CrimeSketcher.Objects;
+using System.Collections.Generic;
+using System.Drawing;
+using System.Windows.Forms;
 
 namespace CrimeSketcher.Tools
 {

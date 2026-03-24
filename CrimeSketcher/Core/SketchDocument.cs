@@ -1,4 +1,5 @@
 ﻿// Core/SketchDocument.cs
+using CrimeSketcher.Objects;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -6,7 +7,6 @@ using System.IO;
 using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using CrimeSketcher.Objects;
 
 namespace CrimeSketcher.Core
 {
