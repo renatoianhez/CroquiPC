@@ -105,7 +105,7 @@ namespace CrimeSketcher.Forms
         private void InitializeComponent()
         {
             // ===== FORM =====
-            this.Text = "🔍 CrimeSketcher - Croqui de Local de Crime";
+            this.Text = "🔍 CroquiPC - Croqui de Local de Crime";
             this.Size = new Size(1400, 900);
             this.StartPosition = FormStartPosition.CenterScreen;
             this.WindowState = FormWindowState.Maximized;
@@ -1274,7 +1274,7 @@ namespace CrimeSketcher.Forms
             RecriarFerramentas();
 
             _arquivoAtual = null;
-            this.Text = "🔍 CrimeSketcher - Novo Croqui";
+            this.Text = "🔍 CroquiPC - Novo Croqui";
             propGrid.SelectedObject = null;
             canvas.CentralizarVista();
             canvas.Invalidate();
@@ -1284,7 +1284,7 @@ namespace CrimeSketcher.Forms
         {
             using (var dlg = new OpenFileDialog())
             {
-                dlg.Filter = "Croqui CrimeSketcher|*.csk|Todos|*.*";
+                dlg.Filter = "Croqui CroquiPC|*.csk|Todos|*.*";
                 dlg.Title = "Abrir Croqui";
                 if (dlg.ShowDialog() == DialogResult.OK)
                 {
@@ -1295,7 +1295,7 @@ namespace CrimeSketcher.Forms
                         RecriarFerramentas();
 
                         _arquivoAtual = dlg.FileName;
-                        this.Text = $"🔍 CrimeSketcher - {Path.GetFileName(dlg.FileName)}";
+                        this.Text = $"🔍 CroquiPC - {Path.GetFileName(dlg.FileName)}";
                         canvas.ZoomParaMostrarTudo();
                         statusLabel.Text = "Arquivo carregado com sucesso!";
                     }
@@ -1332,14 +1332,14 @@ namespace CrimeSketcher.Forms
         {
             using (var dlg = new SaveFileDialog())
             {
-                dlg.Filter = "Croqui CrimeSketcher|*.csk";
+                dlg.Filter = "Croqui CroquiPC|*.csk";
                 dlg.Title = "Salvar Croqui Como";
                 dlg.DefaultExt = "csk";
                 if (dlg.ShowDialog() == DialogResult.OK)
                 {
                     _arquivoAtual = dlg.FileName;
                     SalvarDocumento();
-                    this.Text = $"🔍 CrimeSketcher - {Path.GetFileName(dlg.FileName)}";
+                    this.Text = $"🔍 CroquiPC - {Path.GetFileName(dlg.FileName)}";
                 }
             }
         }
@@ -2028,13 +2028,13 @@ namespace CrimeSketcher.Forms
         private void MostrarSobre()
         {
             MessageBox.Show(
-                "🔍 CrimeSketcher v1.0\n\n" +
+                "🔍 CroquiPC v1.0\n\n" +
                 "Aplicação para elaboração de croquis\n" +
                 "técnicos de locais de crime.\n\n" +
                 "Renato Ianhez - Perito Criminal\n\n" +
                 "STRC - Patos de Minas\n\n" +
                 "© 2026 - Todos os direitos reservados.",
-                "Sobre o CrimeSketcher",
+                "Sobre o CroquiPC",
                 MessageBoxButtons.OK,
                 MessageBoxIcon.Information);
         }
@@ -2166,7 +2166,7 @@ namespace CrimeSketcher.Forms
             {
                 var result = MessageBox.Show(
                     "Deseja salvar o croqui antes de sair?",
-                    "Sair do CrimeSketcher",
+                    "Sair do CroquiPC",
                     MessageBoxButtons.YesNoCancel,
                     MessageBoxIcon.Question);
 
