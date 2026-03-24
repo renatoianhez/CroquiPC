@@ -38,40 +38,41 @@ namespace CrimeSketcher.Library
             {
                 string dir = Path.Combine(_basePath, pasta);
                 Directory.CreateDirectory(dir);
-
-                var cat = new SymbolCategory { Nome = nome };
-
-                // Carregar PNGs existentes
-                if (Directory.Exists(dir))
-                {
-                    foreach (var file in Directory.GetFiles(dir, "*.png"))
-                    {
-                        try
-                        {
-                            var img = Image.FromFile(file);
-                            float alturaPadrao = img.Width > 0
-                                ? Math.Max(1f, (float)Math.Round(img.Height * (LarguraInsercaoPng / img.Width)))
-                                : LarguraInsercaoPng;
-
-                            cat.Itens.Add(new SymbolItem
-                            {
-                                Nome = Path.GetFileNameWithoutExtension(file),
-                                CaminhoImagem = file,
-                                Categoria = nome,
-                                Thumbnail = CriarThumbnail(img, 48, 48),
-                                LarguraPadrao = LarguraInsercaoPng,
-                                AlturaPadrao = alturaPadrao
-                            });
-                        }
-                        catch { }
-                    }
-                }
-
-                Categorias.Add(cat);
+                Categorias.Add(new SymbolCategory { Nome = nome });
             }
 
-            // Se não houver imagens, criar placeholders vetoriais
+            // Gerar símbolos padrão (cria o arquivo se não existir)
             GerarSimbolosPadrao();
+
+            // Carregar PNGs existentes nas categorias
+            foreach (var (nome, pasta) in categorias)
+            {
+                string dir = Path.Combine(_basePath, pasta);
+                var cat = Categorias.Find(c => c.Nome == nome);
+                if (cat == null || !Directory.Exists(dir)) continue;
+
+                foreach (var file in Directory.GetFiles(dir, "*.png"))
+                {
+                    try
+                    {
+                        var img = Image.FromFile(file);
+                        float alturaPadrao = img.Width > 0
+                            ? Math.Max(1f, (float)Math.Round(img.Height * (LarguraInsercaoPng / img.Width)))
+                            : LarguraInsercaoPng;
+
+                        cat.Itens.Add(new SymbolItem
+                        {
+                            Nome = Path.GetFileNameWithoutExtension(file),
+                            CaminhoImagem = file,
+                            Categoria = nome,
+                            Thumbnail = CriarThumbnail(img, 48, 48),
+                            LarguraPadrao = LarguraInsercaoPng,
+                            AlturaPadrao = alturaPadrao
+                        });
+                    }
+                    catch { }
+                }
+            }
         }
 
         /// <summary>
@@ -97,16 +98,6 @@ namespace CrimeSketcher.Library
                     g.DrawLine(Pens.DarkGray, 15, 5, 15, h - 5);
                 });
 
-            GerarSimboloSeNaoExiste("Veiculos", "Moto", 40, 20,
-                (g, w, h) =>
-                {
-                    g.FillEllipse(Brushes.DarkGray, 2, h / 2 - 5, 10, 10);
-                    g.FillEllipse(Brushes.DarkGray, w - 14, h / 2 - 5, 10, 10);
-                    g.DrawLine(new Pen(Color.Black, 2), 7, h / 2,
-                        w - 9, h / 2);
-                    g.FillRectangle(Brushes.Gray, w / 2 - 6, 3, 12, h - 6);
-                });
-
             // Móveis
             GerarSimboloSeNaoExiste("Moveis", "Mesa_Retangular",
                 50, 30, (g, w, h) =>
@@ -116,56 +107,7 @@ namespace CrimeSketcher.Library
                     g.DrawRectangle(Pens.SaddleBrown, 3, 3, w - 6, h - 6);
                 });
 
-            GerarSimboloSeNaoExiste("Moveis", "Cadeira", 20, 20,
-                (g, w, h) =>
-                {
-                    g.FillRectangle(new SolidBrush(Color.Tan),
-                        3, 3, w - 6, h - 6);
-                    g.DrawRectangle(Pens.SaddleBrown, 3, 3, w - 6, h - 6);
-                    g.DrawLine(Pens.SaddleBrown, 3, 3, 3, h / 2);
-                });
-
-            GerarSimboloSeNaoExiste("Moveis", "Cama_Casal",
-                50, 40, (g, w, h) =>
-                {
-                    g.FillRectangle(new SolidBrush(Color.LightBlue),
-                        3, 3, w - 6, h - 6);
-                    g.DrawRectangle(Pens.SteelBlue, 3, 3, w - 6, h - 6);
-                    // Travesseiros
-                    g.FillRectangle(Brushes.White, 6, 5, w / 2 - 6, 10);
-                    g.FillRectangle(Brushes.White, w / 2 + 2, 5, w / 2 - 6, 10);
-                    g.DrawRectangle(Pens.LightSteelBlue, 6, 5, w / 2 - 6, 10);
-                    g.DrawRectangle(Pens.LightSteelBlue, w / 2 + 2, 5,
-                        w / 2 - 6, 10);
-                });
-
-            GerarSimboloSeNaoExiste("Moveis", "Sofa", 60, 25,
-                (g, w, h) =>
-                {
-                    g.FillRoundedRectangle(new SolidBrush(Color.CadetBlue),
-                        3, 3, w - 6, h - 6, 4);
-                    g.DrawRoundedRectangle(Pens.DarkSlateGray,
-                        3, 3, w - 6, h - 6, 4);
-                    g.FillRectangle(new SolidBrush(Color.DarkCyan),
-                        3, h - 8, w - 6, 5);
-                });
-
             // Vestígios
-            GerarSimboloSeNaoExiste("Vestigios", "Mancha_Sangue",
-                25, 25, (g, w, h) =>
-                {
-                    using (var path = new GraphicsPath())
-                    {
-                        path.AddEllipse(3, 5, w - 6, h - 8);
-                        path.AddEllipse(w / 3, 2, w / 3, h / 3);
-                        using (var brush = new SolidBrush(
-                            Color.FromArgb(180, 139, 0, 0)))
-                        {
-                            g.FillPath(brush, path);
-                        }
-                    }
-                });
-
             GerarSimboloSeNaoExiste("Vestigios", "Projetil",
                 15, 15, (g, w, h) =>
                 {
@@ -174,37 +116,7 @@ namespace CrimeSketcher.Library
                     g.DrawEllipse(Pens.Black, 2, 2, w - 4, h - 4);
                 });
 
-            GerarSimboloSeNaoExiste("Vestigios", "Capsula",
-                10, 18, (g, w, h) =>
-                {
-                    g.FillRectangle(Brushes.Gold, 2, 5, w - 4, h - 7);
-                    g.FillEllipse(Brushes.Gold, 1, 1, w - 2, 8);
-                    g.DrawRectangle(Pens.DarkGoldenrod, 2, 5, w - 4, h - 7);
-                });
-
-            GerarSimboloSeNaoExiste("Vestigios", "Pegada",
-                15, 30, (g, w, h) =>
-                {
-                    using (var path = new GraphicsPath())
-                    {
-                        path.AddEllipse(2, h / 2, w - 4, h / 2 - 2);
-                        path.AddEllipse(3, 2, w - 6, h / 3);
-                        g.FillPath(new SolidBrush(
-                            Color.FromArgb(150, 80, 60, 40)), path);
-                    }
-                });
-
             // Armas
-            GerarSimboloSeNaoExiste("Armas", "Revolver",
-                35, 25, (g, w, h) =>
-                {
-                    g.DrawLine(new Pen(Color.DimGray, 3), 5, h / 2,
-                        w - 5, h / 2);
-                    g.DrawLine(new Pen(Color.DimGray, 2), w / 2, h / 2,
-                        w / 2 + 3, h - 3);
-                    g.FillEllipse(Brushes.DimGray, w - 10, h / 2 - 5, 10, 10);
-                });
-
             GerarSimboloSeNaoExiste("Armas", "Faca", 10, 40,
                 (g, w, h) =>
                 {
@@ -215,41 +127,17 @@ namespace CrimeSketcher.Library
                 });
 
             // Sinais
-            GerarSimboloSeNaoExiste("Sinais", "Norte", 40, 40,
-                (g, w, h) =>
-                {
-                    // Rosa dos ventos simplificada
-                    var center = new PointF(w / 2, h / 2);
-                    using (var pen = new Pen(Color.DarkRed, 2))
-                    {
-                        g.DrawLine(pen, w / 2, 3, w / 2, h - 3);
-                        g.DrawLine(pen, 3, h / 2, w - 3, h / 2);
-                    }
-                    // Seta norte
-                    g.FillPolygon(Brushes.Red, new PointF[]
-                    {
-                    new PointF(w/2, 2),
-                    new PointF(w/2 - 5, 12),
-                    new PointF(w/2 + 5, 12)
-                    });
-                    using (var font = new Font("Arial", 7, FontStyle.Bold))
-                    {
-                        g.DrawString("N", font, Brushes.DarkRed,
-                            w / 2 - 4, 0);
-                    }
-                });
-
             GerarSimboloSeNaoExiste("Sinais", "Marcador_Evidencia",
                 25, 30, (g, w, h) =>
                 {
                     // Plaqueta numerada de evidência
                     var points = new PointF[]
                     {
-                    new PointF(w/2, 2),
-                    new PointF(w - 3, h/2),
-                    new PointF(w - 3, h - 3),
-                    new PointF(3, h - 3),
-                    new PointF(3, h/2)
+                        new PointF(w / 2, 2),
+                        new PointF(w - 3, h / 2),
+                        new PointF(w - 3, h - 3),
+                        new PointF(3, h - 3),
+                        new PointF(3, h / 2)
                     };
                     g.FillPolygon(Brushes.Yellow, points);
                     g.DrawPolygon(Pens.Black, points);
@@ -261,6 +149,14 @@ namespace CrimeSketcher.Library
                         g.DrawString("#", font, Brushes.Black,
                             new RectangleF(0, h / 3, w, h * 2 / 3), sf);
                     }
+                });
+
+            // Diversos
+            GerarSimboloSeNaoExiste("Diversos", "Mossa",
+                15, 15, (g, w, h) =>
+                {
+                    g.FillEllipse(Brushes.Gray, 2, 2, w - 4, h - 4);
+                    g.DrawEllipse(Pens.Black, 2, 2, w - 4, h - 4);
                 });
         }
 
@@ -281,26 +177,6 @@ namespace CrimeSketcher.Library
                 g.Clear(Color.Transparent);
                 desenhar(g, w, h);
                 bmp.Save(file, System.Drawing.Imaging.ImageFormat.Png);
-            }
-
-            // Adicionar à categoria
-            var cat = Categorias.Find(c =>
-                c.Nome == GetNomeCategoria(pasta));
-            if (cat != null)
-            {
-                float alturaPadrao = w > 0
-                    ? Math.Max(1f, (float)Math.Round(h * (LarguraInsercaoPng / w)))
-                    : LarguraInsercaoPng;
-
-                cat.Itens.Add(new SymbolItem
-                {
-                    Nome = nome.Replace("_", " "),
-                    CaminhoImagem = file,
-                    Categoria = cat.Nome,
-                    Thumbnail = Image.FromFile(file),
-                    LarguraPadrao = LarguraInsercaoPng,
-                    AlturaPadrao = alturaPadrao
-                });
             }
         }
 
