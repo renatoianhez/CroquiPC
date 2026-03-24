@@ -58,6 +58,9 @@ namespace CrimeSketcher.Objects
         public int CorAsfaltoArgb { get; set; } = Color.FromArgb(180, 180, 180).ToArgb();
 
         [Browsable(false)]
+        public int CorContornoExternoArgb { get; set; } = Color.FromArgb(180, 180, 180).ToArgb();
+
+        [Browsable(false)]
         public int CorCalcadaArgb { get; set; } = Color.FromArgb(210, 210, 200).ToArgb();
 
         [Browsable(false)]
@@ -74,6 +77,16 @@ namespace CrimeSketcher.Objects
         {
             get => Color.FromArgb(CorAsfaltoArgb);
             set => CorAsfaltoArgb = value.ToArgb();
+        }
+
+        [Category("Aparência")]
+        [DisplayName("Cor do Contorno Externo")]
+        [Description("Cor da linha circular de contorno externo da rotatória")]
+        [JsonIgnore]
+        public Color CorContornoExterno
+        {
+            get => Color.FromArgb(CorContornoExternoArgb);
+            set => CorContornoExternoArgb = value.ToArgb();
         }
 
         [Category("Aparência")]
@@ -108,6 +121,7 @@ namespace CrimeSketcher.Objects
         public RoundaboutObject()
         {
             Tipo = "Rotatória";
+            CorContornoExternoArgb = CorAsfaltoArgb;
         }
 
         public override void Desenhar(Graphics g)
@@ -130,7 +144,10 @@ namespace CrimeSketcher.Objects
                 }
             }
 
-            // 2. Asfalto (anel)
+            // 2. Saídas (extensões para ruas) - desenhar cedo para o asfalto circular sobrepor
+            DesenharSaidas(g, raioTotal);
+
+            // 3. Asfalto circular (anel)
             using (var brush = new SolidBrush(Color.FromArgb(CorAsfaltoArgb)))
             {
                 g.FillEllipse(brush, -RaioExterno, -RaioExterno,
@@ -145,7 +162,7 @@ namespace CrimeSketcher.Objects
                     RaioExterno * 2, RaioExterno * 2);
             }
 
-            // 3. Ilha central
+            // 4. Ilha central
             if (TemIlhaCentral)
             {
                 // Meio-fio da ilha
@@ -181,17 +198,14 @@ namespace CrimeSketcher.Objects
                 }
             }
 
-            // 4. Faixa tracejada circular
+            // 5. Faixa tracejada circular
             DesenharFaixaCircular(g);
-
-            // 5. Saídas (extensões para ruas)
-            DesenharSaidas(g, raioTotal);
 
             // 6. Setas de direção
             DesenharSetasDirecao(g);
 
             // 7. Meio-fio externo
-            using (var pen = new Pen(Color.FromArgb(150, 150, 140), 2f))
+            using (var pen = new Pen(Color.FromArgb(CorContornoExternoArgb), 2f))
             {
                 g.DrawEllipse(pen, -RaioExterno, -RaioExterno,
                     RaioExterno * 2, RaioExterno * 2);

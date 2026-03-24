@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Windows.Forms;
 using System.Text.Json;
 using Microsoft.Win32;
@@ -104,7 +105,7 @@ namespace CrimeSketcher.Forms
         private void InitializeComponent()
         {
             // ===== FORM =====
-            this.Text = "🔍 CrimeSketcher - Croqui de Local de Crime";
+            this.Text = "🔍 CroquiPC - Croqui de Local de Crime";
             this.Size = new Size(1400, 900);
             this.StartPosition = FormStartPosition.CenterScreen;
             this.WindowState = FormWindowState.Maximized;
@@ -172,7 +173,7 @@ namespace CrimeSketcher.Forms
                 CriarMenuItem("Exportar como &Imagem...", "", ExportarImagem),
                 CriarMenuItem("Exportar como &PDF...", "", ExportarPDF),
                 new ToolStripSeparator(),
-                CriarMenuItem("&Imprimir...", "Ctrl+P", Imprimir),
+                CriarMenuItem("&Imprimir...", "Ctrl+Shift+I", Imprimir),
                 new ToolStripSeparator(),
                 CriarMenuItem("&Sair", "Alt+F4", () => Close())
             });
@@ -187,6 +188,9 @@ namespace CrimeSketcher.Forms
                 CriarMenuItem("&Copiar", "Ctrl+C", Copiar),
                 CriarMenuItem("C&olar", "Ctrl+V", Colar),
                 CriarMenuItem("Recor&tar", "Ctrl+X", Recortar),
+                new ToolStripSeparator(),
+                CriarMenuItem("Inverter &Horizontal", "", InverterHorizontalSelecionados),
+                CriarMenuItem("Inverter &Vertical", "", InverterVerticalSelecionados),
                 new ToolStripSeparator(),
                 CriarMenuItem("&Excluir", "Delete", ExcluirSelecao),
                 CriarMenuItem("Selecionar &Tudo", "Ctrl+A", SelecionarTudo)
@@ -293,16 +297,23 @@ namespace CrimeSketcher.Forms
 
             toolStrip.Items.Add(new ToolStripSeparator());
 
-            // ===== ZOOM =====
-            toolStrip.Items.Add(CriarBotaoToolbar("🔍+", "Zoom + (Ctrl++)", () => AlterarZoom(1.25f)));
-            toolStrip.Items.Add(CriarBotaoToolbar("🔍-", "Zoom - (Ctrl+-)", () => AlterarZoom(1f / 1.25f)));
-            toolStrip.Items.Add(CriarBotaoToolbar("🔍◻", "Zoom Tudo (Ctrl+0)", () => canvas.ZoomParaMostrarTudo()));
+            // ===== ZOOM (Dropdown) =====
+            var btnZoom = new ToolStripDropDownButton("🔍 Zoom");
+            btnZoom.ToolTipText = "Ferramentas de Zoom";
+            btnZoom.Font = new Font("Segoe UI Emoji", 10);
+            btnZoom.ForeColor = Color.White;
+            btnZoom.DropDownItems.Add(CriarMenuItemToolbar("🔍+ Ampliar", "Ctrl++", () => AlterarZoom(1.25f)));
+            btnZoom.DropDownItems.Add(CriarMenuItemToolbar("🔍- Reduzir", "Ctrl+-", () => AlterarZoom(1f / 1.25f)));
+            btnZoom.DropDownItems.Add(CriarMenuItemToolbar("🔍◻ Ajustar Tudo", "Ctrl+0", () => canvas.ZoomParaMostrarTudo()));
+            btnZoom.DropDownItems.Add(CriarMenuItemToolbar("🔍1 Zoom 100%", "Ctrl+1", () => DefinirZoom(1f)));
+            btnZoom.DropDownItems.Add(new ToolStripSeparator());
 
-            // ComboBox de Zoom
-            var cmbZoom = new ToolStripComboBox();
+            // ComboBox de Zoom no dropdown
+            var cmbZoom = new ToolStripComboBox("Nível:");
             cmbZoom.Items.AddRange(new object[] { "25%", "50%", "75%", "100%", "150%", "200%", "400%" });
             cmbZoom.Text = "100%";
-            cmbZoom.Width = 70;
+            cmbZoom.AutoSize = false;
+            cmbZoom.Width = 80;
             cmbZoom.DropDownStyle = ComboBoxStyle.DropDownList;
             cmbZoom.SelectedIndexChanged += (s, e) =>
             {
@@ -310,25 +321,49 @@ namespace CrimeSketcher.Forms
                 if (float.TryParse(val, out float zoom))
                     DefinirZoom(zoom / 100f);
             };
-            toolStrip.Items.Add(cmbZoom);
+            btnZoom.DropDownItems.Add(cmbZoom);
+            toolStrip.Items.Add(btnZoom);
 
             toolStrip.Items.Add(new ToolStripSeparator());
 
-            // ===== ORDENAÇÃO =====
-            toolStrip.Items.Add(CriarBotaoToolbar("⬆️", "Trazer para Frente", TrazerParaFrente));
-            toolStrip.Items.Add(CriarBotaoToolbar("⬇️", "Enviar para Trás", EnviarParaTras));
-            toolStrip.Items.Add(CriarBotaoToolbar("🔼", "Avançar Uma Camada", AvancarCamada));
-            toolStrip.Items.Add(CriarBotaoToolbar("🔽", "Recuar Uma Camada", RecuarCamada));
+            // ===== ORDENAÇÃO (Dropdown) =====
+            var btnOrdem = new ToolStripDropDownButton("📑 Ordem");
+            btnOrdem.ToolTipText = "Ordenação de Camadas";
+            btnOrdem.Font = new Font("Segoe UI", 9);
+            btnOrdem.ForeColor = Color.White;
+            btnOrdem.DropDownItems.Add(CriarMenuItemToolbar("⬆️ Trazer para Frente", "", TrazerParaFrente));
+            btnOrdem.DropDownItems.Add(CriarMenuItemToolbar("⬇️ Enviar para Trás", "", EnviarParaTras));
+            btnOrdem.DropDownItems.Add(new ToolStripSeparator());
+            btnOrdem.DropDownItems.Add(CriarMenuItemToolbar("🔼 Avançar Uma Camada", "", AvancarCamada));
+            btnOrdem.DropDownItems.Add(CriarMenuItemToolbar("🔽 Recuar Uma Camada", "", RecuarCamada));
+            toolStrip.Items.Add(btnOrdem);
 
             toolStrip.Items.Add(new ToolStripSeparator());
 
-            // ===== ALINHAMENTO =====
-            toolStrip.Items.Add(CriarBotaoToolbar("⬅", "Alinhar à Esquerda", () => Alinhar("esquerda")));
-            toolStrip.Items.Add(CriarBotaoToolbar("⬌", "Centralizar Horizontal", () => Alinhar("centro_h")));
-            toolStrip.Items.Add(CriarBotaoToolbar("➡", "Alinhar à Direita", () => Alinhar("direita")));
-            toolStrip.Items.Add(CriarBotaoToolbar("⬆", "Alinhar ao Topo", () => Alinhar("topo")));
-            toolStrip.Items.Add(CriarBotaoToolbar("⬍", "Centralizar Vertical", () => Alinhar("centro_v")));
-            toolStrip.Items.Add(CriarBotaoToolbar("⬇", "Alinhar à Base", () => Alinhar("base")));
+            // ===== ALINHAMENTO (Dropdown) =====
+            var btnAlinhar = new ToolStripDropDownButton("⬌ Alinhar");
+            btnAlinhar.ToolTipText = "Alinhamento de Objetos";
+            btnAlinhar.Font = new Font("Segoe UI", 9);
+            btnAlinhar.ForeColor = Color.White;
+            btnAlinhar.DropDownItems.Add(CriarMenuItemToolbar("⬅ Alinhar à Esquerda", "", () => Alinhar("esquerda")));
+            btnAlinhar.DropDownItems.Add(CriarMenuItemToolbar("⬌ Centralizar Horizontal", "", () => Alinhar("centro_h")));
+            btnAlinhar.DropDownItems.Add(CriarMenuItemToolbar("➡ Alinhar à Direita", "", () => Alinhar("direita")));
+            btnAlinhar.DropDownItems.Add(new ToolStripSeparator());
+            btnAlinhar.DropDownItems.Add(CriarMenuItemToolbar("⬆ Alinhar ao Topo", "", () => Alinhar("topo")));
+            btnAlinhar.DropDownItems.Add(CriarMenuItemToolbar("⬍ Centralizar Vertical", "", () => Alinhar("centro_v")));
+            btnAlinhar.DropDownItems.Add(CriarMenuItemToolbar("⬇ Alinhar à Base", "", () => Alinhar("base")));
+            toolStrip.Items.Add(btnAlinhar);
+
+            toolStrip.Items.Add(new ToolStripSeparator());
+
+            // ===== INVERSÃO (Dropdown) =====
+            var btnInverter = new ToolStripDropDownButton("↔ Inverter");
+            btnInverter.ToolTipText = "Inversão de Objetos";
+            btnInverter.Font = new Font("Segoe UI", 9);
+            btnInverter.ForeColor = Color.White;
+            btnInverter.DropDownItems.Add(CriarMenuItemToolbar("↔ Inverter Horizontal", "", InverterHorizontalSelecionados));
+            btnInverter.DropDownItems.Add(CriarMenuItemToolbar("↕ Inverter Vertical", "", InverterVerticalSelecionados));
+            toolStrip.Items.Add(btnInverter);
 
             toolStrip.Items.Add(new ToolStripSeparator());
 
@@ -346,6 +381,33 @@ namespace CrimeSketcher.Forms
                 canvas.Invalidate();
             };
             toolStrip.Items.Add(btnSnap);
+
+            toolStrip.Items.Add(new ToolStripSeparator());
+
+            var lblGrid = new ToolStripLabel("Grid:")
+            {
+                ForeColor = Color.White
+            };
+            toolStrip.Items.Add(lblGrid);
+
+            var cmbGridSpacing = new ToolStripComboBox
+            {
+                Width = 50,
+                AutoSize = false,
+                DropDownStyle = ComboBoxStyle.DropDownList,
+                ToolTipText = "Espaçamento da grade"
+            };
+            cmbGridSpacing.Items.AddRange(new object[] { "5", "10", "15", "20", "25", "30", "40", "50" });
+            cmbGridSpacing.Text = grid?.EspacamentoPixels.ToString("0") ?? "10";
+            cmbGridSpacing.SelectedIndexChanged += (s, e) =>
+            {
+                if (float.TryParse(cmbGridSpacing.Text, out float spacing) && spacing > 0)
+                {
+                    grid.EspacamentoPixels = spacing;
+                    canvas.Invalidate();
+                }
+            };
+            toolStrip.Items.Add(cmbGridSpacing);
         }
 
         private ToolStripButton CriarBotaoToolbar(string emoji, string tooltip, Action acao)
@@ -356,6 +418,15 @@ namespace CrimeSketcher.Forms
             btn.ForeColor = Color.White;
             btn.Click += (s, e) => acao();
             return btn;
+        }
+
+        private ToolStripMenuItem CriarMenuItemToolbar(string texto, string atalho, Action acao)
+        {
+            var item = new ToolStripMenuItem(texto);
+            if (!string.IsNullOrEmpty(atalho))
+                item.ShortcutKeyDisplayString = atalho;
+            item.Click += (s, e) => acao();
+            return item;
         }
 
         private void CriarStatusBar()
@@ -524,18 +595,18 @@ namespace CrimeSketcher.Forms
             container.Controls.Add(CriarGrupoFerramentas("Construção", new[]
             {
                 ("🧱 Parede", "Parede", "W"),
-                ("🚪 Parede + Porta", "ParedePorta", ""),
-                ("🪟 Parede + Janela", "ParedeJanela", ""),
-                ("🚪🪟 Parede + Porta + Janela", "ParedePortaJanela", ""),
+                ("🚪 Parede + Porta", "ParedePorta", "P"),
+                ("🪟 Parede + Janela", "ParedeJanela", "J"),
+                ("🚪🪟 Parede + Porta + Janela", "ParedePortaJanela", "Ctrl+P"),
             }));
 
             // ===== GRUPO: VIAS =====
-            container.Controls.Add(CriarGrupoFerramentas("Vias e Externos", new[]
+            container.Controls.Add(CriarGrupoFerramentas("Elementos de Trânsito", new[]
             {
                 ("🛣️ Rua", "Rua", "S"),
-                ("➕ Cruzamento Cruz", "CruzamentoCruz", ""),
-                ("⊤ Cruzamento T", "CruzamentoT", ""),
-                ("⭕ Rotatória", "Rotatoria", ""),
+                ("➕ Cruzamento Cruz", "CruzamentoCruz", "X"),
+                ("⊤ Cruzamento T", "CruzamentoT", "Ctrl+T"),
+                ("⭕ Rotatória", "Rotatoria", "R"),
                 ("🔴 Marca", "Marca", "M"),
             }));
 
@@ -550,8 +621,8 @@ namespace CrimeSketcher.Forms
             // ===== GRUPO: CORPOS =====
             container.Controls.Add(CriarGrupoFerramentas("Representação de Corpos", new[]
             {
-                ("🧍 Corpo Masculino", "CorpoMasculino", ""),
-                ("👩 Corpo Feminino", "CorpoFeminino", ""),
+                ("🧍 Corpo Masculino", "CorpoMasculino", "H"),
+                ("👩 Corpo Feminino", "CorpoFeminino", "F"),
             }));
 
             painelFerramentas.Controls.Add(container);
@@ -920,6 +991,7 @@ namespace CrimeSketcher.Forms
             selectTool.SelectionChanged += (s, obj) =>
             {
                 propGrid.SelectedObject = obj;
+                AjustarColunaNomesPropriedades();
                 statusLabel.Text = obj != null
                     ? $"Selecionado: {obj.Tipo} - {obj.Nome}"
                     : "Pronto";
@@ -946,6 +1018,7 @@ namespace CrimeSketcher.Forms
             selectTool.SelectionChanged += (s, obj) =>
             {
                 propGrid.SelectedObject = obj;
+                AjustarColunaNomesPropriedades();
                 statusLabel.Text = obj != null
                     ? $"Selecionado: {obj.Tipo} - {obj.Nome}"
                     : "Pronto";
@@ -1174,7 +1247,7 @@ namespace CrimeSketcher.Forms
 
         private void ConfigurarCorpo()
         {
-            string rotulo = InputBox("Identificação do corpo:", "Corpo", "Vítima");
+            string rotulo = InputBox("Identificação do corpo:", "Corpo", "");
             stickFigureTool.Rotulo = rotulo;
             canvas.FerramentaAtual = stickFigureTool;
         }
@@ -1201,7 +1274,7 @@ namespace CrimeSketcher.Forms
             RecriarFerramentas();
 
             _arquivoAtual = null;
-            this.Text = "🔍 CrimeSketcher - Novo Croqui";
+            this.Text = "🔍 CroquiPC - Novo Croqui";
             propGrid.SelectedObject = null;
             canvas.CentralizarVista();
             canvas.Invalidate();
@@ -1211,7 +1284,7 @@ namespace CrimeSketcher.Forms
         {
             using (var dlg = new OpenFileDialog())
             {
-                dlg.Filter = "Croqui CrimeSketcher|*.csk|Todos|*.*";
+                dlg.Filter = "Croqui CroquiPC|*.csk|Todos|*.*";
                 dlg.Title = "Abrir Croqui";
                 if (dlg.ShowDialog() == DialogResult.OK)
                 {
@@ -1222,7 +1295,7 @@ namespace CrimeSketcher.Forms
                         RecriarFerramentas();
 
                         _arquivoAtual = dlg.FileName;
-                        this.Text = $"🔍 CrimeSketcher - {Path.GetFileName(dlg.FileName)}";
+                        this.Text = $"🔍 CroquiPC - {Path.GetFileName(dlg.FileName)}";
                         canvas.ZoomParaMostrarTudo();
                         statusLabel.Text = "Arquivo carregado com sucesso!";
                     }
@@ -1259,14 +1332,14 @@ namespace CrimeSketcher.Forms
         {
             using (var dlg = new SaveFileDialog())
             {
-                dlg.Filter = "Croqui CrimeSketcher|*.csk";
+                dlg.Filter = "Croqui CroquiPC|*.csk";
                 dlg.Title = "Salvar Croqui Como";
                 dlg.DefaultExt = "csk";
                 if (dlg.ShowDialog() == DialogResult.OK)
                 {
                     _arquivoAtual = dlg.FileName;
                     SalvarDocumento();
-                    this.Text = $"🔍 CrimeSketcher - {Path.GetFileName(dlg.FileName)}";
+                    this.Text = $"🔍 CroquiPC - {Path.GetFileName(dlg.FileName)}";
                 }
             }
         }
@@ -1907,30 +1980,45 @@ namespace CrimeSketcher.Forms
                 "              ATALHOS DE TECLADO\n" +
                 "═══════════════════════════════════════\n\n" +
                 "ARQUIVO:\n" +
-                "  Ctrl+N    Novo documento\n" +
-                "  Ctrl+O    Abrir\n" +
-                "  Ctrl+S    Salvar\n" +
-                "  Ctrl+P    Imprimir\n\n" +
+                "  Ctrl+N         Novo documento\n" +
+                "  Ctrl+O         Abrir\n" +
+                "  Ctrl+S         Salvar\n" +
+                "  Ctrl+Shift+S   Salvar Como\n" +
+                "  Ctrl+Shift+I   Imprimir\n\n" +
                 "EDIÇÃO:\n" +
-                "  Ctrl+Z    Desfazer\n" +
-                "  Ctrl+Y    Refazer\n" +
-                "  Ctrl+C    Copiar\n" +
-                "  Ctrl+V    Colar\n" +
-                "  Delete    Excluir seleção\n\n" +
+                "  Ctrl+Z         Desfazer\n" +
+                "  Ctrl+Y         Refazer\n" +
+                "  Ctrl+C         Copiar\n" +
+                "  Ctrl+V         Colar\n" +
+                "  Ctrl+X         Recortar\n" +
+                "  Ctrl+A         Selecionar tudo\n" +
+                "  Ctrl+G         Agrupar\n" +
+                "  Ctrl+Shift+G   Desagrupar\n" +
+                "  Delete         Excluir seleção\n\n" +
                 "FERRAMENTAS:\n" +
-                "  V / Esc   Selecionar\n" +
-                "  W         Parede\n" +
-                "  R         Cômodo\n" +
-                "  S         Rua\n" +
-                "  D         Cota/Medida\n" +
-                "  T         Texto\n" +
-                "  A         Seta\n\n" +
+                "  V / Esc        Selecionar\n" +
+                "  W              Parede\n" +
+                "  P              Parede + Porta\n" +
+                "  J              Parede + Janela\n" +
+                "  Ctrl+P         Parede + Porta + Janela\n" +
+                "  S              Rua\n" +
+                "  X              Cruzamento Cruz\n" +
+                "  Ctrl+T         Cruzamento T\n" +
+                "  R              Rotatória\n" +
+                "  M              Marca\n" +
+                "  D              Cota/Medida\n" +
+                "  T              Texto\n" +
+                "  A              Seta\n" +
+                "  H              Corpo Masculino\n" +
+                "  F              Corpo Feminino\n\n" +
                 "VISUALIZAÇÃO:\n" +
-                "  G         Toggle Snap\n" +
-                "  Ctrl+0    Zoom para ver tudo\n" +
-                "  Ctrl+1    Zoom 100%\n" +
-                "  Mouse     Scroll = Zoom\n" +
-                "            Botão do meio = Pan\n" +
+                "  G              Toggle Snap\n" +
+                "  Ctrl+0         Zoom para ver tudo\n" +
+                "  Ctrl+1         Zoom 100%\n" +
+                "  Ctrl++         Ampliar zoom\n" +
+                "  Ctrl+-         Reduzir zoom\n" +
+                "  Mouse Scroll   Zoom\n" +
+                "  Botão do meio  Pan\n" +
                 "═══════════════════════════════════════";
 
             MessageBox.Show(atalhos, "Atalhos de Teclado",
@@ -1940,12 +2028,13 @@ namespace CrimeSketcher.Forms
         private void MostrarSobre()
         {
             MessageBox.Show(
-                "🔍 CrimeSketcher v1.0\n\n" +
+                "🔍 CroquiPC v1.0\n\n" +
                 "Aplicação para elaboração de croquis\n" +
                 "técnicos de locais de crime.\n\n" +
-                "Desenvolvido para uso pericial.\n\n" +
-                "© 2024 - Todos os direitos reservados.",
-                "Sobre o CrimeSketcher",
+                "Renato Ianhez - Perito Criminal\n\n" +
+                "STRC - Patos de Minas\n\n" +
+                "© 2026 - Todos os direitos reservados.",
+                "Sobre o CroquiPC",
                 MessageBoxButtons.OK,
                 MessageBoxIcon.Information);
         }
@@ -1976,6 +2065,21 @@ namespace CrimeSketcher.Forms
             statusSnap.ForeColor = grid.SnapAtivo ? Color.LightGreen : Color.Gray;
         }
 
+        protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
+        {
+            var keyCode = keyData & Keys.KeyCode;
+
+            if (keyCode == Keys.Up || keyCode == Keys.Down ||
+                keyCode == Keys.Left || keyCode == Keys.Right)
+            {
+                canvas?.FerramentaAtual?.OnKeyDown(new KeyEventArgs(keyData));
+                canvas?.Invalidate();
+                return true;
+            }
+
+            return base.ProcessCmdKey(ref msg, keyData);
+        }
+
         protected override void OnKeyDown(KeyEventArgs e)
         {
             base.OnKeyDown(e);
@@ -1988,7 +2092,8 @@ namespace CrimeSketcher.Forms
                     case Keys.N: NovoDocumento(); e.Handled = true; break;
                     case Keys.O: AbrirDocumento(); e.Handled = true; break;
                     case Keys.S: SalvarDocumento(); e.Handled = true; break;
-                    case Keys.P: Imprimir(); e.Handled = true; break;
+                    case Keys.P: DefinirFerramenta("ParedePortaJanela"); e.Handled = true; break;
+                    case Keys.T: DefinirFerramenta("CruzamentoT"); e.Handled = true; break;
                     case Keys.Z: undoRedo?.Desfazer(); e.Handled = true; break;
                     case Keys.Y: undoRedo?.Refazer(); e.Handled = true; break;
                     case Keys.C: Copiar(); e.Handled = true; break;
@@ -2009,6 +2114,7 @@ namespace CrimeSketcher.Forms
                 {
                     case Keys.S: SalvarComo(); e.Handled = true; break;
                     case Keys.G: Desagrupar(); e.Handled = true; break;
+                    case Keys.I: Imprimir(); e.Handled = true; break;
                 }
             }
             // Sem modificadores
@@ -2022,11 +2128,17 @@ namespace CrimeSketcher.Forms
                         e.Handled = true;
                         break;
                     case Keys.W: DefinirFerramenta("Parede"); e.Handled = true; break;
-                    case Keys.R: DefinirFerramenta("Comodo"); e.Handled = true; break;
+                    case Keys.P: DefinirFerramenta("ParedePorta"); e.Handled = true; break;
+                    case Keys.J: DefinirFerramenta("ParedeJanela"); e.Handled = true; break;
                     case Keys.S: DefinirFerramenta("Rua"); e.Handled = true; break;
+                    case Keys.X: DefinirFerramenta("CruzamentoCruz"); e.Handled = true; break;
+                    case Keys.R: DefinirFerramenta("Rotatoria"); e.Handled = true; break;
+                    case Keys.M: DefinirFerramenta("Marca"); e.Handled = true; break;
                     case Keys.D: DefinirFerramenta("Cota"); e.Handled = true; break;
                     case Keys.T: DefinirFerramenta("Texto"); e.Handled = true; break;
                     case Keys.A: DefinirFerramenta("Seta"); e.Handled = true; break;
+                    case Keys.H: DefinirFerramenta("CorpoMasculino"); e.Handled = true; break;
+                    case Keys.F: DefinirFerramenta("CorpoFeminino"); e.Handled = true; break;
                     case Keys.G:
                         grid.SnapAtivo = !grid.SnapAtivo;
                         AtualizarStatusSnap();
@@ -2054,7 +2166,7 @@ namespace CrimeSketcher.Forms
             {
                 var result = MessageBox.Show(
                     "Deseja salvar o croqui antes de sair?",
-                    "Sair do CrimeSketcher",
+                    "Sair do CroquiPC",
                     MessageBoxButtons.YesNoCancel,
                     MessageBoxIcon.Question);
 
@@ -2123,6 +2235,88 @@ namespace CrimeSketcher.Forms
             form.CancelButton = buttonCancel;
 
             return form.ShowDialog() == DialogResult.OK ? textBox.Text : "";
+        }
+
+        private void InverterHorizontalSelecionados()
+        {
+            InverterSelecionados(horizontal: true);
+        }
+
+        private void InverterVerticalSelecionados()
+        {
+            InverterSelecionados(horizontal: false);
+        }
+
+        private void InverterSelecionados(bool horizontal)
+        {
+            var selecionados = selectTool?.ObjetosSelecionados?.ToList()
+                ?? new List<BaseSketchObject>();
+
+            if (selecionados.Count == 0)
+            {
+                statusLabel.Text = "Nenhum objeto selecionado para inverter";
+                return;
+            }
+
+            int invertidos = 0;
+
+            foreach (var obj in selecionados)
+            {
+                if (obj.Bloqueado)
+                    continue;
+
+                var bounds = obj.GetBounds();
+                var centro = new PointF(
+                    bounds.Left + bounds.Width / 2f,
+                    bounds.Top + bounds.Height / 2f);
+
+                if (horizontal)
+                    obj.EscalarAoRedor(centro, -1f, 1f);
+                else
+                    obj.EscalarAoRedor(centro, 1f, -1f);
+
+                invertidos++;
+            }
+
+            if (invertidos == 0)
+            {
+                statusLabel.Text = "Nenhum objeto pôde ser invertido (bloqueado)";
+                return;
+            }
+
+            documento.NotificarAlteracao();
+            canvas.Invalidate();
+            statusLabel.Text = horizontal
+                ? $"✓ {invertidos} objeto(s) invertido(s) horizontalmente"
+                : $"✓ {invertidos} objeto(s) invertido(s) verticalmente";
+        }
+
+        private void AjustarColunaNomesPropriedades()
+        {
+            if (propGrid == null || !propGrid.IsHandleCreated)
+                return;
+
+            const int larguraColunaNomes = 160;
+
+            propGrid.BeginInvoke(new Action(() =>
+            {
+                try
+                {
+                    var gridViewField = typeof(PropertyGrid).GetField("gridView",
+                        BindingFlags.Instance | BindingFlags.NonPublic);
+                    var gridView = gridViewField?.GetValue(propGrid);
+                    if (gridView == null)
+                        return;
+
+                    var moveSplitter = gridView.GetType().GetMethod("MoveSplitterTo",
+                        BindingFlags.Instance | BindingFlags.NonPublic)
+                        ?? gridView.GetType().GetMethod("MoveSplitter",
+                        BindingFlags.Instance | BindingFlags.NonPublic);
+
+                    moveSplitter?.Invoke(gridView, new object[] { larguraColunaNomes });
+                }
+                catch { }
+            }));
         }
 
         #endregion

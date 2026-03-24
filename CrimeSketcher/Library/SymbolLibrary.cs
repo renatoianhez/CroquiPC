@@ -13,6 +13,7 @@ namespace CrimeSketcher.Library
             = new List<SymbolCategory>();
 
         private string _basePath;
+        private const float LarguraInsercaoPng = 30f;
 
         public SymbolLibrary(string basePath)
         {
@@ -29,7 +30,6 @@ namespace CrimeSketcher.Library
                 ("Móveis", "Moveis"),
                 ("Vestígios", "Vestigios"),
                 ("Armas", "Armas"),
-                ("Corpos", "Corpos"),
                 ("Sinais", "Sinais"),
                 ("Diversos", "Diversos")
             };
@@ -49,14 +49,18 @@ namespace CrimeSketcher.Library
                         try
                         {
                             var img = Image.FromFile(file);
+                            float alturaPadrao = img.Width > 0
+                                ? Math.Max(1f, (float)Math.Round(img.Height * (LarguraInsercaoPng / img.Width)))
+                                : LarguraInsercaoPng;
+
                             cat.Itens.Add(new SymbolItem
                             {
                                 Nome = Path.GetFileNameWithoutExtension(file),
                                 CaminhoImagem = file,
                                 Categoria = nome,
                                 Thumbnail = CriarThumbnail(img, 48, 48),
-                                LarguraPadrao = Math.Min(img.Width, 60),
-                                AlturaPadrao = Math.Min(img.Height, 60)
+                                LarguraPadrao = LarguraInsercaoPng,
+                                AlturaPadrao = alturaPadrao
                             });
                         }
                         catch { }
@@ -284,14 +288,18 @@ namespace CrimeSketcher.Library
                 c.Nome == GetNomeCategoria(pasta));
             if (cat != null)
             {
+                float alturaPadrao = w > 0
+                    ? Math.Max(1f, (float)Math.Round(h * (LarguraInsercaoPng / w)))
+                    : LarguraInsercaoPng;
+
                 cat.Itens.Add(new SymbolItem
                 {
                     Nome = nome.Replace("_", " "),
                     CaminhoImagem = file,
                     Categoria = cat.Nome,
                     Thumbnail = Image.FromFile(file),
-                    LarguraPadrao = w,
-                    AlturaPadrao = h
+                    LarguraPadrao = LarguraInsercaoPng,
+                    AlturaPadrao = alturaPadrao
                 });
             }
         }
@@ -344,14 +352,18 @@ namespace CrimeSketcher.Library
             File.Copy(caminhoOrigem, destino, true);
 
             var img = Image.FromFile(destino);
+            int alturaPadrao = img.Width > 0
+                ? Math.Max(1, (int)Math.Round(img.Height * (LarguraInsercaoPng / img.Width)))
+                : (int)LarguraInsercaoPng;
+
             var item = new SymbolItem
             {
                 Nome = nome,
                 CaminhoImagem = destino,
                 Categoria = categoria,
                 Thumbnail = CriarThumbnail(img, 48, 48),
-                LarguraPadrao = Math.Min(img.Width, 60),
-                AlturaPadrao = Math.Min(img.Height, 60)
+                LarguraPadrao = LarguraInsercaoPng,
+                AlturaPadrao = alturaPadrao
             };
 
             cat.Itens.Add(item);

@@ -9,7 +9,7 @@ namespace CrimeSketcher.Core
     {
         public bool Visivel { get; set; } = true;
         public bool SnapAtivo { get; set; } = true;
-        public float EspacamentoPixels { get; set; } = 20f;
+        public float EspacamentoPixels { get; set; } = 10f;
         public Color CorGrade { get; set; } = Color.FromArgb(40, 100, 100, 100);
         public Color CorGradePrincipal { get; set; } = Color.FromArgb(60, 80, 80, 80);
         public int SubdivisoesPrincipais { get; set; } = 5;

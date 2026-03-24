@@ -68,7 +68,7 @@ namespace CrimeSketcher.Objects
         [Category("Aberturas")]
         [DisplayName("Largura da Porta")]
         [Description("Largura da porta em pixels")]
-        public float LarguraPorta { get; set; } = 30f;
+        public float LarguraPorta { get; set; } = 50f;
 
         [Browsable(false)]
         public int CorPortaArgb { get; set; } = Color.DarkGray.ToArgb();

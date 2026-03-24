@@ -7,6 +7,18 @@ using System.Drawing.Drawing2D;
 
 namespace CrimeSketcher.Objects
 {
+    public enum LadoAberturaPorta
+    {
+        Direita,
+        Esquerda
+    }
+
+    public enum SentidoAberturaPorta
+    {
+        Dentro,
+        Fora
+    }
+
     [Serializable]
     public class WallObject : BaseSketchObject
     {
@@ -39,7 +51,7 @@ namespace CrimeSketcher.Objects
         [Category("Aberturas")]
         [DisplayName("Largura da Porta")]
         [Description("Largura da porta em pixels")]
-        public float LarguraPorta { get; set; } = 30f;
+        public float LarguraPorta { get; set; } = 50f;
 
         [Category("Aberturas")]
         [DisplayName("Posição da Janela")]
@@ -49,7 +61,7 @@ namespace CrimeSketcher.Objects
         [Category("Aberturas")]
         [DisplayName("Largura da Janela")]
         [Description("Largura da janela em pixels")]
-        public float LarguraJanela { get; set; } = 30f;
+        public float LarguraJanela { get; set; } = 50f;
 
         [Category("Aberturas")]
         [DisplayName("Cor da Porta")]
@@ -75,6 +87,16 @@ namespace CrimeSketcher.Objects
         [DisplayName("Ângulo de Abertura")]
         [Description("Ângulo de abertura da porta em graus")]
         public float AnguloAberturaPorta { get; set; } = 90f;
+
+        [Category("Aberturas")]
+        [DisplayName("Lado da Porta")]
+        [Description("Direita/Esquerda: faz o flip horizontal da porta (troca a ponta da dobradiça no vão)")]
+        public LadoAberturaPorta LadoAberturaPorta { get; set; } = LadoAberturaPorta.Direita;
+
+        [Category("Aberturas")]
+        [DisplayName("Sentido de Abertura")]
+        [Description("Dentro/Fora: faz o flip vertical da abertura da porta")]
+        public SentidoAberturaPorta SentidoAberturaPorta { get; set; } = SentidoAberturaPorta.Fora;
 
         public WallObject()
         {
@@ -112,8 +134,53 @@ namespace CrimeSketcher.Objects
             using (var path = new GraphicsPath())
             {
                 float halfW = Espessura / 2;
-                path.AddRectangle(new RectangleF(0, -halfW,
-                    comprimento, Espessura));
+
+                if (TemPorta || TemJanela)
+                {
+                    var aberturas = new List<(float Inicio, float Fim)>();
+
+                    if (TemPorta && TentarCalcularAbertura(PosicaoPorta, LarguraPorta, comprimento, out var inicioPorta, out var fimPorta))
+                    {
+                        aberturas.Add((inicioPorta, fimPorta));
+                    }
+
+                    if (TemJanela && TentarCalcularAbertura(PosicaoJanela, LarguraJanela, comprimento, out var inicioJanela, out var fimJanela))
+                    {
+                        aberturas.Add((inicioJanela, fimJanela));
+                    }
+
+                    if (aberturas.Count == 0)
+                    {
+                        path.AddRectangle(new RectangleF(0, -halfW, comprimento, Espessura));
+                    }
+                    else
+                    {
+                        aberturas.Sort((a, b) => a.Inicio.CompareTo(b.Inicio));
+
+                        float cursor = 0f;
+                        foreach (var abertura in aberturas)
+                        {
+                            float ini = Math.Max(0f, abertura.Inicio);
+                            float fim = Math.Min(comprimento, abertura.Fim);
+
+                            if (ini > cursor)
+                            {
+                                path.AddRectangle(new RectangleF(cursor, -halfW, ini - cursor, Espessura));
+                            }
+
+                            cursor = Math.Max(cursor, fim);
+                        }
+
+                        if (cursor < comprimento)
+                        {
+                            path.AddRectangle(new RectangleF(cursor, -halfW, comprimento - cursor, Espessura));
+                        }
+                    }
+                }
+                else
+                {
+                    path.AddRectangle(new RectangleF(0, -halfW, comprimento, Espessura));
+                }
 
                 var matrix = new Matrix();
                 matrix.Translate(PontoInicial.X, PontoInicial.Y);
@@ -201,23 +268,57 @@ namespace CrimeSketcher.Objects
 
                     float anguloAbertura = Math.Max(5f, Math.Min(170f, AnguloAberturaPorta));
                     float doorLength = abertura.Fim - abertura.Inicio;
-                    float paredeAngulo = (float)(Math.Atan2(dy, dx) * 180 / Math.PI);
-                    float folhaAngulo = paredeAngulo - anguloAbertura;
 
-                    float folhaDx = (float)(Math.Cos(folhaAngulo * Math.PI / 180.0) * doorLength);
-                    float folhaDy = (float)(Math.Sin(folhaAngulo * Math.PI / 180.0) * doorLength);
-                    var pFolha = new PointF(p2.X + folhaDx, p2.Y + folhaDy);
+                    bool abreParaFora = SentidoAberturaPorta == SentidoAberturaPorta.Fora;
+
+                    // Direita/Esquerda = escolhe a dobradiça pelo lado horizontal da tela
+                    PointF pontoDobradica;
+                    PointF pontoLivre;
+
+                    if (LadoAberturaPorta == LadoAberturaPorta.Direita)
+                    {
+                        pontoDobradica = p2.X >= p3.X ? p2 : p3;
+                    }
+                    else
+                    {
+                        pontoDobradica = p2.X <= p3.X ? p2 : p3;
+                    }
+
+                    pontoLivre = pontoDobradica == p2 ? p3 : p2;
+
+                    // Vetor base da folha fechada (dobradiça -> ponta livre)
+                    float vx = pontoLivre.X - pontoDobradica.X;
+                    float vy = pontoLivre.Y - pontoDobradica.Y;
+
+                    // Dentro/Fora só altera o lado de giro (flip vertical)
+                    // Direita/Esquerda só altera a dobradiça (flip horizontal)
+                    bool dobradicaNoInicio = pontoDobradica == p2;
+                    float fatorDobradica = dobradicaNoInicio ? 1f : -1f;
+                    float fatorSentido = abreParaFora ? -1f : 1f;
+                    float thetaGraus = fatorDobradica * fatorSentido * anguloAbertura;
+                    float thetaRad = thetaGraus * (float)Math.PI / 180f;
+
+                    float cosT = (float)Math.Cos(thetaRad);
+                    float sinT = (float)Math.Sin(thetaRad);
+
+                    float rx = vx * cosT - vy * sinT;
+                    float ry = vx * sinT + vy * cosT;
+
+                    var pFolha = new PointF(pontoDobradica.X + rx, pontoDobradica.Y + ry);
 
                     using (var penPorta = new Pen(CorPorta, Math.Max(1f, EspessuraPorta)))
                     {
                         penPorta.DashStyle = DashStyle.Dash;
+
+                        float anguloBaseFolha = (float)(Math.Atan2(vy, vx) * 180 / Math.PI);
+
                         g.DrawArc(penPorta,
-                            p2.X - doorLength, p2.Y - doorLength,
+                            pontoDobradica.X - doorLength, pontoDobradica.Y - doorLength,
                             doorLength * 2, doorLength * 2,
-                            paredeAngulo - anguloAbertura, anguloAbertura);
+                            anguloBaseFolha, thetaGraus);
 
                         penPorta.DashStyle = DashStyle.Solid;
-                        g.DrawLine(penPorta, p2, pFolha);
+                        g.DrawLine(penPorta, pontoDobradica, pFolha);
                     }
                 }
                 else
