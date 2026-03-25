@@ -498,63 +498,80 @@ namespace CrimeSketcher.Objects
         {
             using (var pen = new Pen(Color.FromArgb(CorFaixaArgb), 3f))
             using (var brush = new SolidBrush(Color.FromArgb(CorFaixaArgb)))
-            using (var fonte = new Font("Arial", Math.Max(8f, LarguraRua * 0.18f), FontStyle.Bold, GraphicsUnit.Pixel))
+            using (var fonte = new Font("Arial", 12f, FontStyle.Bold, GraphicsUnit.Pixel))
             {
-                float deslocLinha = 6f;
-                float deslocTexto = 16f;
+                float deslocLinha = 20f;
+                float deslocTexto = 10f;
+                float meiaExt = Math.Min(meiaRua, 35f);
 
+                SizeF sz   = g.MeasureString("PARE", fonte);
+                float halfW = sz.Width  / 2f;
+                float halfH = sz.Height / 2f;
+
+                // 180° → E em world (xCenter − halfW, yCenter − halfH)
+                //         E junto ao meio-fio da ESQUERDA → E_x = −meiaExt
+                //         xCenter = −meiaExt + halfW
                 if (cima)
                 {
                     float yLinha = -meiaTamanho - deslocLinha;
                     float yTexto = yLinha - deslocTexto;
-                    float xTexto = ViaDuasMaos ? -meiaRua * 0.5f : 0f;
+                    float xTexto = -meiaExt + halfW - 10;
 
                     if (ViaDuasMaos)
-                        g.DrawLine(pen, -meiaRua, yLinha, 0f, yLinha);
+                        g.DrawLine(pen, -meiaExt, yLinha, 0f, yLinha);
                     else
-                        g.DrawLine(pen, -meiaRua, yLinha, meiaRua, yLinha);
+                        g.DrawLine(pen, -meiaExt, yLinha, meiaExt, yLinha);
 
                     DesenharTextoCentralizadoRotacionado(g, "PARE", fonte, brush, xTexto, yTexto, 180f);
                 }
 
+                // 0° → E em world (xCenter + halfW, yCenter + halfH)
+                //       E junto ao meio-fio da DIREITA → E_x = +meiaExt
+                //       xCenter = +meiaExt − halfW
                 if (baixo)
                 {
                     float yLinha = meiaTamanho + deslocLinha;
                     float yTexto = yLinha + deslocTexto;
-                    float xTexto = ViaDuasMaos ? meiaRua * 0.5f : 0f;
+                    float xTexto = meiaExt - halfW + 10;
 
                     if (ViaDuasMaos)
-                        g.DrawLine(pen, 0f, yLinha, meiaRua, yLinha);
+                        g.DrawLine(pen, 0f, yLinha, meiaExt, yLinha);
                     else
-                        g.DrawLine(pen, -meiaRua, yLinha, meiaRua, yLinha);
+                        g.DrawLine(pen, -meiaExt, yLinha, meiaExt, yLinha);
 
                     DesenharTextoCentralizadoRotacionado(g, "PARE", fonte, brush, xTexto, yTexto, 0f);
                 }
 
+                // 90° → E em world (xCenter − halfH, yCenter + halfW)
+                //        E junto ao meio-fio de BAIXO → E_y = +meiaExt
+                //        yCenter = +meiaExt − halfW
                 if (esquerda)
                 {
                     float xLinha = -meiaTamanho - deslocLinha;
                     float xTexto = xLinha - deslocTexto;
-                    float yTexto = ViaDuasMaos ? meiaRua * 0.5f : 0f;
+                    float yTexto = meiaExt - halfW + 10;
 
                     if (ViaDuasMaos)
-                        g.DrawLine(pen, xLinha, 0f, xLinha, meiaRua);
+                        g.DrawLine(pen, xLinha, 0f, xLinha, meiaExt);
                     else
-                        g.DrawLine(pen, xLinha, -meiaRua, xLinha, meiaRua);
+                        g.DrawLine(pen, xLinha, -meiaExt, xLinha, meiaExt);
 
                     DesenharTextoCentralizadoRotacionado(g, "PARE", fonte, brush, xTexto, yTexto, 90f);
                 }
 
+                // −90° → E em world (xCenter + halfH, yCenter − halfW)
+                //         E junto ao meio-fio de CIMA → E_y = −meiaExt
+                //         yCenter = −meiaExt + halfW
                 if (direita)
                 {
                     float xLinha = meiaTamanho + deslocLinha;
                     float xTexto = xLinha + deslocTexto;
-                    float yTexto = ViaDuasMaos ? -meiaRua * 0.5f : 0f;
+                    float yTexto = -meiaExt + halfW - 10;
 
                     if (ViaDuasMaos)
-                        g.DrawLine(pen, xLinha, -meiaRua, xLinha, 0f);
+                        g.DrawLine(pen, xLinha, -meiaExt, xLinha, 0f);
                     else
-                        g.DrawLine(pen, xLinha, -meiaRua, xLinha, meiaRua);
+                        g.DrawLine(pen, xLinha, -meiaExt, xLinha, meiaExt);
 
                     DesenharTextoCentralizadoRotacionado(g, "PARE", fonte, brush, xTexto, yTexto, -90f);
                 }
