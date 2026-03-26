@@ -1,4 +1,4 @@
-﻿// Forms/FormPrincipal.cs
+// Forms/FormPrincipal.cs
 using CrimeSketcher.Core;
 using CrimeSketcher.Library;
 using CrimeSketcher.Objects;
@@ -36,8 +36,6 @@ namespace CrimeSketcher.Forms
         private StickFigureTool stickFigureTool;
         private TextTool textTool;
         private ArrowTool arrowTool;
-        private IntersectionTool intersectionTool;
-        private RoundaboutTool roundaboutTool;
         private MarkTool markTool;
 
         // UI Principal
@@ -137,7 +135,7 @@ namespace CrimeSketcher.Forms
             // Agora é seguro definir o SplitterDistance
             splitPrincipal.SplitterDistance = 240;
 
-            // Ajustar largura do painel de propriedades (redução de 40% em relação ao layout anterior)
+            // Ajustar largura do painel de propriedades
             AjustarLarguraPainelPropriedades();
         }
 
@@ -147,7 +145,7 @@ namespace CrimeSketcher.Forms
                 return;
 
             int larguraBase = Math.Max(320, Screen.PrimaryScreen.Bounds.Width / 5);
-            int larguraPropriedades = Math.Max(190, (int)(larguraBase * 0.8f)); // -40%
+            int larguraPropriedades = Math.Max(190, (int)(larguraBase * 0.8f));
 
             if (splitCentroDireita.Width > larguraPropriedades)
             {
@@ -297,7 +295,7 @@ namespace CrimeSketcher.Forms
 
             toolStrip.Items.Add(new ToolStripSeparator());
 
-            // ===== ZOOM (Dropdown) =====
+            // ===== ZOOM =====
             var btnZoom = new ToolStripDropDownButton("🔍 Zoom");
             btnZoom.ToolTipText = "Ferramentas de Zoom";
             btnZoom.Font = new Font("Segoe UI Emoji", 10);
@@ -308,7 +306,6 @@ namespace CrimeSketcher.Forms
             btnZoom.DropDownItems.Add(CriarMenuItemToolbar("🔍1 Zoom 100%", "Ctrl+1", () => DefinirZoom(1f)));
             btnZoom.DropDownItems.Add(new ToolStripSeparator());
 
-            // ComboBox de Zoom no dropdown
             var cmbZoom = new ToolStripComboBox("Nível:");
             cmbZoom.Items.AddRange(new object[] { "25%", "50%", "75%", "100%", "150%", "200%", "400%" });
             cmbZoom.Text = "100%";
@@ -326,7 +323,7 @@ namespace CrimeSketcher.Forms
 
             toolStrip.Items.Add(new ToolStripSeparator());
 
-            // ===== ORDENAÇÃO (Dropdown) =====
+            // ===== ORDENAÇÃO =====
             var btnOrdem = new ToolStripDropDownButton("📑 Ordem");
             btnOrdem.ToolTipText = "Ordenação de Camadas";
             btnOrdem.Font = new Font("Segoe UI", 9);
@@ -340,7 +337,7 @@ namespace CrimeSketcher.Forms
 
             toolStrip.Items.Add(new ToolStripSeparator());
 
-            // ===== ALINHAMENTO (Dropdown) =====
+            // ===== ALINHAMENTO =====
             var btnAlinhar = new ToolStripDropDownButton("⬌ Alinhar");
             btnAlinhar.ToolTipText = "Alinhamento de Objetos";
             btnAlinhar.Font = new Font("Segoe UI", 9);
@@ -356,7 +353,7 @@ namespace CrimeSketcher.Forms
 
             toolStrip.Items.Add(new ToolStripSeparator());
 
-            // ===== INVERSÃO (Dropdown) =====
+            // ===== INVERSÃO =====
             var btnInverter = new ToolStripDropDownButton("↔ Inverter");
             btnInverter.ToolTipText = "Inversão de Objetos";
             btnInverter.Font = new Font("Segoe UI", 9);
@@ -384,10 +381,7 @@ namespace CrimeSketcher.Forms
 
             toolStrip.Items.Add(new ToolStripSeparator());
 
-            var lblGrid = new ToolStripLabel("Grid:")
-            {
-                ForeColor = Color.White
-            };
+            var lblGrid = new ToolStripLabel("Grid:") { ForeColor = Color.White };
             toolStrip.Items.Add(lblGrid);
 
             var cmbGridSpacing = new ToolStripComboBox
@@ -474,7 +468,6 @@ namespace CrimeSketcher.Forms
 
         private void CriarLayout()
         {
-            // ===== SPLIT PRINCIPAL: Esquerda | (Centro + Direita) =====
             splitPrincipal = new SplitContainer
             {
                 Dock = DockStyle.Fill,
@@ -482,9 +475,7 @@ namespace CrimeSketcher.Forms
                 SplitterWidth = 3,
                 BackColor = Color.FromArgb(45, 45, 48)
             };
-            // Definir os MinSize DEPOIS o configurar após adicionar ao form
 
-            // ===== SPLIT CENTRO/DIREITA: Canvas | Propriedades =====
             splitCentroDireita = new SplitContainer
             {
                 Dock = DockStyle.Fill,
@@ -493,11 +484,9 @@ namespace CrimeSketcher.Forms
                 BackColor = Color.FromArgb(45, 45, 48)
             };
 
-            // ===== PAINEL ESQUERDO =====
             CriarPainelEsquerdo();
             splitPrincipal.Panel1.Controls.Add(painelEsquerdo);
 
-            // ===== CANVAS (Centro) =====
             canvas = new SketchCanvas
             {
                 Dock = DockStyle.Fill,
@@ -515,11 +504,9 @@ namespace CrimeSketcher.Forms
             borderCanvas.Controls.Add(canvas);
             splitCentroDireita.Panel1.Controls.Add(borderCanvas);
 
-            // ===== PAINEL DIREITO (Propriedades) =====
             CriarPainelDireito();
             splitCentroDireita.Panel2.Controls.Add(painelDireito);
 
-            // Montar hierarquia
             splitPrincipal.Panel2.Controls.Add(splitCentroDireita);
         }
 
@@ -531,7 +518,6 @@ namespace CrimeSketcher.Forms
                 BackColor = Color.FromArgb(37, 37, 38)
             };
 
-            // Split interno: Ferramentas (topo) | Biblioteca (baixo)
             var splitEsquerdo = new SplitContainer
             {
                 Dock = DockStyle.Fill,
@@ -541,11 +527,9 @@ namespace CrimeSketcher.Forms
                 BackColor = Color.FromArgb(45, 45, 48)
             };
 
-            // ===== PAINEL FERRAMENTAS =====
             CriarPainelFerramentas();
             splitEsquerdo.Panel1.Controls.Add(painelFerramentas);
 
-            // ===== BIBLIOTECA =====
             CriarPainelBiblioteca();
             splitEsquerdo.Panel2.Controls.Add(tabBiblioteca);
 
@@ -561,7 +545,6 @@ namespace CrimeSketcher.Forms
                 AutoScroll = true
             };
 
-            // Título
             var lblTitulo = new Label
             {
                 Text = "🔧 FERRAMENTAS",
@@ -574,7 +557,6 @@ namespace CrimeSketcher.Forms
                 Height = 32
             };
 
-            // Container das ferramentas
             var container = new FlowLayoutPanel
             {
                 Dock = DockStyle.Fill,
@@ -585,13 +567,11 @@ namespace CrimeSketcher.Forms
                 BackColor = Color.FromArgb(37, 37, 38)
             };
 
-            // ===== GRUPO: SELEÇÃO =====
             container.Controls.Add(CriarGrupoFerramentas("Seleção", new[]
             {
                 ("🖱️ Selecionar", "Selecionar", "Esc"),
             }));
 
-            // ===== GRUPO: CONSTRUÇÃO =====
             container.Controls.Add(CriarGrupoFerramentas("Construção", new[]
             {
                 ("🧱 Parede", "Parede", "Ctrl+W"),
@@ -600,17 +580,12 @@ namespace CrimeSketcher.Forms
                 ("🚪🪟 Parede + Porta + Janela", "ParedePortaJanela", "Ctrl+P"),
             }));
 
-            // ===== GRUPO: VIAS =====
             container.Controls.Add(CriarGrupoFerramentas("Elementos de Trânsito", new[]
             {
                 ("🛣️ Rua", "Rua", "Ctrl+Alt+S"),
-                ("➕ Cruzamento Cruz", "CruzamentoCruz", "Ctrl+Alt+X"),
-                ("⊤ Cruzamento T", "CruzamentoT", "Ctrl+T"),
-                ("⭕ Rotatória", "Rotatoria", "Ctrl+R"),
                 ("🔴 Marca", "Marca", "Ctrl+M"),
             }));
 
-            // ===== GRUPO: MEDIÇÕES =====
             container.Controls.Add(CriarGrupoFerramentas("Medições e Indicações", new[]
             {
                 ("📏 Cota/Medida", "Cota", "Ctrl+D"),
@@ -618,7 +593,6 @@ namespace CrimeSketcher.Forms
                 ("🏷️ Texto", "Texto", "Ctrl+Alt+T"),
             }));
 
-            // ===== GRUPO: CORPOS =====
             container.Controls.Add(CriarGrupoFerramentas("Representação de Corpos", new[]
             {
                 ("🧍 Corpo Masculino", "CorpoMasculino", "Ctrl+H"),
@@ -676,14 +650,12 @@ namespace CrimeSketcher.Forms
 
         private void MarcarBotaoAtivo(Button btn)
         {
-            // Desmarcar anterior
             if (_botaoFerramentaAtiva != null)
             {
                 _botaoFerramentaAtiva.BackColor = SystemColors.Control;
                 _botaoFerramentaAtiva.ForeColor = SystemColors.ControlText;
             }
 
-            // Marcar novo
             _botaoFerramentaAtiva = btn;
             btn.BackColor = SystemColors.Highlight;
             btn.ForeColor = SystemColors.HighlightText;
@@ -707,7 +679,6 @@ namespace CrimeSketcher.Forms
                 Font = new Font("Segoe UI", 8.5f)
             };
 
-            // Título sobre as tabs
             var lblTitulo = new Label
             {
                 Text = "📚 BIBLIOTECA DE SÍMBOLOS",
@@ -720,25 +691,9 @@ namespace CrimeSketcher.Forms
                 Height = 32
             };
 
-            var container = new Panel
-            {
-                Dock = DockStyle.Fill,
-                BackColor = Color.FromArgb(37, 37, 38)
-            };
-
-            container.Controls.Add(tabBiblioteca);
-            container.Controls.Add(lblTitulo);
-
-            // Substituir tabBiblioteca pelo container
-            tabBiblioteca = new TabControl { Dock = DockStyle.Fill };
-
             var wrapper = new Panel { Dock = DockStyle.Fill };
             wrapper.Controls.Add(tabBiblioteca);
             wrapper.Controls.Add(lblTitulo);
-
-            // Limpar e usar wrapper
-            tabBiblioteca.Parent?.Controls.Remove(tabBiblioteca);
-            tabBiblioteca = new TabControl { Dock = DockStyle.Fill };
         }
 
         private void CriarPainelDireito()
@@ -749,7 +704,6 @@ namespace CrimeSketcher.Forms
                 BackColor = Color.FromArgb(37, 37, 38)
             };
 
-            // Título
             var lblTitulo = new Label
             {
                 Text = "📋 PROPRIEDADES",
@@ -762,7 +716,6 @@ namespace CrimeSketcher.Forms
                 Height = 32
             };
 
-            // PropertyGrid
             propGrid = new PropertyGrid
             {
                 Dock = DockStyle.Fill,
@@ -777,16 +730,6 @@ namespace CrimeSketcher.Forms
                 HelpForeColor = Color.Silver
             };
             propGrid.PropertyValueChanged += PropGrid_ValueChanged;
-
-            // Info quando nada selecionado
-            var lblInfo = new Label
-            {
-                Text = "Selecione um objeto para ver suas propriedades",
-                Dock = DockStyle.Fill,
-                ForeColor = Color.Gray,
-                TextAlign = ContentAlignment.MiddleCenter,
-                Font = new Font("Segoe UI", 9, FontStyle.Italic)
-            };
 
             painelDireito.Controls.Add(propGrid);
             painelDireito.Controls.Add(lblTitulo);
@@ -946,21 +889,17 @@ namespace CrimeSketcher.Forms
 
         private void InicializarSistema()
         {
-            // Escala e Grade
             escala = new ScaleManager();
             grid = new GridManager(escala);
 
-            // Documento
             documento = new SketchDocument();
             undoRedo = documento.UndoRedo;
             undoRedo.EstadoAlterado += (s, e) => canvas.Invalidate();
 
-            // Canvas
             canvas.Escala = escala;
             canvas.Grid = grid;
             canvas.Documento = documento;
 
-            // Handler para desativação de ferramenta
             canvas.ToolDeactivated += (s, e) =>
             {
                 canvas.FerramentaAtual = selectTool;
@@ -968,19 +907,15 @@ namespace CrimeSketcher.Forms
                 DesmarcarBotaoFerramenta();
             };
 
-            // Criar todas as ferramentas
             CriarFerramentas();
 
-            // Definir ferramenta inicial
             canvas.FerramentaAtual = selectTool;
 
-            // Biblioteca
             string symbolsPath = Path.Combine(
                 AppDomain.CurrentDomain.BaseDirectory, "Symbols");
             biblioteca = new SymbolLibrary(symbolsPath);
             PreencherBiblioteca();
 
-            // Atualizar status
             statusEscala.Text = $"Escala: {escala.TextoEscala}";
             AtualizarStatusSnap();
         }
@@ -999,8 +934,6 @@ namespace CrimeSketcher.Forms
 
             wallTool = new WallTool(documento, grid);
             streetTool = new StreetTool(documento, grid);
-            intersectionTool = new IntersectionTool(documento, grid);
-            roundaboutTool = new RoundaboutTool(documento, grid);
             dimensionTool = new DimensionTool(documento, grid, escala);
             stampTool = new StampTool(documento, grid);
             stickFigureTool = new StickFigureTool(documento, grid);
@@ -1026,8 +959,6 @@ namespace CrimeSketcher.Forms
 
             wallTool = new WallTool(documento, grid);
             streetTool = new StreetTool(documento, grid);
-            intersectionTool = new IntersectionTool(documento, grid);
-            roundaboutTool = new RoundaboutTool(documento, grid);
             dimensionTool = new DimensionTool(documento, grid, escala);
             stampTool = new StampTool(documento, grid);
             stickFigureTool = new StickFigureTool(documento, grid);
@@ -1085,7 +1016,6 @@ namespace CrimeSketcher.Forms
                     }
                 };
 
-                // Botão importar
                 var btnImportar = new Button
                 {
                     Text = "➕ Importar Símbolo...",
@@ -1130,37 +1060,31 @@ namespace CrimeSketcher.Forms
                 case "Selecionar":
                     canvas.FerramentaAtual = selectTool;
                     break;
-
                 case "Parede":
                     wallTool.ComPorta = false;
                     wallTool.ComJanela = false;
                     canvas.FerramentaAtual = wallTool;
                     break;
-
                 case "ParedePorta":
                     wallTool.ComPorta = true;
                     wallTool.ComJanela = false;
                     canvas.FerramentaAtual = wallTool;
                     break;
-
                 case "ParedeJanela":
                     wallTool.ComPorta = false;
                     wallTool.ComJanela = true;
                     canvas.FerramentaAtual = wallTool;
                     break;
-
                 case "ParedePortaJanela":
                     wallTool.ComPorta = true;
                     wallTool.ComJanela = true;
                     canvas.FerramentaAtual = wallTool;
                     break;
-
                 case "Rua":
                     string nomeRua = InputBox("Nome da rua:", "Nova Rua", "");
                     streetTool.NomeRua = nomeRua;
                     canvas.FerramentaAtual = streetTool;
                     break;
-
                 case "RuaConfig":
                     using (var dlg = new FormConfiguracaoRua(streetTool))
                     {
@@ -1170,47 +1094,6 @@ namespace CrimeSketcher.Forms
                         }
                     }
                     break;
-
-                case "CruzamentoCruz":
-                    intersectionTool.TipoCruzamento = TipoCruzamento.Cruz;
-                    canvas.FerramentaAtual = intersectionTool;
-                    break;
-
-                case "CruzamentoT":
-                    // Mostrar submenu para direção do T
-                    var menuT = new ContextMenuStrip();
-                    menuT.Items.Add("T para cima ⊥", null, (s2, e2) =>
-                    {
-                        intersectionTool.TipoCruzamento = TipoCruzamento.TParaCima;
-                        canvas.FerramentaAtual = intersectionTool;
-                    });
-                    menuT.Items.Add("T para baixo ⊤", null, (s2, e2) =>
-                    {
-                        intersectionTool.TipoCruzamento = TipoCruzamento.TParaBaixo;
-                        canvas.FerramentaAtual = intersectionTool;
-                    });
-                    menuT.Items.Add("T para esquerda ⊣", null, (s2, e2) =>
-                    {
-                        intersectionTool.TipoCruzamento = TipoCruzamento.TParaEsquerda;
-                        canvas.FerramentaAtual = intersectionTool;
-                    });
-                    menuT.Items.Add("T para direita ⊢", null, (s2, e2) =>
-                    {
-                        intersectionTool.TipoCruzamento = TipoCruzamento.TParaDireita;
-                        canvas.FerramentaAtual = intersectionTool;
-                    });
-                    menuT.Show(Cursor.Position);
-                    break;
-
-                case "Rotatoria":
-                    string numSaidas = InputBox("Número de saídas:", "Rotatória", "4");
-                    if (int.TryParse(numSaidas, out int saidas) && saidas >= 3)
-                    {
-                        roundaboutTool.NumeroSaidas = saidas;
-                        canvas.FerramentaAtual = roundaboutTool;
-                    }
-                    break;
-
                 case "Marca":
                     using (var dlg = new FormConfiguracaoMarca(markTool))
                     {
@@ -1220,25 +1103,20 @@ namespace CrimeSketcher.Forms
                         }
                     }
                     break;
-
                 case "Cota":
                     canvas.FerramentaAtual = dimensionTool;
                     break;
-
                 case "Texto":
                     canvas.FerramentaAtual = textTool;
                     break;
-
                 case "Seta":
                     canvas.FerramentaAtual = arrowTool;
                     break;
-
                 case "CorpoMasculino":
                     stickFigureTool.Genero = GeneroCorpo.Masculino;
                     stickFigureTool.Pose = PoseCorpo.EmPe;
                     ConfigurarCorpo();
                     break;
-
                 case "CorpoFeminino":
                     stickFigureTool.Genero = GeneroCorpo.Feminino;
                     stickFigureTool.Pose = PoseCorpo.EmPe;
@@ -1383,7 +1261,7 @@ namespace CrimeSketcher.Forms
         private void ExportarPDF()
         {
             MessageBox.Show(
-                "Para exportar como PDF, exportue primeiro como imagem (PNG)\n" +
+                "Para exportar como PDF, exporte primeiro como imagem (PNG)\n" +
                 "e depois converta usando um editor de PDF.\n\n" +
                 "Para integração nativa com PDF, instale o pacote\n" +
                 "Syncfusion.Pdf.Net.Core via NuGet.",
@@ -1417,8 +1295,6 @@ namespace CrimeSketcher.Forms
             }
         }
 
-        private BaseSketchObject _objetoCopiado;
-
         private void Copiar()
         {
             var selecionados = selectTool.ObjetosSelecionados.ToList();
@@ -1430,7 +1306,6 @@ namespace CrimeSketcher.Forms
 
             try
             {
-                // Serializar objetos selecionados para JSON
                 var options = new JsonSerializerOptions
                 {
                     WriteIndented = true,
@@ -1459,7 +1334,6 @@ namespace CrimeSketcher.Forms
 
             try
             {
-                // Copiar objetos primeiro
                 var options = new JsonSerializerOptions
                 {
                     WriteIndented = true,
@@ -1467,7 +1341,6 @@ namespace CrimeSketcher.Forms
                 };
                 _objetosCopiados = JsonSerializer.Serialize(selecionados, options);
 
-                // Remover objetos do documento
                 foreach (var obj in selecionados)
                 {
                     documento.RemoverObjeto(obj);
@@ -1497,7 +1370,6 @@ namespace CrimeSketcher.Forms
 
             try
             {
-                // Desserializar objetos da área de transferência
                 var options = new JsonSerializerOptions
                 {
                     Converters = { new SketchObjectConverter() }
@@ -1510,25 +1382,17 @@ namespace CrimeSketcher.Forms
                     return;
                 }
 
-                // Offset para não colar exatamente no mesmo local
                 float offset = 20f;
 
-                // Adicionar objetos ao documento com novo ID e posição offset
                 var objetosColados = new List<BaseSketchObject>();
                 foreach (var obj in objetos)
                 {
-                    // Gerar novo ID para evitar duplicação
                     obj.Id = Guid.NewGuid().ToString();
-
-                    // Aplicar offset na posição
                     obj.Posicao = new PointF(obj.Posicao.X + offset, obj.Posicao.Y + offset);
-
-                    // Adicionar ao documento
                     documento.AdicionarObjeto(obj);
                     objetosColados.Add(obj);
                 }
 
-                // Selecionar objetos colados
                 selectTool.LimparSelecao();
                 foreach (var obj in objetosColados)
                 {
@@ -1719,7 +1583,6 @@ namespace CrimeSketcher.Forms
 
         private void Alinhar(string tipo)
         {
-            // Pega todos os objetos selecionados ou o objeto atual
             var selecionados = documento.Objetos.Where(o => o.Selecionado).ToList();
             if (selecionados.Count < 2)
             {
@@ -1822,7 +1685,6 @@ namespace CrimeSketcher.Forms
             }
             else
             {
-                // Criar um marcador de norte simples via texto
                 var arrow = new ArrowObject
                 {
                     PontoInicial = new PointF(50, 100),
@@ -2006,9 +1868,6 @@ namespace CrimeSketcher.Forms
                 "  Ctrl+J         Parede + Janela\n" +
                 "  Ctrl+P         Parede + Porta + Janela\n" +
                 "  Ctrl+Alt+S     Rua\n" +
-                "  Ctrl+Alt+X     Cruzamento Cruz\n" +
-                "  Ctrl+T         Cruzamento T\n" +
-                "  Ctrl+R         Rotatória\n" +
                 "  Ctrl+M         Marca\n" +
                 "  Ctrl+D         Cota/Medida\n" +
                 "  Ctrl+Alt+T     Texto\n" +
@@ -2021,8 +1880,6 @@ namespace CrimeSketcher.Forms
                 "  Ctrl+1         Zoom 100%\n" +
                 "  Ctrl++         Ampliar zoom\n" +
                 "  Ctrl+-         Reduzir zoom\n" +
-                "  Mouse Scroll   Zoom\n" +
-                "  Botão do meio  Pan\n" +
                 "═══════════════════════════════════════";
 
             MessageBox.Show(atalhos, "Atalhos de Teclado",
@@ -2088,7 +1945,6 @@ namespace CrimeSketcher.Forms
         {
             base.OnKeyDown(e);
 
-            // Atalhos com Ctrl
             if (e.Control && !e.Alt && !e.Shift)
             {
                 switch (e.KeyCode)
@@ -2097,7 +1953,6 @@ namespace CrimeSketcher.Forms
                     case Keys.O: AbrirDocumento(); e.Handled = true; break;
                     case Keys.S: SalvarDocumento(); e.Handled = true; break;
                     case Keys.P: DefinirFerramenta("ParedePortaJanela"); e.Handled = true; break;
-                    case Keys.T: DefinirFerramenta("CruzamentoT"); e.Handled = true; break;
                     case Keys.Z: undoRedo?.Desfazer(); e.Handled = true; break;
                     case Keys.Y: undoRedo?.Refazer(); e.Handled = true; break;
                     case Keys.C: Copiar(); e.Handled = true; break;
@@ -2111,14 +1966,12 @@ namespace CrimeSketcher.Forms
                     case Keys.OemMinus: AlterarZoom(1f / 1.25f); e.Handled = true; break;
                     case Keys.W: DefinirFerramenta("Parede"); e.Handled = true; break;
                     case Keys.J: DefinirFerramenta("ParedeJanela"); e.Handled = true; break;
-                    case Keys.R: DefinirFerramenta("Rotatoria"); e.Handled = true; break;
                     case Keys.M: DefinirFerramenta("Marca"); e.Handled = true; break;
                     case Keys.D: DefinirFerramenta("Cota"); e.Handled = true; break;
                     case Keys.H: DefinirFerramenta("CorpoMasculino"); e.Handled = true; break;
                     case Keys.F: DefinirFerramenta("CorpoFeminino"); e.Handled = true; break;
                 }
             }
-            // Ctrl+Shift
             else if (e.Control && e.Shift && !e.Alt)
             {
                 switch (e.KeyCode)
@@ -2128,14 +1981,12 @@ namespace CrimeSketcher.Forms
                     case Keys.I: Imprimir(); e.Handled = true; break;
                 }
             }
-            // Ctrl+Alt (ferramentas com conflito em Ctrl)
             else if (e.Control && e.Alt && !e.Shift)
             {
                 switch (e.KeyCode)
                 {
                     case Keys.P: DefinirFerramenta("ParedePorta"); e.Handled = true; break;
                     case Keys.S: DefinirFerramenta("Rua"); e.Handled = true; break;
-                    case Keys.X: DefinirFerramenta("CruzamentoCruz"); e.Handled = true; break;
                     case Keys.T: DefinirFerramenta("Texto"); e.Handled = true; break;
                     case Keys.A: DefinirFerramenta("Seta"); e.Handled = true; break;
                     case Keys.G:
@@ -2146,7 +1997,6 @@ namespace CrimeSketcher.Forms
                         break;
                 }
             }
-            // Teclas especiais (sem modificadores)
             else if (!e.Control && !e.Alt && !e.Shift)
             {
                 switch (e.KeyCode)

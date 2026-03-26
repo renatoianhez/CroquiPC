@@ -1,9 +1,9 @@
-﻿// Tools/StreetTool.cs
 using CrimeSketcher.Core;
 using CrimeSketcher.Objects;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Linq;
 using System.Windows.Forms;
 
 namespace CrimeSketcher.Tools
@@ -30,8 +30,18 @@ namespace CrimeSketcher.Tools
         private const float LARGURA_FAIXA_PADRAO = 40f;
         private const float LARGURA_CICLOFAIXA = 15f;
         private const float LARGURA_ESTACIONAMENTO = 30f;
+        private const float TOLERANCIA_CONEXAO = 20f;
 
-        // Configurações da rua
+        private PointF? _pontoSnapConexao;
+        private BaseSketchObject _objetoSnapConexao;
+        private int _extremidadeSnapConexao = -1;
+        private PointF? _direcaoSnapConexaoAtual;
+        private bool _snapTemCanteiroAtual = false;
+        private float _larguraCanteiroSnapAtual = 0f;
+        private PointF? _direcaoSnapInicial;
+        private bool _snapTemCanteiroInicial = false;
+        private float _larguraCanteiroSnapInicial = 0f;
+
         public float Largura
         {
             get => _largura;
@@ -101,15 +111,14 @@ namespace CrimeSketcher.Tools
             get => _temCiclofaixa;
             set
             {
-                int novoNumeroFaixas = NormalizarNumeroFaixas(_numeroFaixas, _temCanteiroCentral);
-                AjustarLarguraParaManterFaixas(
-                    novoNumeroFaixas,
-                    _temCanteiroCentral,
-                    _larguraCanteiroCentral,
-                    value,
-                    _temFaixaEstacionamento);
+                float novaLargura = _largura;
+                if (value && !_temCiclofaixa)
+                    novaLargura = _largura + LARGURA_CICLOFAIXA;
+                else if (!value && _temCiclofaixa)
+                    novaLargura = Math.Max(30f, _largura - LARGURA_CICLOFAIXA);
+
                 _temCiclofaixa = value;
-                _numeroFaixas = novoNumeroFaixas;
+                Largura = novaLargura;
             }
         }
 
@@ -118,84 +127,16 @@ namespace CrimeSketcher.Tools
             get => _temFaixaEstacionamento;
             set
             {
-                int novoNumeroFaixas = NormalizarNumeroFaixas(_numeroFaixas, _temCanteiroCentral);
-                AjustarLarguraParaManterFaixas(
-                    novoNumeroFaixas,
-                    _temCanteiroCentral,
-                    _larguraCanteiroCentral,
-                    _temCiclofaixa,
-                    value);
+                float novaLargura = _largura;
+                if (value && !_temFaixaEstacionamento)
+                    novaLargura = _largura + LARGURA_ESTACIONAMENTO;
+                else if (!value && _temFaixaEstacionamento)
+                    novaLargura = Math.Max(30f, _largura - LARGURA_ESTACIONAMENTO);
+
                 _temFaixaEstacionamento = value;
-                _numeroFaixas = novoNumeroFaixas;
+                Largura = novaLargura;
             }
         }
-
-        private static int NormalizarNumeroFaixas(int valor, bool temCanteiro)
-        {
-            int n = Math.Max(1, valor);
-
-            if (temCanteiro)
-            {
-                if (n < 2) n = 2;
-                if ((n % 2) != 0) n += 1;
-            }
-
-            return n;
-        }
-
-        private void AjustarLarguraParaManterFaixas(
-            int novoNumeroFaixas,
-            bool novoTemCanteiro,
-            float novaLarguraCanteiro,
-            bool novoTemCiclofaixa,
-            bool novoTemFaixaEstacionamento)
-        {
-            int numeroFaixasNormalizado = NormalizarNumeroFaixas(novoNumeroFaixas, novoTemCanteiro);
-            float larguraCanteiro = novoTemCanteiro ? Math.Max(2f, novaLarguraCanteiro) : 0f;
-            float larguraExtras = ObterLarguraExtras(novoTemCiclofaixa, novoTemFaixaEstacionamento);
-
-            _largura = Math.Max(30f, LARGURA_FAIXA_PADRAO * numeroFaixasNormalizado + larguraCanteiro + larguraExtras);
-        }
-
-        private float ObterLarguraFaixaAtual()
-        {
-            float larguraCanteiroAtual = _temCanteiroCentral ? Math.Max(2f, _larguraCanteiroCentral) : 0f;
-            float larguraExtrasAtual = ObterLarguraExtras(_temCiclofaixa, _temFaixaEstacionamento);
-            float larguraUtil = _largura - larguraCanteiroAtual - larguraExtrasAtual;
-
-            if (larguraUtil <= 1f)
-                return LARGURA_FAIXA_PADRAO;
-
-            return Math.Max(4f, larguraUtil / Math.Max(1, _numeroFaixas));
-        }
-
-        private float ObterLarguraExtras(bool temCiclofaixa, bool temFaixaEstacionamento)
-        {
-            float porLado = 0f;
-            if (temFaixaEstacionamento)
-                porLado += LARGURA_ESTACIONAMENTO;
-            if (temCiclofaixa)
-                porLado += LARGURA_CICLOFAIXA;
-            return porLado * 2f;
-        }
-
-        private float ObterLarguraExtrasBruta()
-        {
-            float larguraFaixa = ObterLarguraFaixaAtual();
-            return ObterLarguraExtras(_temCiclofaixa, _temFaixaEstacionamento);
-        }
-
-        // Snap de conexão
-        private const float TOLERANCIA_CONEXAO = 20f;
-        private PointF? _pontoSnapConexao;
-        private BaseSketchObject _objetoSnapConexao;
-        private int _extremidadeSnapConexao = -1;
-        private PointF? _direcaoSnapConexaoAtual;
-        private PointF? _direcaoSnapInicial;
-        private bool _snapTemCanteiroAtual;
-        private bool _snapTemCanteiroInicial;
-        private float _larguraCanteiroSnapAtual;
-        private float _larguraCanteiroSnapInicial;
 
         public StreetTool(SketchDocument doc, GridManager grid)
         {
@@ -299,7 +240,7 @@ namespace CrimeSketcher.Tools
             VerificarConexoes(street);
             _doc.AdicionarObjeto(street);
             AtualizarCruzamentosConectados(street);
-            CriarCruzamentoSeNecessario(pontoFinalAjustado);
+            CriarCruzamentoSeNecessario();
 
             _desenhando = false;
             _pontoInicial = null;
@@ -317,7 +258,6 @@ namespace CrimeSketcher.Tools
             _snapTemCanteiroAtual = false;
             _larguraCanteiroSnapAtual = 0f;
 
-            // 1. Verificar snap a extremidades de ruas existentes
             foreach (var obj in _doc.Objetos)
             {
                 if (obj is StreetObject rua)
@@ -363,12 +303,10 @@ namespace CrimeSketcher.Tools
                 }
             }
 
-            // 2. Verificar se está criando cruzamento (perto do meio de outra rua)
             foreach (var obj in _doc.Objetos)
             {
                 if (obj is StreetObject rua)
                 {
-                    // Projetar ponto na linha da rua
                     var proj = ProjetarPontoNaRua(ponto, rua);
                     if (proj.HasValue)
                     {
@@ -377,14 +315,13 @@ namespace CrimeSketcher.Tools
                         {
                             _pontoSnapConexao = proj;
                             _objetoSnapConexao = rua;
-                            _extremidadeSnapConexao = -2; // Indica criação de cruzamento
+                            _extremidadeSnapConexao = -2;
                             return proj.Value;
                         }
                     }
                 }
             }
 
-            // 3. Snap normal ao grid
             return _grid.Snap(ponto);
         }
 
@@ -401,7 +338,6 @@ namespace CrimeSketcher.Tools
 
             float t = ((ponto.X - p1.X) * dx + (ponto.Y - p1.Y) * dy) / comp2;
 
-            // Ignorar extremidades (já tratadas)
             if (t <= 0.1f || t >= 0.9f) return null;
 
             return new PointF(p1.X + t * dx, p1.Y + t * dy);
@@ -413,7 +349,6 @@ namespace CrimeSketcher.Tools
             {
                 if (obj is StreetObject ruaExistente && obj != novaRua)
                 {
-                    // Verificar conexão no ponto inicial
                     int extInicial = ruaExistente.GetExtremidadeProxima(
                         novaRua.PontoInicial, TOLERANCIA_CONEXAO);
                     if (extInicial >= 0)
@@ -427,7 +362,6 @@ namespace CrimeSketcher.Tools
                             ruaExistente.ExtremidadeFinal = TipoExtremidade.Conectada;
                     }
 
-                    // Verificar conexão no ponto final
                     int extFinal = ruaExistente.GetExtremidadeProxima(
                         novaRua.PontoFinal, TOLERANCIA_CONEXAO);
                     if (extFinal >= 0)
@@ -444,30 +378,64 @@ namespace CrimeSketcher.Tools
             }
         }
 
-        private void CriarCruzamentoSeNecessario(PointF ponto)
+        private void CriarCruzamentoSeNecessario()
         {
-            // Encontrar ruas que passam por este ponto
-            var ruasNoPonto = new List<StreetObject>();
-
-            foreach (var obj in _doc.Objetos)
+            var ruas = _doc.Objetos.OfType<StreetObject>().ToList();
+            
+            var todosOsCruzamentos = new List<(StreetObject rua1, StreetObject rua2, PointF ponto, IntersectionType tipo)>();
+            
+            for (int i = 0; i < ruas.Count; i++)
             {
-                if (obj is StreetObject rua)
+                for (int j = i + 1; j < ruas.Count; j++)
                 {
-                    float dist = Utils.GeometryHelper.DistanciaPontoSegmento(
-                        ponto, rua.PontoInicial, rua.PontoFinal);
-                    if (dist < 5f)
-                    {
-                        ruasNoPonto.Add(rua);
-                    }
+                    var cruzamentos = IntersectionDetector.DetectarCruzamentos(ruas[i], _doc.Objetos);
+                    todosOsCruzamentos.AddRange(cruzamentos);
                 }
             }
 
-            // Se há 2 ou mais ruas, pode criar cruzamento
-            if (ruasNoPonto.Count >= 2)
+            foreach (var (rua1, rua2, ponto, tipo) in todosOsCruzamentos)
             {
-                // Detectar tipo de cruzamento baseado nos ângulos
-                // (implementação simplificada - pode ser expandida)
+                bool jaExiste = _doc.Objetos.OfType<AutoIntersectionObject>()
+                    .Any(a => Utils.GeometryHelper.Distancia(a.Posicao, ponto) < 10f);
+
+                if (!jaExiste)
+                {
+                    float angulo1 = CalcularAngulo(rua1.PontoInicial, rua1.PontoFinal);
+                    float angulo2 = CalcularAngulo(rua2.PontoInicial, rua2.PontoFinal);
+
+                    var autoInterseccao = new AutoIntersectionObject
+                    {
+                        Posicao = ponto,
+                        TipoCruzamento = tipo,
+                        LarguraRua1 = rua1.Largura,
+                        LarguraRua2 = rua2.Largura,
+                        AnguloRua1 = angulo1,
+                        AnguloRua2 = angulo2,
+                        IdRua1 = rua1.Id,
+                        IdRua2 = rua2.Id,
+                        TemCanteiroCentral = rua1.TemCanteiroCentral || rua2.TemCanteiroCentral,
+                        LarguraCanteiroCentral = Math.Max(rua1.LarguraCanteiroCentral, rua2.LarguraCanteiroCentral),
+                        TemCalcadaRua1 = rua1.TemCalcada,
+                        TemCalcadaRua2 = rua2.TemCalcada,
+                        LarguraCalcadaRua1 = rua1.LarguraCalcada,
+                        LarguraCalcadaRua2 = rua2.LarguraCalcada,
+                        TemCiclofaixaRua1 = rua1.TemCiclofaixa,
+                        TemCiclofaixaRua2 = rua2.TemCiclofaixa,
+                        TemEstacionamentoRua1 = rua1.TemFaixaEstacionamento,
+                        TemEstacionamentoRua2 = rua2.TemFaixaEstacionamento
+                    };
+
+                    _doc.AdicionarObjeto(autoInterseccao);
+                }
             }
+        }
+
+        private float CalcularAngulo(PointF inicio, PointF fim)
+        {
+            float dx = fim.X - inicio.X;
+            float dy = fim.Y - inicio.Y;
+            double angulo = Math.Atan2(dy, dx) * 180.0 / Math.PI;
+            return (float)angulo;
         }
 
         public void OnMouseUp(MouseEventArgs e, PointF worldPos)
@@ -495,7 +463,6 @@ namespace CrimeSketcher.Tools
 
         public void Desenhar(Graphics g)
         {
-            // Preview da rua sendo desenhada
             if (_desenhando && _pontoInicial.HasValue)
             {
                 var preview = new StreetObject
@@ -518,7 +485,6 @@ namespace CrimeSketcher.Tools
 
                 preview.Desenhar(g);
 
-                // Mostrar comprimento
                 float comp = preview.Comprimento;
                 var centro = preview.Centro;
 
@@ -540,13 +506,12 @@ namespace CrimeSketcher.Tools
                 }
             }
 
-            // Indicador de snap de conexão
             if (_pontoSnapConexao.HasValue)
             {
                 float radius = 10f;
                 Color cor = _extremidadeSnapConexao == -2
-                    ? Color.Orange   // Criar cruzamento
-                    : Color.Lime;    // Conectar extremidade
+                    ? Color.Orange
+                    : Color.Lime;
 
                 using (var pen = new Pen(cor, 3f))
                 {
@@ -556,7 +521,6 @@ namespace CrimeSketcher.Tools
                         radius * 2, radius * 2);
                 }
 
-                // Texto indicativo
                 string textoSnap = _extremidadeSnapConexao == -2
                     ? "Criar cruzamento"
                     : "Conectar";
@@ -712,6 +676,22 @@ namespace CrimeSketcher.Tools
                 return new PointF(1f, 0f);
 
             return new PointF(v.X / len, v.Y / len);
+        }
+
+        private int NormalizarNumeroFaixas(int num, bool temCanteiro)
+        {
+            if (temCanteiro)
+                return num % 2 == 0 ? num : num + 1;
+            return Math.Max(1, num);
+        }
+
+        private void AjustarLarguraParaManterFaixas(
+            int numeroFaixas,
+            bool temCanteiro,
+            float larguraCanteiroDesejada,
+            bool temCiclofaixa,
+            bool temEstacionamento)
+        {
         }
 
         public void Cancelar()
