@@ -69,7 +69,7 @@ namespace CrimeSketcher.Objects
         [Description("Desloca R2 ao longo da Rua 2 (longitudinalmente). Positivo = afasta do centro, negativo = aproxima.")]
         public float DeslocamentoRua2
         {
-            get => _deslocamentoRua2;
+            get => _deslocamentoRua2 - 50f;
             set => _deslocamentoRua2 = value;
         }
 
@@ -152,20 +152,29 @@ namespace CrimeSketcher.Objects
         }
 
         [Browsable(false)]
-        public int CorAsfaltoArgb { get; set; } = Color.FromArgb(60, 60, 60).ToArgb();
+        public int CorAsfaltoArgb { get; set; } = Color.FromArgb(180, 180, 180).ToArgb();
 
         [Browsable(false)]
         public int CorCalcadaArgb { get; set; } = Color.FromArgb(200, 200, 200).ToArgb();
 
         [Browsable(false)]
-        public int CorCiclofaixaArgb { get; set; } = Color.FromArgb(255, 200, 0).ToArgb();
+        public int CorCiclofaixaArgb { get; set; } = Color.Transparent.ToArgb();
 
         [Category("Aparência")]
         [DisplayName("Cor do Asfalto")]
         [JsonIgnore]
         public Color CorAsfalto
         {
-            get => Color.FromArgb(CorAsfaltoArgb);
+            get
+            {
+                if (CorAsfaltoArgb != 0)
+                    return Color.FromArgb(CorAsfaltoArgb);
+
+                if (CorPreenchimentoArgb != Color.Transparent.ToArgb())
+                    return Color.FromArgb(CorPreenchimentoArgb);
+
+                return Color.FromArgb(180, 180, 180);
+            }
             set => CorAsfaltoArgb = value.ToArgb();
         }
 
@@ -191,6 +200,8 @@ namespace CrimeSketcher.Objects
         {
             Nome = "Cruzamento Automático";
             Tipo = "AutoCruzamento";
+            CorPreenchimento = Color.FromArgb(180, 180, 180);
+            CorContorno = Color.FromArgb(100, 100, 100);
         }
 
         public override RectangleF GetBounds()
@@ -202,9 +213,13 @@ namespace CrimeSketcher.Objects
 
             ObterDimensoesBaseCruzamento(out float semiComprimentoR1, out float comprimentoR2);
             float deslocamentoR1 = ObterDeslocamentoLongitudinalR1Escalar();
+            float deslocamentoR2 = ObterDeslocamentoLongitudinalR2Escalar();
             float alcanceR1 = semiComprimentoR1 + Math.Abs(deslocamentoR1);
             float alcanceGeometrico = Math.Max(alcanceR1, comprimentoR2);
-            float alcance = Math.Max(maxLargura, alcanceGeometrico) + Math.Abs(_deslocamentoRua2) + MARGEM_BRACO;
+            float alcance = Math.Max(maxLargura, alcanceGeometrico)
+                + Math.Abs(_deslocamentoRua2)
+                + Math.Abs(deslocamentoR2)
+                + MARGEM_BRACO;
 
             return new RectangleF(
                 Posicao.X - alcance,
@@ -222,9 +237,12 @@ namespace CrimeSketcher.Objects
             g.RotateTransform(Rotacao);
 
             var brushAsfalto = new SolidBrush(CorAsfalto);
+            var brushTexturaAsfalto = new HatchBrush(
+                HatchStyle.Percent10,
+                Color.FromArgb(20, 0, 0, 0),
+                Color.Transparent);
             var brushCalcada = new SolidBrush(CorCalcada);
             var brushCiclofaixa = new SolidBrush(CorCiclofaixa);
-            var penCanteiro = new Pen(Color.Yellow, 2f);
 
             try
             {
@@ -235,7 +253,13 @@ namespace CrimeSketcher.Objects
                     out var perp1, out var perp2);
                 ObterDimensoesBaseCruzamento(out float semiComprimentoR1, out float comprimentoR2);
 
-                var pontoEntrada = new PointF(vet2.X * _deslocamentoRua2, vet2.Y * _deslocamentoRua2);
+                var pontoEntradaBaseR2 = new PointF(vet2.X * _deslocamentoRua2, vet2.Y * _deslocamentoRua2);
+                float deslocamentoR2 = ObterDeslocamentoLongitudinalR2Escalar();
+                var dirDentroR2 = ObterDirecaoDentroRua2(vet2, pontoEntradaBaseR2);
+                var pontoEntrada = new PointF(
+                    pontoEntradaBaseR2.X + dirDentroR2.X * deslocamentoR2,
+                    pontoEntradaBaseR2.Y + dirDentroR2.Y * deslocamentoR2);
+
                 float deslocamentoR1 = ObterDeslocamentoLongitudinalR1Escalar();
                 var centroR1 = new PointF(vet1.X * deslocamentoR1, vet1.Y * deslocamentoR1);
                 var vetPontaR2 = ObterDirecaoPontaR2(vet2, pontoEntrada);
@@ -277,21 +301,16 @@ namespace CrimeSketcher.Objects
                     vet1, vet2, vetPontaR2, perp1, perp2,
                     semiComprimentoR1, comprimentoR2, l1Half, l2Half, centroR1, pontoEntrada);
 
-                // Canteiros (contorno) — união R1 ∪ R2
-                if (TemCanteiroCentral)
-                {
-                    float largCanteiro = LarguraCanteiroCentral / 2f;
-                    DesenharContornoUniao(g, penCanteiro, ehCruz,
-                        vet1, vet2, vetPontaR2, perp1, perp2,
-                        semiComprimentoR1, comprimentoR2, largCanteiro, largCanteiro, centroR1, pontoEntrada);
-                }
+                DesenharCamadaUniao(g, brushTexturaAsfalto, ehCruz,
+                    vet1, vet2, vetPontaR2, perp1, perp2,
+                    semiComprimentoR1, comprimentoR2, l1Half, l2Half, centroR1, pontoEntrada);
             }
             finally
             {
                 brushAsfalto.Dispose();
+                brushTexturaAsfalto.Dispose();
                 brushCalcada.Dispose();
                 brushCiclofaixa.Dispose();
-                penCanteiro.Dispose();
                 g.Restore(state);
             }
 
@@ -321,6 +340,8 @@ namespace CrimeSketcher.Objects
         /// a borda do asfalto da rua oposta. Deve ser ≥ 0.
         /// </summary>
         private const float MARGEM_BRACO = 25f;
+        private const float BASE_COMPRIMENTO_R2 = 35f;
+        private const float TOLERANCIA_ORTOGONAL_GRAUS = 2f;
 
         /// <summary>
         /// Limite inferior do seno do ângulo de inserção para evitar comprimentos
@@ -337,16 +358,67 @@ namespace CrimeSketcher.Objects
         {
             float margem = Math.Max(0f, MARGEM_BRACO);
 
+            float fatorAngular = ObterFatorAngularInsercao();
+            float fatorAngularR1 = ObterFatorAngularR1();
+            float acrescimoR1 = ObterAcrescimoComprimentoR1PorFaixasRua1();
+
+            semiComprimentoR1 = (_larguraRua2 / 2f) * fatorAngularR1 + margem + acrescimoR1;
+            comprimentoR2 = (BASE_COMPRIMENTO_R2 + _larguraRua1 / 2f + margem) * fatorAngular;
+        }
+
+        private float ObterAcrescimoComprimentoR1PorFaixasRua1()
+        {
+            float acrescimo = 0f;
+
+            if (_temEstacionamentoRua1)
+                acrescimo += 30f;
+
+            if (_temCiclofaixaRua1)
+                acrescimo += 17f;
+
+            return acrescimo;
+        }
+
+        private float ObterFatorAngularInsercao()
+        {
             float anguloRelativoRad = (_angulo2 - _angulo1) * (float)Math.PI / 180f;
             float seno = Math.Abs((float)Math.Sin(anguloRelativoRad));
-            float fatorAngularR1 = 1f / Math.Max(seno, SENO_MINIMO_INSERCAO);
+            return 1f / Math.Max(seno, SENO_MINIMO_INSERCAO);
+        }
 
-            semiComprimentoR1 = (_larguraRua2 / 2f) * fatorAngularR1 + margem;
-            comprimentoR2 = _larguraRua1 / 2f + margem;
+        private float ObterFatorAngularR1()
+        {
+            if (TipoCruzamento == Core.IntersectionType.Cruz && InsercaoQuaseOrtogonal())
+            {
+                return 1f;
+            }
+
+            return ObterFatorAngularInsercao() * 1.5f;
+        }
+
+        private bool InsercaoQuaseOrtogonal()
+        {
+            float delta = (_angulo2 - _angulo1) % 180f;
+            if (delta < 0f)
+            {
+                delta += 180f;
+            }
+
+            return Math.Abs(delta - 90f) <= TOLERANCIA_ORTOGONAL_GRAUS;
         }
 
         private float ObterDeslocamentoLongitudinalR1Escalar()
         {
+            if (TipoCruzamento == Core.IntersectionType.T && InsercaoQuaseOrtogonal())
+            {
+                return 0f;
+            }
+
+            if (TipoCruzamento == Core.IntersectionType.Cruz)
+            {
+                return 1f;
+            }
+
             float margem = Math.Max(0f, MARGEM_BRACO);
             float baseMinima = _larguraRua2 / 2f + margem;
 
@@ -358,12 +430,39 @@ namespace CrimeSketcher.Objects
             float dot = (float)(Math.Cos(ang1) * Math.Cos(ang2) + Math.Sin(ang1) * Math.Sin(ang2));
             float direcao = dot >= 0f ? 1f : -1f;
 
-            return direcao * (extra / 2f) + 50;
+            return -2f * direcao * (extra / 2f);
+        }
+
+        private float ObterDeslocamentoLongitudinalR2Escalar()
+        {
+            if (TipoCruzamento == Core.IntersectionType.Cruz)
+            {
+                return 0f;
+            }
+
+            float margem = Math.Max(0f, MARGEM_BRACO);
+            float baseMinima = -10f + BASE_COMPRIMENTO_R2 + _larguraRua1 / 2f + margem;
+
+            ObterDimensoesBaseCruzamento(out _, out float comprimentoR2);
+            float extra = Math.Max(0f, comprimentoR2 - baseMinima);
+            return 3f * (extra / 2f);
         }
 
         private static PointF ObterDirecaoPontaR2(PointF vet2, PointF pontoEntrada)
         {
             var direcao = new PointF(-pontoEntrada.X, -pontoEntrada.Y);
+            float comp = (float)Math.Sqrt(direcao.X * direcao.X + direcao.Y * direcao.Y);
+            if (comp <= 0f)
+            {
+                return vet2;
+            }
+
+            return new PointF(direcao.X / comp, direcao.Y / comp);
+        }
+
+        private static PointF ObterDirecaoDentroRua2(PointF vet2, PointF pontoEntrada)
+        {
+            var direcao = pontoEntrada;
             float comp = (float)Math.Sqrt(direcao.X * direcao.X + direcao.Y * direcao.Y);
             if (comp <= 0f)
             {
@@ -424,16 +523,8 @@ namespace CrimeSketcher.Objects
                     dist2,
                     halfW2);
 
-            var uniao = PolygonUnion.CalcularUniao(r1, r2);
-            if (uniao != null && uniao.Length >= 3)
-            {
-                g.FillPolygon(brush, uniao);
-            }
-            else
-            {
-                g.FillPolygon(brush, r1);
-                g.FillPolygon(brush, r2);
-            }
+            g.FillPolygon(brush, r1);
+            g.FillPolygon(brush, r2);
         }
 
         /// <summary>
@@ -455,16 +546,8 @@ namespace CrimeSketcher.Objects
                     dist2,
                     halfW2);
 
-            var uniao = PolygonUnion.CalcularUniao(r1, r2);
-            if (uniao != null && uniao.Length >= 3)
-            {
-                g.DrawPolygon(pen, uniao);
-            }
-            else
-            {
-                g.DrawPolygon(pen, r1);
-                g.DrawPolygon(pen, r2);
-            }
+            g.DrawPolygon(pen, r1);
+            g.DrawPolygon(pen, r2);
         }
 
         private PointF GetVetorRua1()
