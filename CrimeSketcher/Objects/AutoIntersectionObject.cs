@@ -95,6 +95,22 @@ namespace CrimeSketcher.Objects
         [DisplayName("Largura Canteiro")]
         public float LarguraCanteiroCentral { get; set; } = 12f;
 
+        [Category("Sinalização")]
+        [DisplayName("PARE na Rua 1")]
+        public bool TemPareRua1 { get; set; } = false;
+
+        [Category("Sinalização")]
+        [DisplayName("PARE na Rua 2")]
+        public bool TemPareRua2 { get; set; } = false;
+
+        [Category("Sinalização")]
+        [DisplayName("Faixa de Pedestres Rua 1")]
+        public bool TemFaixaPedestresRua1 { get; set; } = false;
+
+        [Category("Sinalização")]
+        [DisplayName("Faixa de Pedestres Rua 2")]
+        public bool TemFaixaPedestresRua2 { get; set; } = false;
+
         [Browsable(false)]
         public bool TemCalcadaRua1
         {
@@ -304,6 +320,33 @@ namespace CrimeSketcher.Objects
                 DesenharCamadaUniao(g, brushTexturaAsfalto, ehCruz,
                     vet1, vet2, vetPontaR2, perp1, perp2,
                     semiComprimentoR1, comprimentoR2, l1Half, l2Half, centroR1, pontoEntrada);
+
+                DesenharSinalizacaoVia(
+                    g,
+                    centroR1,
+                    vet1,
+                    perp1,
+                    semiComprimentoR1,
+                    l1Half,
+                    TemPareRua1,
+                    TemFaixaPedestresRua1,
+                    true);
+
+                var vetSinalizacaoR2 = ehCruz ? vet2 : vetPontaR2;
+                var perpSinalizacaoR2 = ehCruz ? perp2 : new PointF(-vetPontaR2.Y, vetPontaR2.X);
+                var referenciaR2 = ehCruz ? centroR1 : pontoEntrada;
+
+                DesenharSinalizacaoVia(
+                    g,
+                    referenciaR2,
+                    vetSinalizacaoR2,
+                    perpSinalizacaoR2,
+                    comprimentoR2,
+                    l2Half,
+                    TemPareRua2,
+                    TemFaixaPedestresRua2,
+                    ehCruz,
+                    ehCruz ? 1f : -1f);
             }
             finally
             {
@@ -594,6 +637,142 @@ namespace CrimeSketcher.Objects
             {
                 g.DrawRectangle(pen, bounds.X, bounds.Y, bounds.Width, bounds.Height);
             }
+        }
+
+        private static void DesenharSinalizacaoVia(
+            Graphics g,
+            PointF referencia,
+            PointF vet,
+            PointF perp,
+            float alcanceVia,
+            float halfRoadWidth,
+            bool desenharPare,
+            bool desenharFaixaPedestre,
+            bool duasExtremidades,
+            float sentidoExtremidadeUnica = 1f)
+        {
+            if (!desenharPare && !desenharFaixaPedestre)
+                return;
+
+            using var penBranca = new Pen(Color.White, 3f);
+            using var brushBranca = new SolidBrush(Color.White);
+            using var fontePare = new Font("Arial", 10f, FontStyle.Bold);
+            using var sfCentro = new StringFormat { Alignment = StringAlignment.Center, LineAlignment = StringAlignment.Center };
+
+            if (duasExtremidades)
+            {
+                DesenharSinalizacaoLado(g, referencia, vet, perp, 1f, alcanceVia, halfRoadWidth, desenharPare, desenharFaixaPedestre, penBranca, brushBranca, fontePare, sfCentro);
+                DesenharSinalizacaoLado(g, referencia, vet, perp, -1f, alcanceVia, halfRoadWidth, desenharPare, desenharFaixaPedestre, penBranca, brushBranca, fontePare, sfCentro);
+                return;
+            }
+
+            DesenharSinalizacaoLado(g, referencia, vet, perp, sentidoExtremidadeUnica, Math.Max(8f, alcanceVia * 0.18f), halfRoadWidth, desenharPare, desenharFaixaPedestre, penBranca, brushBranca, fontePare, sfCentro);
+        }
+
+        private static void DesenharSinalizacaoLado(
+            Graphics g,
+            PointF referencia,
+            PointF vet,
+            PointF perp,
+            float sentido,
+            float alcance,
+            float halfRoadWidth,
+            bool desenharPare,
+            bool desenharFaixaPedestre,
+            Pen penBranca,
+            Brush brushBranca,
+            Font fontePare,
+            StringFormat sfCentro)
+        {
+            float baseOffset = Math.Max(2f, alcance + 8f - 30f);
+            float crosswalkOffset = baseOffset + 8f;
+            float pareOffset = baseOffset + 12f;
+
+            if (desenharFaixaPedestre)
+            {
+                var centroFaixa = new PointF(
+                    referencia.X + vet.X * sentido * crosswalkOffset,
+                    referencia.Y + vet.Y * sentido * crosswalkOffset);
+
+                float larguraFaixa = Math.Max(halfRoadWidth * 1.8f, 28f);
+                float comprimentoLinha = 14f;
+                int qtd = Math.Max(5, (int)(larguraFaixa / 6f));
+                float inicio = -larguraFaixa / 2f;
+                float passo = qtd > 1 ? larguraFaixa / (qtd - 1) : 0f;
+
+                using var penFaixa = new Pen(Color.White, 3f);
+                for (int i = 0; i < qtd; i++)
+                {
+                    float deslocLateral = inicio + passo * i;
+                    var c = new PointF(
+                        centroFaixa.X + perp.X * deslocLateral,
+                        centroFaixa.Y + perp.Y * deslocLateral);
+
+                    g.DrawLine(
+                        penFaixa,
+                        c.X - vet.X * comprimentoLinha / 2f,
+                        c.Y - vet.Y * comprimentoLinha / 2f,
+                        c.X + vet.X * comprimentoLinha / 2f,
+                        c.Y + vet.Y * comprimentoLinha / 2f);
+                }
+            }
+
+            if (desenharPare)
+            {
+                // Via da esquerda (tráfego para o cruzamento): desloca metade para o lado esquerdo
+                var deslocEsquerda = new PointF(-perp.X * sentido * (halfRoadWidth * 0.5f), -perp.Y * sentido * (halfRoadWidth * 0.5f));
+
+                var centroTexto = new PointF(
+                    referencia.X + vet.X * sentido * pareOffset + deslocEsquerda.X,
+                    referencia.Y + vet.Y * sentido * pareOffset + deslocEsquerda.Y);
+
+                // Linha de retenção ~5px acima da palavra (mais próxima do cruzamento)
+                var centroLinha = new PointF(
+                    centroTexto.X - vet.X * sentido * 10f,
+                    centroTexto.Y - vet.Y * sentido * 10f);
+
+                float meiaLinha = halfRoadWidth * 0.45f;
+                var p1 = new PointF(
+                    centroLinha.X - perp.X * meiaLinha,
+                    centroLinha.Y - perp.Y * meiaLinha);
+                var p2 = new PointF(
+                    centroLinha.X + perp.X * meiaLinha,
+                    centroLinha.Y + perp.Y * meiaLinha);
+                g.DrawLine(penBranca, p1, p2);
+
+                // Alinhamento do texto com a linha de retenção (transversal à via)
+                // e orientação para leitura correta por quem chega ao cruzamento.
+                float anguloLinha = ObterAnguloTextoPare(perp, vet, sentido);
+                var st = g.Save();
+                g.TranslateTransform(centroTexto.X, centroTexto.Y);
+                g.RotateTransform(anguloLinha);
+                g.DrawString("PARE", fontePare, brushBranca, 0f, 0f, sfCentro);
+                g.Restore(st);
+            }
+        }
+
+        private static float ObterAnguloTextoPare(PointF perp, PointF vet, float sentido)
+        {
+            float anguloBase = (float)(Math.Atan2(perp.Y, perp.X) * 180f / Math.PI);
+            float[] candidatos = {anguloBase, anguloBase + 180f};
+
+            var direcaoAproximacao = new PointF(-vet.X * sentido, -vet.Y * sentido);
+            float melhorDot = float.MinValue;
+            float melhor = anguloBase;
+
+            foreach (var ang in candidatos)
+            {
+                float rad = ang * (float)Math.PI / 180f;
+                var up = new PointF((float)Math.Sin(rad), (float)-Math.Cos(rad));
+                float dot = up.X * direcaoAproximacao.X + up.Y * direcaoAproximacao.Y;
+                if (dot > melhorDot)
+                {
+                    melhorDot = dot;
+                    melhor = ang;
+                }
+            }
+
+            return melhor;
         }
     }
 }
