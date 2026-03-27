@@ -1,6 +1,7 @@
 ﻿// Tools/IntersectionTool.cs
 using CrimeSketcher.Core;
 using CrimeSketcher.Objects;
+using System;
 using System.Drawing;
 using System.Windows.Forms;
 
@@ -15,9 +16,48 @@ namespace CrimeSketcher.Tools
         private GridManager _grid;
         private PointF _posAtual;
 
+        private float _larguraRua = 80f;
+        private bool _temCanteiroCentral = false;
+        private float _larguraCanteiroCentral = 12f;
+
         public TipoCruzamento TipoCruzamento { get; set; } = TipoCruzamento.Cruz;
-        public float LarguraRua { get; set; } = 80f;
+
+        public float LarguraRua
+        {
+            get => _larguraRua;
+            set => _larguraRua = Math.Max(10f, value);
+        }
+
         public bool TemCalcada { get; set; } = true;
+
+        public bool TemCanteiroCentral
+        {
+            get => _temCanteiroCentral;
+            set
+            {
+                float larguraUtil = ObterLarguraUtilPista();
+                _temCanteiroCentral = value;
+                _larguraRua = Math.Max(10f, larguraUtil + (_temCanteiroCentral ? _larguraCanteiroCentral : 0f));
+            }
+        }
+
+        public float LarguraCanteiroCentral
+        {
+            get => _larguraCanteiroCentral;
+            set
+            {
+                float larguraUtil = ObterLarguraUtilPista();
+                _larguraCanteiroCentral = Math.Max(2f, value);
+                if (_temCanteiroCentral)
+                    _larguraRua = Math.Max(10f, larguraUtil + _larguraCanteiroCentral);
+            }
+        }
+
+        private float ObterLarguraUtilPista()
+        {
+            float canteiro = _temCanteiroCentral ? _larguraCanteiroCentral : 0f;
+            return Math.Max(6f, _larguraRua - canteiro);
+        }
 
         public IntersectionTool(SketchDocument doc, GridManager grid)
         {
@@ -35,7 +75,9 @@ namespace CrimeSketcher.Tools
                     Posicao = snapped,
                     TipoCruzamento = TipoCruzamento,
                     LarguraRua = LarguraRua,
-                    TemCalcada = TemCalcada
+                    TemCalcada = TemCalcada,
+                    TemCanteiroCentral = TemCanteiroCentral,
+                    LarguraCanteiroCentral = LarguraCanteiroCentral
                 };
                 _doc.AdicionarObjeto(intersection);
             }
@@ -58,6 +100,8 @@ namespace CrimeSketcher.Tools
                 TipoCruzamento = TipoCruzamento,
                 LarguraRua = LarguraRua,
                 TemCalcada = TemCalcada,
+                TemCanteiroCentral = TemCanteiroCentral,
+                LarguraCanteiroCentral = LarguraCanteiroCentral,
                 Opacidade = 0.5f
             };
             preview.Desenhar(g);
