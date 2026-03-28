@@ -1,7 +1,9 @@
 ﻿// Core/SketchCanvas.cs
 using CrimeSketcher.Library;
 using CrimeSketcher.Tools;
+using CrimeSketcher.Objects;
 using System;
+using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Windows.Forms;
@@ -163,12 +165,36 @@ namespace CrimeSketcher.Core
             // Objetos do documento
             if (_documento != null)
             {
+                // Separar objetos por camada
+                var camadaInferior = new List<BaseSketchObject>();
+                var camadaSuperior = new List<BaseSketchObject>();
                 foreach (var obj in _documento.Objetos)
                 {
-                    if (obj.Visivel)
+                    if (!obj.Visivel) continue;
+                    string tipo = obj.Tipo?.ToLowerInvariant() ?? "";
+                    if (tipo.Contains("símbolo") || tipo.Contains("symbol") ||
+                        tipo.Contains("corpo") || tipo.Contains("stickfigure") ||
+                        tipo.Contains("seta") || tipo.Contains("arrow") ||
+                        tipo.Contains("marca") || tipo.Contains("mark") ||
+                        tipo.Contains("texto") || tipo.Contains("text"))
                     {
-                        obj.Desenhar(g);
+                        camadaSuperior.Add(obj);
                     }
+                    else
+                    {
+                        camadaInferior.Add(obj);
+                    }
+                }
+
+                // Desenhar camada inferior (ruas, cruzamentos, paredes, etc)
+                foreach (var obj in camadaInferior)
+                {
+                    obj.Desenhar(g);
+                }
+                // Desenhar camada superior (símbolos, corpos, setas, marcas, textos)
+                foreach (var obj in camadaSuperior)
+                {
+                    obj.Desenhar(g);
                 }
 
                 // Desenhar seleções após todos os objetos

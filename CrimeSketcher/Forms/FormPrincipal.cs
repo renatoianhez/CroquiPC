@@ -72,6 +72,8 @@ namespace CrimeSketcher.Forms
 
         #endregion
 
+        private FormListaObjetos _formListaObjetos;
+
         public FormPrincipal()
         {
             InitializeComponent();
@@ -402,6 +404,13 @@ namespace CrimeSketcher.Forms
                 }
             };
             toolStrip.Items.Add(cmbGridSpacing);
+
+            // ===== LISTA DE OBJETOS =====
+            toolStrip.Items.Add(new ToolStripSeparator());
+            var btnListaObjetos = new ToolStripButton("🗂 Lista de Objetos");
+            btnListaObjetos.ToolTipText = "Exibir lista de objetos na cena";
+            btnListaObjetos.Click += (s, e) => AbrirFormListaObjetos();
+            toolStrip.Items.Add(btnListaObjetos);
         }
 
         private ToolStripButton CriarBotaoToolbar(string emoji, string tooltip, Action acao)
@@ -1261,7 +1270,7 @@ namespace CrimeSketcher.Forms
         private void ExportarPDF()
         {
             MessageBox.Show(
-                "Para exportar como PDF, exporte primeiro como imagem (PNG)\n" +
+                "Para exportar como PDF, exportue primeiro como imagem (PNG)\n" +
                 "e depois converta usando um editor de PDF.\n\n" +
                 "Para integração nativa com PDF, instale o pacote\n" +
                 "Syncfusion.Pdf.Net.Core via NuGet.",
@@ -2179,6 +2188,29 @@ namespace CrimeSketcher.Forms
             }));
         }
 
+        private void AbrirFormListaObjetos()
+        {
+            if (_formListaObjetos == null || _formListaObjetos.IsDisposed)
+            {
+                _formListaObjetos = new FormListaObjetos(documento);
+                _formListaObjetos.Owner = this;
+                _formListaObjetos.ObjetoSelecionado += SelecionarObjetoNaCena;
+            }
+            _formListaObjetos.AtualizarLista();
+            _formListaObjetos.Show();
+            _formListaObjetos.BringToFront();
+        }
+
+        private void SelecionarObjetoNaCena(BaseSketchObject obj)
+        {
+            if (obj == null) return;
+            foreach (var o in documento.Objetos)
+                o.Selecionado = false;
+            obj.Selecionado = true;
+            canvas.Invalidate();
+            propGrid.SelectedObject = obj;
+        }
         #endregion
+
     }
 }
