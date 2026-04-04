@@ -221,9 +221,11 @@ namespace CrimeSketcher.Core
             using (var bgBrush = new SolidBrush(_corHudFundo))
             using (var textBrush = new SolidBrush(_corHudTexto))
             {
+                float xm = _escala.PixelsParaReal(_cursorWorld.X);
+                float ym = _escala.PixelsParaReal(_cursorWorld.Y);
                 string info = $"Escala: {_escala.TextoEscala}  |  " +
                     $"Zoom: {_escala.ZoomLevel * 100:F0}%  |  " +
-                    $"Pos: ({_cursorWorld.X:F0}, {_cursorWorld.Y:F0})";
+                    $"Pos: ({xm:F2} {_escala.UnidadeReal}, {ym:F2} {_escala.UnidadeReal})";
 
                 if (_grid.SnapAtivo)
                     info += "  |  SNAP";
@@ -269,7 +271,8 @@ namespace CrimeSketcher.Core
                             g.DrawLine(pen, x, 0, x, rulerSize);
                             using (var textBrush = new SolidBrush(_corReguaTexto))
                             {
-                                g.DrawString($"{worldX:F0}", font,
+                                float realX = _escala.PixelsParaReal(worldX);
+                                g.DrawString($"{realX:F1}", font,
                                     textBrush, x + 2, 2);
                             }
                         }
@@ -297,7 +300,8 @@ namespace CrimeSketcher.Core
                             g.RotateTransform(90);
                             using (var textBrush = new SolidBrush(_corReguaTexto))
                             {
-                                g.DrawString($"{worldY:F0}", font,
+                                float realY = _escala.PixelsParaReal(worldY);
+                                g.DrawString($"{realY:F1}", font,
                                     textBrush, 0, 0);
                             }
                             g.Restore(state);

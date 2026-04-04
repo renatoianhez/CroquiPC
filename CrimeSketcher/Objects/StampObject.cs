@@ -1,4 +1,5 @@
 ﻿// Objects/StampObject.cs
+using CrimeSketcher.Utils;
 using System;
 using System.ComponentModel;
 using System.Drawing;
@@ -23,13 +24,15 @@ namespace CrimeSketcher.Objects
         public string CategoriaOrigem { get; set; }
 
         [Category("Dimensões")]
-        [DisplayName("Largura")]
-        [Description("Largura do símbolo em pixels")]
+        [DisplayName("Largura (m)")]
+        [Description("Largura do símbolo em metros")]
+        [TypeConverter(typeof(MetrosTypeConverter))]
         public float Largura { get; set; } = 40f;
 
         [Category("Dimensões")]
-        [DisplayName("Altura")]
-        [Description("Altura do símbolo em pixels")]
+        [DisplayName("Altura (m)")]
+        [Description("Altura do símbolo em metros")]
+        [TypeConverter(typeof(MetrosTypeConverter))]
         public float Altura { get; set; } = 40f;
 
         [Category("Dimensões")]

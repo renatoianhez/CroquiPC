@@ -1,4 +1,5 @@
 ﻿// Objects/ArrowObject.cs
+using CrimeSketcher.Utils;
 using System;
 using System.ComponentModel;
 using System.Drawing;
@@ -54,8 +55,9 @@ namespace CrimeSketcher.Objects
         }
 
         [Category("Aparência")]
-        [DisplayName("Tamanho da Seta")]
-        [Description("Tamanho da ponta da seta em pixels")]
+        [DisplayName("Tamanho da Seta (m)")]
+        [Description("Tamanho da ponta da seta em metros")]
+        [TypeConverter(typeof(MetrosTypeConverter))]
         public float TamanhoSeta { get; set; } = 12f;
 
         [Category("Aparência")]

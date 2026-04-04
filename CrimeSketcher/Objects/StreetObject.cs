@@ -1,4 +1,5 @@
 ﻿// Objects/StreetObject.cs
+using CrimeSketcher.Utils;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -56,8 +57,9 @@ namespace CrimeSketcher.Objects
         }
 
         [Category("Dimensões")]
-        [DisplayName("Largura (pixels)")]
-        [Description("Largura total da via em pixels")]
+        [DisplayName("Largura (m)")]
+        [Description("Largura total da via em metros")]
+        [TypeConverter(typeof(MetrosTypeConverter))]
         public float Largura
         {
             get => _largura;
@@ -85,8 +87,9 @@ namespace CrimeSketcher.Objects
         }
 
         [Category("Canteiro Central")]
-        [DisplayName("Largura do Canteiro")]
-        [Description("Largura do canteiro central em pixels")]
+        [DisplayName("Largura do Canteiro (m)")]
+        [Description("Largura do canteiro central em metros")]
+        [TypeConverter(typeof(MetrosTypeConverter))]
         public float LarguraCanteiroCentral
         {
             get => _larguraCanteiroCentral;
@@ -238,8 +241,9 @@ namespace CrimeSketcher.Objects
         public bool TemCalcada { get; set; } = true;
 
         [Category("Calçada")]
-        [DisplayName("Largura da Calçada")]
-        [Description("Largura das calçadas em pixels")]
+        [DisplayName("Largura da Calçada (m)")]
+        [Description("Largura das calçadas em metros")]
+        [TypeConverter(typeof(MetrosTypeConverter))]
         public float LarguraCalcada { get; set; } = 15f;
 
         [Category("Calçada")]
@@ -286,6 +290,37 @@ namespace CrimeSketcher.Objects
             set => CorCanteiroArgb = value.ToArgb();
         }
 
+        [Category("Faixas Auxiliares")]
+        [DisplayName("Tipo de Linha do Estacionamento")]
+        [Description("Tipo da linha divisória entre a faixa de estacionamento/acostamento e a pista")]
+        public TipoLinhaEstacionamento TipoLinhaEstacionamento { get; set; } = TipoLinhaEstacionamento.Tracejada;
+
+        [Browsable(false)]
+        public int CorEstacionamentoArgb { get; set; } = Color.Transparent.ToArgb();
+
+        [Category("Faixas Auxiliares")]
+        [DisplayName("Cor do Estacionamento")]
+        [Description("Cor de preenchimento da faixa de estacionamento/acostamento")]
+        [JsonIgnore]
+        public Color CorEstacionamento
+        {
+            get => Color.FromArgb(CorEstacionamentoArgb);
+            set => CorEstacionamentoArgb = value.ToArgb();
+        }
+
+        [Browsable(false)]
+        public int CorLinhaEstacionamentoArgb { get; set; } = Color.White.ToArgb();
+
+        [Category("Faixas Auxiliares")]
+        [DisplayName("Cor da Linha do Estacionamento")]
+        [Description("Cor da linha divisória da faixa de estacionamento/acostamento")]
+        [JsonIgnore]
+        public Color CorLinhaEstacionamento
+        {
+            get => Color.FromArgb(CorLinhaEstacionamentoArgb);
+            set => CorLinhaEstacionamentoArgb = value.ToArgb();
+        }
+
         #endregion
 
         #region Faixas de Sinalização
@@ -301,13 +336,15 @@ namespace CrimeSketcher.Objects
         public bool MostrarFaixasLaterais { get; set; } = true;
 
         [Category("Sinalização")]
-        [DisplayName("Espaçamento do Tracejado")]
-        [Description("Espaçamento entre os traços da faixa tracejada")]
+        [DisplayName("Espaçamento do Tracejado (m)")]
+        [Description("Espaçamento entre os traços da faixa tracejada em metros")]
+        [TypeConverter(typeof(MetrosTypeConverter))]
         public float EspacamentoTracejado { get; set; } = 15f;
 
         [Category("Sinalização")]
-        [DisplayName("Comprimento do Tracejado")]
-        [Description("Comprimento de cada traço da faixa")]
+        [DisplayName("Comprimento do Tracejado (m)")]
+        [Description("Comprimento de cada traço da faixa em metros")]
+        [TypeConverter(typeof(MetrosTypeConverter))]
         public float ComprimentoTracejado { get; set; } = 25f;
 
         [Browsable(false)]
@@ -317,8 +354,9 @@ namespace CrimeSketcher.Objects
         public int CorFaixaBrancaArgb { get; set; } = Color.White.ToArgb();
 
         [Category("Sinalização")]
-        [DisplayName("Espessura da Faixa")]
-        [Description("Espessura das linhas de sinalização")]
+        [DisplayName("Espessura da Faixa (m)")]
+        [Description("Espessura das linhas de sinalização em metros")]
+        [TypeConverter(typeof(MetrosTypeConverter))]
         public float EspessuraFaixa { get; set; } = 2f;
 
         #endregion
@@ -342,9 +380,10 @@ namespace CrimeSketcher.Objects
         #region Propriedades Calculadas
 
         [Category("Dimensões")]
-        [DisplayName("Comprimento")]
-        [Description("Comprimento total da via em pixels")]
+        [DisplayName("Comprimento (m)")]
+        [Description("Comprimento total da via em metros")]
         [JsonIgnore]
+        [TypeConverter(typeof(MetrosTypeConverter))]
         public float Comprimento
         {
             get
@@ -691,8 +730,19 @@ namespace CrimeSketcher.Objects
             {
                 if (larguraEstac > 0.1f)
                 {
-                    DesenharLinhaDivisoriaOffset(g, meiaRua - larguraEstac, Color.White, 1.2f);
-                    DesenharLinhaDivisoriaOffset(g, -meiaRua + larguraEstac, Color.White, 1.2f);
+                    var corFill = Color.FromArgb(CorEstacionamentoArgb);
+                    if (corFill.A > 0)
+                    {
+                        using (var brushEstac = new SolidBrush(corFill))
+                        {
+                            DesenharFaixaEntreOffsets(g, meiaRua, meiaRua - larguraEstac, brushEstac, null);
+                            DesenharFaixaEntreOffsets(g, -meiaRua + larguraEstac, -meiaRua, brushEstac, null);
+                        }
+                    }
+
+                    var corLinha = Color.FromArgb(CorLinhaEstacionamentoArgb);
+                    DesenharLinhaDivisoriaOffset(g, meiaRua - larguraEstac, corLinha, 1.2f, TipoLinhaEstacionamento);
+                    DesenharLinhaDivisoriaOffset(g, -meiaRua + larguraEstac, corLinha, 1.2f, TipoLinhaEstacionamento);
                 }
 
                 if (larguraCiclo > 0.1f)
@@ -927,8 +977,11 @@ namespace CrimeSketcher.Objects
             }
         }
 
-        private void DesenharLinhaDivisoriaOffset(Graphics g, float offset, Color cor, float espessura)
+        private void DesenharLinhaDivisoriaOffset(Graphics g, float offset, Color cor, float espessura, TipoLinhaEstacionamento tipoLinha = TipoLinhaEstacionamento.Tracejada)
         {
+            if (tipoLinha == TipoLinhaEstacionamento.Nenhuma)
+                return;
+
             if (!TemCurva || !PontoCurva.HasValue)
             {
                 var perp2 = Perpendicular;
@@ -936,8 +989,11 @@ namespace CrimeSketcher.Objects
                 var p2 = new PointF(PontoFinal.X + perp2.X * offset, PontoFinal.Y + perp2.Y * offset);
                 using (var pen = new Pen(cor, espessura))
                 {
-                    pen.DashStyle = DashStyle.Custom;
-                    pen.DashPattern = new float[] { 6f / espessura, 6f / espessura };
+                    if (tipoLinha == TipoLinhaEstacionamento.Tracejada)
+                    {
+                        pen.DashStyle = DashStyle.Custom;
+                        pen.DashPattern = new float[] { 6f / espessura, 6f / espessura };
+                    }
                     g.DrawLine(pen, p1, p2);
                 }
                 return;
@@ -952,8 +1008,11 @@ namespace CrimeSketcher.Objects
             }
             using (var pen = new Pen(cor, espessura))
             {
-                pen.DashStyle = DashStyle.Custom;
-                pen.DashPattern = new float[] { 6f / espessura, 6f / espessura };
+                if (tipoLinha == TipoLinhaEstacionamento.Tracejada)
+                {
+                    pen.DashStyle = DashStyle.Custom;
+                    pen.DashPattern = new float[] { 6f / espessura, 6f / espessura };
+                }
                 if (pontos.Count > 1) g.DrawLines(pen, pontos.ToArray());
             }
         }

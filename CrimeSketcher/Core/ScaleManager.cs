@@ -6,6 +6,11 @@ namespace CrimeSketcher.Core
     /// </summary>
     public class ScaleManager
     {
+        /// <summary>
+        /// Instância global da escala atual, usada pelos TypeConverters de metros.
+        /// </summary>
+        public static ScaleManager Atual { get; set; }
+
         public float EscalaNumerador { get; set; } = 1f;
         public float EscalaDenominador { get; set; } = 100f;
         public float PixelsPorCentimetro { get; set; } = 37.8f; // ~96 DPI

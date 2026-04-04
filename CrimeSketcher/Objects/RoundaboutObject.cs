@@ -1,4 +1,5 @@
 ﻿// Objects/RoundaboutObject.cs
+using CrimeSketcher.Utils;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -15,18 +16,21 @@ namespace CrimeSketcher.Objects
     public class RoundaboutObject : BaseSketchObject
     {
         [Category("Dimensões")]
-        [DisplayName("Raio Externo")]
-        [Description("Raio externo da rotatória")]
-        public float RaioExterno { get; set; } = 60f;
+        [DisplayName("Raio Externo (m)")]
+        [Description("Raio externo da rotatória em metros")]
+        [TypeConverter(typeof(MetrosTypeConverter))]
+        public float RaioExterno { get; set; } = 120f;
 
         [Category("Dimensões")]
-        [DisplayName("Raio Interno")]
-        [Description("Raio interno da ilha central")]
-        public float RaioInterno { get; set; } = 25f;
+        [DisplayName("Raio Interno (m)")]
+        [Description("Raio interno da ilha central em metros")]
+        [TypeConverter(typeof(MetrosTypeConverter))]
+        public float RaioInterno { get; set; } = 80f;
 
         [Category("Dimensões")]
-        [DisplayName("Largura da Rua")]
-        [Description("Largura das vias de acesso")]
+        [DisplayName("Largura da Rua (m)")]
+        [Description("Largura das vias de acesso em metros")]
+        [TypeConverter(typeof(MetrosTypeConverter))]
         public float LarguraRua { get; set; } = 80f;
 
         [Category("Configuração")]
@@ -45,8 +49,9 @@ namespace CrimeSketcher.Objects
         public bool TemCalcada { get; set; } = true;
 
         [Category("Calçada")]
-        [DisplayName("Largura da Calçada")]
-        [Description("Largura das calçadas")]
+        [DisplayName("Largura da Calçada (m)")]
+        [Description("Largura das calçadas em metros")]
+        [TypeConverter(typeof(MetrosTypeConverter))]
         public float LarguraCalcada { get; set; } = 15f;
 
         [Category("Configuração")]

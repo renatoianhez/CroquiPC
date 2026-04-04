@@ -95,9 +95,13 @@ namespace CrimeSketcher.Tools
             // Dimensões
             using (var font = new Font("Segoe UI", 8f))
             {
-                string texto = $"{w:F0} x {h:F0}";
+                var esc = ScaleManager.Atual;
+                string texto = esc != null
+                    ? $"{esc.FormatarMedida(w)} x {esc.FormatarMedida(h)}"
+                    : $"{w:F0} x {h:F0}";
+                var size = g.MeasureString(texto, font);
                 g.DrawString(texto, font, Brushes.Black,
-                    x + w / 2 - 20, y + h / 2 - 8);
+                    x + w / 2 - size.Width / 2, y + h / 2 - size.Height / 2);
             }
         }
 
