@@ -361,3 +361,10 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+
+# Pastas de publicação/release (binários não devem estar no repositório)
+Publicacao*/
+CroquiPC*/
+**/publish/
+**/*.exe
+**/*.zip
