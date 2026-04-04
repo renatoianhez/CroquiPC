@@ -31,6 +31,7 @@ namespace CrimeSketcher.Forms
         private SelectTool selectTool;
         private WallTool wallTool;
         private StreetTool streetTool;
+        private RoundaboutTool roundaboutTool;
         private DimensionTool dimensionTool;
         private StampTool stampTool;
         private StickFigureTool stickFigureTool;
@@ -592,6 +593,7 @@ namespace CrimeSketcher.Forms
             container.Controls.Add(CriarGrupoFerramentas("Elementos de Trânsito", new[]
             {
                 ("🛣️ Rua", "Rua", "Ctrl+Alt+S"),
+                ("⭕ Rotatória", "Rotatoria", "Ctrl+Alt+R"),
                 ("🔴 Marca", "Marca", "Ctrl+M"),
             }));
 
@@ -899,6 +901,7 @@ namespace CrimeSketcher.Forms
         private void InicializarSistema()
         {
             escala = new ScaleManager();
+            ScaleManager.Atual = escala;
             grid = new GridManager(escala);
 
             documento = new SketchDocument();
@@ -943,6 +946,7 @@ namespace CrimeSketcher.Forms
 
             wallTool = new WallTool(documento, grid);
             streetTool = new StreetTool(documento, grid);
+            roundaboutTool = new RoundaboutTool(documento, grid);
             dimensionTool = new DimensionTool(documento, grid, escala);
             stampTool = new StampTool(documento, grid);
             stickFigureTool = new StickFigureTool(documento, grid);
@@ -968,6 +972,7 @@ namespace CrimeSketcher.Forms
 
             wallTool = new WallTool(documento, grid);
             streetTool = new StreetTool(documento, grid);
+            roundaboutTool = new RoundaboutTool(documento, grid);
             dimensionTool = new DimensionTool(documento, grid, escala);
             stampTool = new StampTool(documento, grid);
             stickFigureTool = new StickFigureTool(documento, grid);
@@ -1093,6 +1098,9 @@ namespace CrimeSketcher.Forms
                     string nomeRua = InputBox("Nome da rua:", "Nova Rua", "");
                     streetTool.NomeRua = nomeRua;
                     canvas.FerramentaAtual = streetTool;
+                    break;
+                case "Rotatoria":
+                    canvas.FerramentaAtual = roundaboutTool;
                     break;
                 case "RuaConfig":
                     using (var dlg = new FormConfiguracaoRua(streetTool))
@@ -1877,6 +1885,7 @@ namespace CrimeSketcher.Forms
                 "  Ctrl+J         Parede + Janela\n" +
                 "  Ctrl+P         Parede + Porta + Janela\n" +
                 "  Ctrl+Alt+S     Rua\n" +
+                "  Ctrl+Alt+R     Rotatória\n" +
                 "  Ctrl+M         Marca\n" +
                 "  Ctrl+D         Cota/Medida\n" +
                 "  Ctrl+Alt+T     Texto\n" +
@@ -1903,6 +1912,7 @@ namespace CrimeSketcher.Forms
                 "técnicos de locais de crime.\n\n" +
                 "Renato Ianhez - Perito Criminal\n\n" +
                 "STRC - Patos de Minas\n\n" +
+                "renatoia@terra.com.br\n\n" + 
                 "© 2026 - Todos os direitos reservados.",
                 "Sobre o CroquiPC",
                 MessageBoxButtons.OK,
@@ -1915,7 +1925,9 @@ namespace CrimeSketcher.Forms
 
         private void Canvas_CursorMoved(object sender, PointF pos)
         {
-            statusCoord.Text = $"X: {pos.X:F1}  Y: {pos.Y:F1}";
+            float xm = escala.PixelsParaReal(pos.X);
+            float ym = escala.PixelsParaReal(pos.Y);
+            statusCoord.Text = $"X: {xm:F2} {escala.UnidadeReal}  Y: {ym:F2} {escala.UnidadeReal}";
         }
 
         private void Canvas_ZoomChanged(object sender, float zoom)
@@ -1975,6 +1987,7 @@ namespace CrimeSketcher.Forms
                     case Keys.OemMinus: AlterarZoom(1f / 1.25f); e.Handled = true; break;
                     case Keys.W: DefinirFerramenta("Parede"); e.Handled = true; break;
                     case Keys.J: DefinirFerramenta("ParedeJanela"); e.Handled = true; break;
+                    case Keys.R: DefinirFerramenta("Rotatoria"); e.Handled = true; break;
                     case Keys.M: DefinirFerramenta("Marca"); e.Handled = true; break;
                     case Keys.D: DefinirFerramenta("Cota"); e.Handled = true; break;
                     case Keys.H: DefinirFerramenta("CorpoMasculino"); e.Handled = true; break;
@@ -2004,6 +2017,7 @@ namespace CrimeSketcher.Forms
                         canvas.Invalidate();
                         e.Handled = true;
                         break;
+                    case Keys.R: DefinirFerramenta("Rotatoria"); e.Handled = true; break;
                 }
             }
             else if (!e.Control && !e.Alt && !e.Shift)

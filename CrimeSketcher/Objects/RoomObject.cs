@@ -1,4 +1,5 @@
 ﻿// Objects/RoomObject.cs
+using CrimeSketcher.Utils;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -23,8 +24,9 @@ namespace CrimeSketcher.Objects
         public List<PointF> Vertices { get; set; } = new List<PointF>();
 
         [Category("Dimensões")]
-        [DisplayName("Espessura da Parede")]
-        [Description("Espessura das paredes do cômodo")]
+        [DisplayName("Espessura da Parede (m)")]
+        [Description("Espessura das paredes do cômodo em metros")]
+        [TypeConverter(typeof(MetrosTypeConverter))]
         public float EspessuraParede { get; set; } = 8f;
 
         [Category("Identificação")]
@@ -66,8 +68,9 @@ namespace CrimeSketcher.Objects
         public float PosicaoPorta { get; set; } = 0.5f;
 
         [Category("Aberturas")]
-        [DisplayName("Largura da Porta")]
-        [Description("Largura da porta em pixels")]
+        [DisplayName("Largura da Porta (m)")]
+        [Description("Largura da porta em metros")]
+        [TypeConverter(typeof(MetrosTypeConverter))]
         public float LarguraPorta { get; set; } = 50f;
 
         [Browsable(false)]
@@ -84,8 +87,9 @@ namespace CrimeSketcher.Objects
         }
 
         [Category("Aberturas")]
-        [DisplayName("Espessura da Porta")]
-        [Description("Espessura da linha da porta em pixels")]
+        [DisplayName("Espessura da Porta (m)")]
+        [Description("Espessura da linha da porta em metros")]
+        [TypeConverter(typeof(MetrosTypeConverter))]
         public float EspessuraPorta { get; set; } = 3f;
 
         [Category("Aberturas")]
@@ -109,8 +113,9 @@ namespace CrimeSketcher.Objects
         public float PosicaoJanela { get; set; } = 0.5f;
 
         [Category("Aberturas")]
-        [DisplayName("Largura da Janela")]
-        [Description("Largura da janela em pixels")]
+        [DisplayName("Largura da Janela (m)")]
+        [Description("Largura da janela em metros")]
+        [TypeConverter(typeof(MetrosTypeConverter))]
         public float LarguraJanela { get; set; } = 30f;
 
         [Browsable(false)]

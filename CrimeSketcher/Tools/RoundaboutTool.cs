@@ -15,8 +15,8 @@ namespace CrimeSketcher.Tools
         private GridManager _grid;
         private PointF _posAtual;
 
-        public float RaioExterno { get; set; } = 80f;
-        public float RaioInterno { get; set; } = 25f;
+        public float RaioExterno { get; set; } = 120f;
+        public float RaioInterno { get; set; } = 80f;
         public int NumeroSaidas { get; set; } = 4;
         public float LarguraRua { get; set; } = 80f;
         public bool TemCalcada { get; set; } = true;

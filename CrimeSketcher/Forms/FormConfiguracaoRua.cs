@@ -1,4 +1,5 @@
 ﻿// Forms/FormConfiguracaoRua.cs
+using CrimeSketcher.Core;
 using CrimeSketcher.Objects;
 using CrimeSketcher.Tools;
 using System;
@@ -19,8 +20,13 @@ namespace CrimeSketcher.Forms
         private CheckBox chkCanteiroCentral;
         private NumericUpDown nudLarguraCanteiroCentral;
         private CheckBox chkFaixaEstacionamento;
+        private ComboBox cmbTipoLinhaEstacionamento;
+        private Button btnCorEstacionamento;
+        private Button btnCorLinhaEstacionamento;
         private CheckBox chkCiclofaixa;
         private Panel painelPreview;
+        private Color _corEstacionamento = Color.Transparent;
+        private Color _corLinhaEstacionamento = Color.White;
 
         public StreetTool StreetTool { get; private set; }
 
@@ -67,7 +73,7 @@ namespace CrimeSketcher.Forms
             // Largura
             Controls.Add(new Label
             {
-                Text = "Largura (pixels):",
+                Text = "Largura (m):",
                 Location = new Point(20, y + 3),
                 AutoSize = true
             });
@@ -75,9 +81,11 @@ namespace CrimeSketcher.Forms
             {
                 Location = new Point(controlX, y),
                 Size = new Size(100, 25),
-                Minimum = 30,
-                Maximum = 200,
-                Value = 80,
+                Minimum = 1,
+                Maximum = 100,
+                DecimalPlaces = 2,
+                Increment = 0.5m,
+                Value = 5,
                 BackColor = Color.FromArgb(60, 60, 65),
                 ForeColor = Color.White
             };
@@ -171,7 +179,7 @@ namespace CrimeSketcher.Forms
             // Largura calçada
             Controls.Add(new Label
             {
-                Text = "Largura calçada:",
+                Text = "Largura calçada (m):",
                 Location = new Point(40, y + 3),
                 AutoSize = true
             });
@@ -179,9 +187,11 @@ namespace CrimeSketcher.Forms
             {
                 Location = new Point(controlX, y),
                 Size = new Size(80, 25),
-                Minimum = 5,
-                Maximum = 50,
-                Value = 15,
+                Minimum = 0.1m,
+                Maximum = 20,
+                DecimalPlaces = 2,
+                Increment = 0.1m,
+                Value = 1,
                 BackColor = Color.FromArgb(60, 60, 65),
                 ForeColor = Color.White
             };
@@ -206,7 +216,7 @@ namespace CrimeSketcher.Forms
 
             Controls.Add(new Label
             {
-                Text = "Largura canteiro:",
+                Text = "Largura canteiro (m):",
                 Location = new Point(40, y + 3),
                 AutoSize = true
             });
@@ -214,9 +224,11 @@ namespace CrimeSketcher.Forms
             {
                 Location = new Point(controlX, y),
                 Size = new Size(80, 25),
-                Minimum = 2,
-                Maximum = 60,
-                Value = 12,
+                Minimum = 0.1m,
+                Maximum = 20,
+                DecimalPlaces = 2,
+                Increment = 0.1m,
+                Value = 1,
                 Enabled = false,
                 BackColor = Color.FromArgb(60, 60, 65),
                 ForeColor = Color.White
@@ -305,18 +317,32 @@ namespace CrimeSketcher.Forms
             nudLarguraCanteiroCentral.ValueChanged += (s, e) => AtualizarPreview();
         }
 
+        private float PxParaM(float px)
+        {
+            var esc = ScaleManager.Atual;
+            return esc != null ? esc.PixelsParaReal(px) : px;
+        }
+
+        private float MParaPx(float m)
+        {
+            var esc = ScaleManager.Atual;
+            return esc != null ? esc.RealParaPixels(m) : m;
+        }
+
         private void CarregarValores()
         {
             txtNome.Text = StreetTool.NomeRua;
-            nudLargura.Value = (decimal)StreetTool.Largura;
+            nudLargura.Value = (decimal)Math.Max((float)nudLargura.Minimum,
+                Math.Min((float)nudLargura.Maximum, PxParaM(StreetTool.Largura)));
             nudFaixas.Value = StreetTool.NumeroFaixas;
             chkCalcada.Checked = StreetTool.TemCalcada;
-            nudLarguraCalcada.Value = (decimal)StreetTool.LarguraCalcada;
+            nudLarguraCalcada.Value = (decimal)Math.Max((float)nudLarguraCalcada.Minimum,
+                Math.Min((float)nudLarguraCalcada.Maximum, PxParaM(StreetTool.LarguraCalcada)));
             cmbTipoFaixa.SelectedIndex = (int)StreetTool.TipoFaixa;
             chkMaoUnica.Checked = StreetTool.MaoUnica;
             chkCanteiroCentral.Checked = StreetTool.TemCanteiroCentral;
-            nudLarguraCanteiroCentral.Value = (decimal)Math.Max(nudLarguraCanteiroCentral.Minimum,
-                Math.Min(nudLarguraCanteiroCentral.Maximum, (decimal)StreetTool.LarguraCanteiroCentral));
+            nudLarguraCanteiroCentral.Value = (decimal)Math.Max((float)nudLarguraCanteiroCentral.Minimum,
+                Math.Min((float)nudLarguraCanteiroCentral.Maximum, PxParaM(StreetTool.LarguraCanteiroCentral)));
             nudLarguraCanteiroCentral.Enabled = chkCanteiroCentral.Checked;
             chkFaixaEstacionamento.Checked = StreetTool.TemFaixaEstacionamento;
             chkCiclofaixa.Checked = StreetTool.TemCiclofaixa;
@@ -325,14 +351,14 @@ namespace CrimeSketcher.Forms
         private void BtnOk_Click(object sender, EventArgs e)
         {
             StreetTool.NomeRua = txtNome.Text;
-            StreetTool.Largura = (float)nudLargura.Value;
+            StreetTool.Largura = MParaPx((float)nudLargura.Value);
             StreetTool.NumeroFaixas = (int)nudFaixas.Value;
             StreetTool.TemCalcada = chkCalcada.Checked;
-            StreetTool.LarguraCalcada = (float)nudLarguraCalcada.Value;
+            StreetTool.LarguraCalcada = MParaPx((float)nudLarguraCalcada.Value);
             StreetTool.TipoFaixa = (TipoFaixaCentral)cmbTipoFaixa.SelectedIndex;
             StreetTool.MaoUnica = chkMaoUnica.Checked;
             StreetTool.TemCanteiroCentral = chkCanteiroCentral.Checked;
-            StreetTool.LarguraCanteiroCentral = (float)nudLarguraCanteiroCentral.Value;
+            StreetTool.LarguraCanteiroCentral = MParaPx((float)nudLarguraCanteiroCentral.Value);
             StreetTool.TemFaixaEstacionamento = chkFaixaEstacionamento.Checked;
             StreetTool.TemCiclofaixa = chkCiclofaixa.Checked;
         }

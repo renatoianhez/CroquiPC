@@ -1,4 +1,5 @@
 // Forms/FormConfiguracaoMarca.cs - Formulário de Configuração de Marca
+using CrimeSketcher.Core;
 using CrimeSketcher.Objects;
 using CrimeSketcher.Tools;
 using System;
@@ -72,7 +73,7 @@ namespace CrimeSketcher.Forms
             // Largura
             Controls.Add(new Label
             {
-                Text = "Largura (pixels):",
+                Text = "Largura (m):",
                 Location = new Point(20, y + 3),
                 AutoSize = true,
                 ForeColor = Color.White
@@ -81,9 +82,11 @@ namespace CrimeSketcher.Forms
             {
                 Location = new Point(controlX, y),
                 Size = new Size(100, 25),
-                Minimum = 3,
-                Maximum = 50,
-                Value = 15,
+                Minimum = 0.01m,
+                Maximum = 5,
+                DecimalPlaces = 2,
+                Increment = 0.01m,
+                Value = 0.5m,
                 BackColor = Color.FromArgb(60, 60, 65),
                 ForeColor = Color.White
             };
@@ -236,7 +239,10 @@ namespace CrimeSketcher.Forms
         private void CarregarValores()
         {
             cmbTipoMarca.SelectedIndex = (int)MarkTool.TipoMarcaPadrao;
-            nudLargura.Value = (decimal)MarkTool.LarguraPadrao;
+            var esc = ScaleManager.Atual;
+            float larguraM = esc != null ? esc.PixelsParaReal(MarkTool.LarguraPadrao) : MarkTool.LarguraPadrao;
+            nudLargura.Value = (decimal)Math.Max((float)nudLargura.Minimum,
+                Math.Min((float)nudLargura.Maximum, larguraM));
             cmbIntensidade.SelectedIndex = (int)MarkTool.IntensidadePadrao;
             painelCorAtual.BackColor = MarkTool.CorPadrao;
         }
@@ -257,7 +263,9 @@ namespace CrimeSketcher.Forms
         private void BtnOk_Click(object sender, EventArgs e)
         {
             MarkTool.TipoMarcaPadrao = (TipoMarca)cmbTipoMarca.SelectedIndex;
-            MarkTool.LarguraPadrao = (float)nudLargura.Value;
+            var esc = ScaleManager.Atual;
+            float larguraPx = esc != null ? esc.RealParaPixels((float)nudLargura.Value) : (float)nudLargura.Value;
+            MarkTool.LarguraPadrao = larguraPx;
             MarkTool.IntensidadePadrao = (IntensidadeMarca)cmbIntensidade.SelectedIndex;
             MarkTool.CorPadrao = painelCorAtual.BackColor;
         }

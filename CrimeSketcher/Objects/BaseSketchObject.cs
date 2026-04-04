@@ -1,4 +1,5 @@
 ﻿// Objects/BaseSketchObject.cs
+using CrimeSketcher.Utils;
 using System;
 using System.ComponentModel;
 using System.Drawing;
@@ -25,8 +26,9 @@ namespace CrimeSketcher.Objects
         public string Tipo { get; set; } = "";
 
         [Category("Transformação")]
-        [DisplayName("Posição")]
-        [Description("Posição do objeto no canvas")]
+        [DisplayName("Posição (m)")]
+        [Description("Posição do objeto em metros")]
+        [TypeConverter(typeof(PosicaoMetrosConverter))]
         public PointF Posicao { get; set; }
 
         [Category("Transformação")]
@@ -75,8 +77,9 @@ namespace CrimeSketcher.Objects
         public int CorContornoArgb { get; set; } = Color.Black.ToArgb();
 
         [Category("Aparência")]
-        [DisplayName("Espessura do Contorno")]
-        [Description("Espessura da linha de contorno em pixels")]
+        [DisplayName("Espessura do Contorno (m)")]
+        [Description("Espessura da linha de contorno em metros")]
+        [TypeConverter(typeof(MetrosTypeConverter))]
         public float EspessuraContorno { get; set; } = 2f;
 
         [Category("Aparência")]

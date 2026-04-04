@@ -1,4 +1,5 @@
 // Objects/MarkObject.cs - Objeto de Marca com Curva Bézier
+using CrimeSketcher.Utils;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -53,8 +54,9 @@ namespace CrimeSketcher.Objects
         public TipoMarca TipoMarca { get; set; } = TipoMarca.Frenagem;
 
         [Category("Aparência")]
-        [DisplayName("Largura")]
-        [Description("Largura da marca em pixels")]
+        [DisplayName("Largura (m)")]
+        [Description("Largura da marca em metros")]
+        [TypeConverter(typeof(MetrosTypeConverter))]
         public float Largura { get; set; } = 15f;
 
         [Category("Aparência")]
@@ -90,10 +92,11 @@ namespace CrimeSketcher.Objects
         #region Propriedades Calculadas
 
         [Category("Dimensões")]
-        [DisplayName("Comprimento")]
-        [Description("Comprimento total da marca em pixels")]
+        [DisplayName("Comprimento (m)")]
+        [Description("Comprimento total da marca em metros")]
         [ReadOnly(true)]
         [JsonIgnore]
+        [TypeConverter(typeof(MetrosTypeConverter))]
         public float Comprimento
         {
             get

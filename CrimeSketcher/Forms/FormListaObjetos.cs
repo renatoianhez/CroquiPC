@@ -40,11 +40,21 @@ namespace CrimeSketcher.Forms
         public void AtualizarLista()
         {
             listViewObjetos.Items.Clear();
+            var esc = ScaleManager.Atual;
             foreach (var obj in _documento.Objetos)
             {
                 var item = new ListViewItem(obj.Nome);
                 item.SubItems.Add(obj.Tipo);
-                item.SubItems.Add($"({obj.Posicao.X:F0}, {obj.Posicao.Y:F0})");
+                if (esc != null)
+                {
+                    float xm = esc.PixelsParaReal(obj.Posicao.X);
+                    float ym = esc.PixelsParaReal(obj.Posicao.Y);
+                    item.SubItems.Add($"({xm:F2} {esc.UnidadeReal}, {ym:F2} {esc.UnidadeReal})");
+                }
+                else
+                {
+                    item.SubItems.Add($"({obj.Posicao.X:F0}, {obj.Posicao.Y:F0})");
+                }
                 item.Tag = obj;
                 listViewObjetos.Items.Add(item);
             }

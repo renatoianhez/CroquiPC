@@ -89,7 +89,8 @@ namespace CrimeSketcher.Tools
 
             using (var font = new Font("Segoe UI", 8f))
             {
-                string texto = $"{comp:F0} px";
+                var esc = ScaleManager.Atual;
+                string texto = esc != null ? esc.FormatarMedida(comp) : $"{comp:F0} px";
                 var size = g.MeasureString(texto, font);
                 g.FillRectangle(new SolidBrush(Color.FromArgb(200, 255, 255, 200)),
                     mid.X - size.Width / 2 - 2, mid.Y - 2,

@@ -119,7 +119,7 @@ namespace CrimeSketcher.Forms
 
             grpGrid.Controls.Add(new Label
             {
-                Text = "Espaçamento (px):",
+                Text = "Espaçamento (m):",
                 Location = new System.Drawing.Point(15, 80),
                 AutoSize = true
             });
@@ -127,10 +127,12 @@ namespace CrimeSketcher.Forms
             nudGridSpacing = new NumericUpDown
             {
                 Location = new System.Drawing.Point(140, 78),
-                Size = new System.Drawing.Size(60, 23),
-                Minimum = 5,
-                Maximum = 100,
-                Value = 20
+                Size = new System.Drawing.Size(80, 23),
+                Minimum = 0.1m,
+                Maximum = 10m,
+                Value = 0.5m,
+                DecimalPlaces = 2,
+                Increment = 0.1m
             };
             grpGrid.Controls.Add(nudGridSpacing);
 
@@ -159,11 +161,14 @@ namespace CrimeSketcher.Forms
             this.CancelButton = btnCancelar;
         }
 
+        private float PxParaM(float px) => Escala.PixelsParaReal(px);
+        private float MParaPx(float m) => Escala.RealParaPixels(m);
+
         private void CarregarValores()
         {
             nudDenominador.Value = (decimal)Escala.EscalaDenominador;
             cmbUnidade.SelectedItem = Escala.UnidadeReal;
-            nudGridSpacing.Value = (decimal)Grid.EspacamentoPixels;
+            nudGridSpacing.Value = Math.Clamp((decimal)PxParaM(Grid.EspacamentoPixels), nudGridSpacing.Minimum, nudGridSpacing.Maximum);
             chkGrid.Checked = Grid.Visivel;
             chkSnap.Checked = Grid.SnapAtivo;
             AtualizarPreview();
@@ -180,7 +185,7 @@ namespace CrimeSketcher.Forms
         {
             Escala.EscalaDenominador = (float)nudDenominador.Value;
             Escala.UnidadeReal = cmbUnidade.SelectedItem.ToString();
-            Grid.EspacamentoPixels = (float)nudGridSpacing.Value;
+            Grid.EspacamentoPixels = MParaPx((float)nudGridSpacing.Value);
             Grid.Visivel = chkGrid.Checked;
             Grid.SnapAtivo = chkSnap.Checked;
         }

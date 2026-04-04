@@ -70,6 +70,9 @@ namespace CrimeSketcher.Tools
         public float LarguraCalcada { get; set; } = 15f;
         public TipoFaixaCentral TipoFaixa { get; set; } = TipoFaixaCentral.TracejadaSimples;
         public bool MaoUnica { get; set; } = false;
+        public TipoLinhaEstacionamento TipoLinhaEstacionamento { get; set; } = TipoLinhaEstacionamento.Tracejada;
+        public Color CorEstacionamento { get; set; } = Color.Transparent;
+        public Color CorLinhaEstacionamento { get; set; } = Color.White;
 
         public bool TemCanteiroCentral
         {
@@ -231,6 +234,9 @@ namespace CrimeSketcher.Tools
             street.LarguraCanteiroCentral = larguraCanteiroRua;
             street.TemCiclofaixa = TemCiclofaixa;
             street.TemFaixaEstacionamento = TemFaixaEstacionamento;
+            street.TipoLinhaEstacionamento = TipoLinhaEstacionamento;
+            street.CorEstacionamento = CorEstacionamento;
+            street.CorLinhaEstacionamento = CorLinhaEstacionamento;
             street.NumeroFaixas = NumeroFaixas;
             street.Largura = Largura;
 
@@ -290,15 +296,11 @@ namespace CrimeSketcher.Tools
                 }
                 else if (obj is RoundaboutObject rotatoria)
                 {
-                    foreach (var pc in rotatoria.GetPontosConexao())
+                    if (TryObterPontoConexaoRotatoria(rotatoria, ponto, out var pontoConexao))
                     {
-                        float dist = Utils.GeometryHelper.Distancia(ponto, pc);
-                        if (dist <= TOLERANCIA_CONEXAO)
-                        {
-                            _pontoSnapConexao = pc;
-                            _objetoSnapConexao = rotatoria;
-                            return pc;
-                        }
+                        _pontoSnapConexao = pontoConexao;
+                        _objetoSnapConexao = rotatoria;
+                        return pontoConexao;
                     }
                 }
             }
@@ -375,7 +377,65 @@ namespace CrimeSketcher.Tools
                             ruaExistente.ExtremidadeFinal = TipoExtremidade.Conectada;
                     }
                 }
+                else if (obj is RoundaboutObject rotatoria)
+                {
+                    if (TryObterPontoConexaoRotatoria(rotatoria, novaRua.PontoInicial, out var conexaoInicial))
+                    {
+                        novaRua.PontoInicial = conexaoInicial;
+                        novaRua.ExtremidadeInicial = TipoExtremidade.Conectada;
+                        novaRua.IdConexaoInicial = rotatoria.Id;
+                        RegistrarRuaConectadaRotatoria(rotatoria, novaRua.Id);
+                    }
+
+                    if (TryObterPontoConexaoRotatoria(rotatoria, novaRua.PontoFinal, out var conexaoFinal))
+                    {
+                        novaRua.PontoFinal = conexaoFinal;
+                        novaRua.ExtremidadeFinal = TipoExtremidade.Conectada;
+                        novaRua.IdConexaoFinal = rotatoria.Id;
+                        RegistrarRuaConectadaRotatoria(rotatoria, novaRua.Id);
+                    }
+                }
             }
+        }
+
+        private bool TryObterPontoConexaoRotatoria(RoundaboutObject rotatoria, PointF ponto, out PointF pontoConexao)
+        {
+            foreach (var pc in rotatoria.GetPontosConexao())
+            {
+                if (Utils.GeometryHelper.Distancia(ponto, pc) <= TOLERANCIA_CONEXAO)
+                {
+                    pontoConexao = pc;
+                    return true;
+                }
+            }
+
+            float dx = ponto.X - rotatoria.Posicao.X;
+            float dy = ponto.Y - rotatoria.Posicao.Y;
+            float dist = (float)Math.Sqrt(dx * dx + dy * dy);
+            float raioConexao = rotatoria.RaioExterno + rotatoria.LarguraRua;
+            float toleranciaRaio = Math.Max(TOLERANCIA_CONEXAO, rotatoria.LarguraRua * 0.2f);
+
+            if (dist > 0.0001f && Math.Abs(dist - raioConexao) <= toleranciaRaio)
+            {
+                float nx = dx / dist;
+                float ny = dy / dist;
+                pontoConexao = new PointF(
+                    rotatoria.Posicao.X + nx * raioConexao,
+                    rotatoria.Posicao.Y + ny * raioConexao);
+                return true;
+            }
+
+            pontoConexao = PointF.Empty;
+            return false;
+        }
+
+        private static void RegistrarRuaConectadaRotatoria(RoundaboutObject rotatoria, string idRua)
+        {
+            if (string.IsNullOrWhiteSpace(idRua))
+                return;
+
+            if (!rotatoria.RuasConectadas.Contains(idRua))
+                rotatoria.RuasConectadas.Add(idRua);
         }
 
         private void CriarCruzamentoSeNecessario()
@@ -480,6 +540,9 @@ namespace CrimeSketcher.Tools
                 preview.LarguraCanteiroCentral = LarguraCanteiroCentral;
                 preview.TemCiclofaixa = TemCiclofaixa;
                 preview.TemFaixaEstacionamento = TemFaixaEstacionamento;
+                preview.TipoLinhaEstacionamento = TipoLinhaEstacionamento;
+                preview.CorEstacionamento = CorEstacionamento;
+                preview.CorLinhaEstacionamento = CorLinhaEstacionamento;
                 preview.NumeroFaixas = NumeroFaixas;
                 preview.Largura = Largura;
 
@@ -490,7 +553,8 @@ namespace CrimeSketcher.Tools
 
                 using (var font = new Font("Segoe UI", 9f, FontStyle.Bold))
                 {
-                    string texto = $"{comp:F0} px";
+                    var esc = ScaleManager.Atual;
+                    string texto = esc != null ? esc.FormatarMedida(comp) : $"{comp:F0} px";
                     var size = g.MeasureString(texto, font);
 
                     using (var bg = new SolidBrush(Color.FromArgb(200, 0, 0, 0)))

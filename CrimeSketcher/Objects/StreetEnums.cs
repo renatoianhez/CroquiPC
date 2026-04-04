@@ -15,6 +15,16 @@ namespace CrimeSketcher.Objects
     }
 
     /// <summary>
+    /// Tipo de linha divisória da faixa de estacionamento / acostamento
+    /// </summary>
+    public enum TipoLinhaEstacionamento
+    {
+        Tracejada,      // - - - -
+        Continua,       // ──────
+        Nenhuma         // Sem linha divisória
+    }
+
+    /// <summary>
     /// Tipo de conexão nas extremidades da rua
     /// </summary>
     public enum TipoExtremidade

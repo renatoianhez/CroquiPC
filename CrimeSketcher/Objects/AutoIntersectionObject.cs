@@ -33,7 +33,8 @@ namespace CrimeSketcher.Objects
         public Core.IntersectionType TipoCruzamento { get; set; } = Core.IntersectionType.Cruz;
 
         [Category("Dimensões")]
-        [DisplayName("Largura Rua 1")]
+        [DisplayName("Largura Rua 1 (m)")]
+        [TypeConverter(typeof(MetrosTypeConverter))]
         public float LarguraRua1
         {
             get => _larguraRua1;
@@ -41,7 +42,8 @@ namespace CrimeSketcher.Objects
         }
 
         [Category("Dimensões")]
-        [DisplayName("Largura Rua 2")]
+        [DisplayName("Largura Rua 2 (m)")]
+        [TypeConverter(typeof(MetrosTypeConverter))]
         public float LarguraRua2
         {
             get => _larguraRua2;
@@ -65,8 +67,9 @@ namespace CrimeSketcher.Objects
         }
 
         [Category("Dimensões")]
-        [DisplayName("Deslocamento Rua 2")]
+        [DisplayName("Deslocamento Rua 2 (m)")]
         [Description("Desloca R2 ao longo da Rua 2 (longitudinalmente). Positivo = afasta do centro, negativo = aproxima.")]
+        [TypeConverter(typeof(MetrosTypeConverter))]
         public float DeslocamentoRua2
         {
             get => _deslocamentoRua2 - 50f;
@@ -92,7 +95,8 @@ namespace CrimeSketcher.Objects
         public bool TemCanteiroCentral { get; set; } = false;
 
         [Category("Propriedades")]
-        [DisplayName("Largura Canteiro")]
+        [DisplayName("Largura Canteiro (m)")]
+        [TypeConverter(typeof(MetrosTypeConverter))]
         public float LarguraCanteiroCentral { get; set; } = 12f;
 
         [Category("Sinalização")]
@@ -406,7 +410,16 @@ namespace CrimeSketcher.Objects
             float acrescimoR1 = ObterAcrescimoComprimentoR1PorFaixasRua1();
 
             semiComprimentoR1 = (_larguraRua2 / 2f) * fatorAngularR1 + margem + acrescimoR1;
-            comprimentoR2 = (BASE_COMPRIMENTO_R2 + _larguraRua1 / 2f + margem) * fatorAngular;
+
+            if (TipoCruzamento == Core.IntersectionType.Cruz && InsercaoQuaseOrtogonal())
+            {
+                float acrescimoR2 = ObterAcrescimoComprimentoR2PorFaixasRua2();
+                comprimentoR2 = (_larguraRua1 / 2f) + margem + acrescimoR2;
+            }
+            else
+            {
+                comprimentoR2 = (BASE_COMPRIMENTO_R2 + _larguraRua1 / 2f + margem) * fatorAngular;
+            }
         }
 
         private float ObterAcrescimoComprimentoR1PorFaixasRua1()
@@ -417,6 +430,19 @@ namespace CrimeSketcher.Objects
                 acrescimo += 30f;
 
             if (_temCiclofaixaRua1)
+                acrescimo += 17f;
+
+            return acrescimo;
+        }
+
+        private float ObterAcrescimoComprimentoR2PorFaixasRua2()
+        {
+            float acrescimo = 0f;
+
+            if (_temEstacionamentoRua2)
+                acrescimo += 30f;
+
+            if (_temCiclofaixaRua2)
                 acrescimo += 17f;
 
             return acrescimo;
@@ -473,7 +499,7 @@ namespace CrimeSketcher.Objects
             float dot = (float)(Math.Cos(ang1) * Math.Cos(ang2) + Math.Sin(ang1) * Math.Sin(ang2));
             float direcao = dot >= 0f ? 1f : -1f;
 
-            return -2f * direcao * (extra / 2f);
+            return -1.5f * direcao * (extra / 2f);
         }
 
         private float ObterDeslocamentoLongitudinalR2Escalar()
@@ -488,7 +514,7 @@ namespace CrimeSketcher.Objects
 
             ObterDimensoesBaseCruzamento(out _, out float comprimentoR2);
             float extra = Math.Max(0f, comprimentoR2 - baseMinima);
-            return 3f * (extra / 2f);
+            return 2.8f * (extra / 2f);
         }
 
         private static PointF ObterDirecaoPontaR2(PointF vet2, PointF pontoEntrada)
@@ -684,7 +710,7 @@ namespace CrimeSketcher.Objects
             Font fontePare,
             StringFormat sfCentro)
         {
-            float baseOffset = Math.Max(2f, alcance + 8f - 30f);
+            float baseOffset = Math.Max(2f, alcance + 8f - 25f);
             float crosswalkOffset = baseOffset + 8f;
             float pareOffset = baseOffset + 12f;
 
@@ -726,7 +752,7 @@ namespace CrimeSketcher.Objects
                     referencia.X + vet.X * sentido * pareOffset + deslocEsquerda.X,
                     referencia.Y + vet.Y * sentido * pareOffset + deslocEsquerda.Y);
 
-                // Linha de retenção ~5px acima da palavra (mais próxima do cruzamento)
+                // Linha de retenção ~10px acima da palavra (mais próxima do cruzamento)
                 var centroLinha = new PointF(
                     centroTexto.X - vet.X * sentido * 10f,
                     centroTexto.Y - vet.Y * sentido * 10f);

@@ -1,4 +1,5 @@
 ﻿// Objects/WallObject.cs
+using CrimeSketcher.Utils;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -29,8 +30,9 @@ namespace CrimeSketcher.Objects
         public PointF PontoFinal { get; set; }
 
         [Category("Dimensões")]
-        [DisplayName("Espessura da Parede")]
-        [Description("Espessura da parede em pixels")]
+        [DisplayName("Espessura da Parede (m)")]
+        [Description("Espessura da parede em metros")]
+        [TypeConverter(typeof(MetrosTypeConverter))]
         public float Espessura { get; set; } = 8f;
 
         [Category("Aberturas")]
@@ -49,8 +51,9 @@ namespace CrimeSketcher.Objects
         public float PosicaoPorta { get; set; } = 0.35f;
 
         [Category("Aberturas")]
-        [DisplayName("Largura da Porta")]
-        [Description("Largura da porta em pixels")]
+        [DisplayName("Largura da Porta (m)")]
+        [Description("Largura da porta em metros")]
+        [TypeConverter(typeof(MetrosTypeConverter))]
         public float LarguraPorta { get; set; } = 50f;
 
         [Category("Aberturas")]
@@ -59,8 +62,9 @@ namespace CrimeSketcher.Objects
         public float PosicaoJanela { get; set; } = 0.65f;
 
         [Category("Aberturas")]
-        [DisplayName("Largura da Janela")]
-        [Description("Largura da janela em pixels")]
+        [DisplayName("Largura da Janela (m)")]
+        [Description("Largura da janela em metros")]
+        [TypeConverter(typeof(MetrosTypeConverter))]
         public float LarguraJanela { get; set; } = 50f;
 
         [Category("Aberturas")]
@@ -79,8 +83,9 @@ namespace CrimeSketcher.Objects
         public Color CorJanela { get; set; } = Color.LightBlue;
 
         [Category("Aberturas")]
-        [DisplayName("Espessura da Porta")]
-        [Description("Espessura da linha da porta em pixels")]
+        [DisplayName("Espessura da Porta (m)")]
+        [Description("Espessura da linha da porta em metros")]
+        [TypeConverter(typeof(MetrosTypeConverter))]
         public float EspessuraPorta { get; set; } = 3f;
 
         [Category("Aberturas")]

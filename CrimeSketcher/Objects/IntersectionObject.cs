@@ -1,4 +1,5 @@
 // Objects/IntersectionObject.cs
+using CrimeSketcher.Utils;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -30,8 +31,9 @@ namespace CrimeSketcher.Objects
         public TipoCruzamento TipoCruzamento { get; set; } = TipoCruzamento.Cruz;
 
         [Category("Dimensões")]
-        [DisplayName("Largura da Rua")]
-        [Description("Largura total das vias no cruzamento")]
+        [DisplayName("Largura da Rua (m)")]
+        [Description("Largura total das vias no cruzamento em metros")]
+        [TypeConverter(typeof(MetrosTypeConverter))]
         public float LarguraRua
         {
             get => _larguraRua;
@@ -53,8 +55,9 @@ namespace CrimeSketcher.Objects
         }
 
         [Category("Canteiro Central")]
-        [DisplayName("Largura do Canteiro")]
-        [Description("Largura do canteiro central em pixels")]
+        [DisplayName("Largura do Canteiro (m)")]
+        [Description("Largura do canteiro central em metros")]
+        [TypeConverter(typeof(MetrosTypeConverter))]
         public float LarguraCanteiroCentral
         {
             get => _larguraCanteiroCentral;
@@ -88,8 +91,9 @@ namespace CrimeSketcher.Objects
         public bool CanteiroRuaOeste { get; set; } = true;
 
         [Category("Calçada")]
-        [DisplayName("Largura da Calçada")]
-        [Description("Largura das calçadas no cruzamento")]
+        [DisplayName("Largura da Calçada (m)")]
+        [Description("Largura das calçadas no cruzamento em metros")]
+        [TypeConverter(typeof(MetrosTypeConverter))]
         public float LarguraCalcada { get; set; } = 15f;
 
         [Category("Calçada")]
@@ -103,8 +107,9 @@ namespace CrimeSketcher.Objects
         public bool TemFaixaPedestre { get; set; } = true;
 
         [Category("Faixa de Pedestre")]
-        [DisplayName("Largura da Faixa")]
-        [Description("Largura das faixas de pedestres")]
+        [DisplayName("Largura da Faixa (m)")]
+        [Description("Largura das faixas de pedestres em metros")]
+        [TypeConverter(typeof(MetrosTypeConverter))]
         public float LarguraFaixaPedestre { get; set; } = 25f;
 
         [Category("Estacionamento")]
@@ -117,8 +122,9 @@ namespace CrimeSketcher.Objects
         }
 
         [Category("Estacionamento")]
-        [DisplayName("Largura da Faixa")]
-        [Description("Largura de cada faixa de estacionamento lateral (px)")]
+        [DisplayName("Largura da Faixa (m)")]
+        [Description("Largura de cada faixa de estacionamento lateral em metros")]
+        [TypeConverter(typeof(MetrosTypeConverter))]
         public float LarguraFaixaEstacionamento
         {
             get => _larguraFaixaEstacionamento;
@@ -178,8 +184,9 @@ namespace CrimeSketcher.Objects
         }
 
         [Category("Dimensões")]
-        [DisplayName("Extensão das Vias")]
-        [Description("Comprimento do trecho de rua adicional em cada acesso")]
+        [DisplayName("Extensão das Vias (m)")]
+        [Description("Comprimento do trecho de rua adicional em cada acesso em metros")]
+        [TypeConverter(typeof(MetrosTypeConverter))]
         public float ExtensaoVias { get; set; } = 40f;
 
         [Browsable(false)]
