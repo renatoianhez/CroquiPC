@@ -183,7 +183,8 @@ namespace CrimeSketcher.Objects
             using (var path = CriarCaminhoSeta(pontoInicial, pontoFinal, pontoCurva))
             {
                 var bounds = path.GetBounds();
-                bounds.Inflate(TamanhoSeta + 8f, TamanhoSeta + 8f);
+                float margem = Math.Max(2f, Math.Max(EspessuraContorno, TamanhoSeta * 0.5f));
+                bounds.Inflate(margem, margem);
                 return bounds;
             }
         }

@@ -35,6 +35,33 @@ namespace CrimeSketcher.Objects
         [TypeConverter(typeof(MetrosTypeConverter))]
         public float Espessura { get; set; } = 8f;
 
+        [Category("Dimensões")]
+        [DisplayName("Comprimento (m)")]
+        [Description("Comprimento da parede em metros. Ao alterar, reposiciona o ponto final mantendo a direção")]
+        [TypeConverter(typeof(MetrosTypeConverter))]
+        public float Comprimento
+        {
+            get
+            {
+                float dx = PontoFinal.X - PontoInicial.X;
+                float dy = PontoFinal.Y - PontoInicial.Y;
+                return (float)Math.Sqrt(dx * dx + dy * dy);
+            }
+            set
+            {
+                float novoComprimento = Math.Max(1f, value);
+                float dx = PontoFinal.X - PontoInicial.X;
+                float dy = PontoFinal.Y - PontoInicial.Y;
+                float comp = (float)Math.Sqrt(dx * dx + dy * dy);
+                if (comp < 0.001f) return;
+                float nx = dx / comp;
+                float ny = dy / comp;
+                PontoFinal = new PointF(
+                    PontoInicial.X + nx * novoComprimento,
+                    PontoInicial.Y + ny * novoComprimento);
+            }
+        }
+
         [Category("Aberturas")]
         [DisplayName("Possui Porta")]
         [Description("Define se a parede possui uma porta")]

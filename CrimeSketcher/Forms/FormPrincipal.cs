@@ -38,6 +38,7 @@ namespace CrimeSketcher.Forms
         private TextTool textTool;
         private ArrowTool arrowTool;
         private MarkTool markTool;
+        private AreaTool areaTool;
 
         // UI Principal
         private MenuStrip menuStrip;
@@ -588,6 +589,7 @@ namespace CrimeSketcher.Forms
                 ("🚪 Parede + Porta", "ParedePorta", "Ctrl+Alt+P"),
                 ("🪟 Parede + Janela", "ParedeJanela", "Ctrl+J"),
                 ("🚪🪟 Parede + Porta + Janela", "ParedePortaJanela", "Ctrl+P"),
+                ("🟩 Área (Polígono)", "Area", "Ctrl+Alt+Q"),
             }));
 
             container.Controls.Add(CriarGrupoFerramentas("Elementos de Trânsito", new[]
@@ -953,6 +955,7 @@ namespace CrimeSketcher.Forms
             textTool = new TextTool(documento, grid);
             arrowTool = new ArrowTool(documento, grid);
             markTool = new MarkTool(documento, undoRedo);
+            areaTool = new AreaTool(documento, grid);
         }
 
         private void RecriarFerramentas()
@@ -979,6 +982,7 @@ namespace CrimeSketcher.Forms
             textTool = new TextTool(documento, grid);
             arrowTool = new ArrowTool(documento, grid);
             markTool = new MarkTool(documento, undoRedo);
+            areaTool = new AreaTool(documento, grid);
 
             canvas.FerramentaAtual = selectTool;
         }
@@ -1078,6 +1082,9 @@ namespace CrimeSketcher.Forms
                     wallTool.ComPorta = false;
                     wallTool.ComJanela = false;
                     canvas.FerramentaAtual = wallTool;
+                    break;
+                case "Area":
+                    canvas.FerramentaAtual = areaTool;
                     break;
                 case "ParedePorta":
                     wallTool.ComPorta = true;
@@ -1881,6 +1888,7 @@ namespace CrimeSketcher.Forms
                 "FERRAMENTAS:\n" +
                 "  Esc            Selecionar\n" +
                 "  Ctrl+W         Parede\n" +
+                "  Ctrl+Alt+Q     Área (Polígono)\n" +
                 "  Ctrl+Alt+P     Parede + Porta\n" +
                 "  Ctrl+J         Parede + Janela\n" +
                 "  Ctrl+P         Parede + Porta + Janela\n" +
@@ -1973,7 +1981,8 @@ namespace CrimeSketcher.Forms
                     case Keys.N: NovoDocumento(); e.Handled = true; break;
                     case Keys.O: AbrirDocumento(); e.Handled = true; break;
                     case Keys.S: SalvarDocumento(); e.Handled = true; break;
-                    case Keys.P: DefinirFerramenta("ParedePortaJanela"); e.Handled = true; break;
+                    case Keys.P: DefinirFerramenta("ParedePorta"); e.Handled = true; break;
+                    case Keys.Q: DefinirFerramenta("Area"); e.Handled = true; break;
                     case Keys.Z: undoRedo?.Desfazer(); e.Handled = true; break;
                     case Keys.Y: undoRedo?.Refazer(); e.Handled = true; break;
                     case Keys.C: Copiar(); e.Handled = true; break;
@@ -2008,6 +2017,7 @@ namespace CrimeSketcher.Forms
                 switch (e.KeyCode)
                 {
                     case Keys.P: DefinirFerramenta("ParedePorta"); e.Handled = true; break;
+                    case Keys.Q: DefinirFerramenta("Area"); e.Handled = true; break;
                     case Keys.S: DefinirFerramenta("Rua"); e.Handled = true; break;
                     case Keys.T: DefinirFerramenta("Texto"); e.Handled = true; break;
                     case Keys.A: DefinirFerramenta("Seta"); e.Handled = true; break;

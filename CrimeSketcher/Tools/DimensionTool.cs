@@ -38,6 +38,9 @@ namespace CrimeSketcher.Tools
                 }
                 else
                 {
+                    float passo = (Control.ModifierKeys & Keys.Shift) != 0 ? 15f : 5f;
+                    snapped = Utils.GeometryHelper.SnapAngulo(_pontoInicial.Value, snapped, passo);
+
                     var dim = new DimensionLine
                     {
                         PontoInicial = _pontoInicial.Value,
@@ -53,7 +56,13 @@ namespace CrimeSketcher.Tools
 
         public void OnMouseMove(MouseEventArgs e, PointF worldPos)
         {
-            _pontoAtual = _grid.Snap(worldPos);
+            var snapped = _grid.Snap(worldPos);
+            if (_desenhando && _pontoInicial.HasValue)
+            {
+                float passo = (Control.ModifierKeys & Keys.Shift) != 0 ? 15f : 5f;
+                snapped = Utils.GeometryHelper.SnapAngulo(_pontoInicial.Value, snapped, passo);
+            }
+            _pontoAtual = snapped;
         }
 
         public void OnMouseUp(MouseEventArgs e, PointF worldPos) { }

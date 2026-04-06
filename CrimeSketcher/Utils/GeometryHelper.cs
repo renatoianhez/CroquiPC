@@ -60,5 +60,27 @@ namespace CrimeSketcher.Utils
                 centro.X + dx * cos - dy * sin,
                 centro.Y + dx * sin + dy * cos);
         }
+
+        public static PointF SnapAngulo(PointF origem, PointF ponto, float incrementoGraus)
+        {
+            float dx = ponto.X - origem.X;
+            float dy = ponto.Y - origem.Y;
+            float distancia = (float)Math.Sqrt(dx * dx + dy * dy);
+            if (distancia < 0.001f) return ponto;
+
+            float passo = Math.Max(0.1f, incrementoGraus);
+            float angulo = (float)(Math.Atan2(dy, dx) * 180.0 / Math.PI);
+            float anguloSnapped = (float)(Math.Round(angulo / passo) * passo);
+            float rad = anguloSnapped * (float)Math.PI / 180f;
+
+            return new PointF(
+                origem.X + distancia * (float)Math.Cos(rad),
+                origem.Y + distancia * (float)Math.Sin(rad));
+        }
+
+        public static PointF SnapAngulo15(PointF origem, PointF ponto)
+        {
+            return SnapAngulo(origem, ponto, 15f);
+        }
     }
 }

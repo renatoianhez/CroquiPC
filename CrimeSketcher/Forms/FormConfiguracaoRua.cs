@@ -13,6 +13,10 @@ namespace CrimeSketcher.Forms
         private NumericUpDown nudLargura;
         private NumericUpDown nudFaixas;
         private TextBox txtNome;
+        private TextBox txtFonteNome;
+        private NumericUpDown nudTamanhoFonteNome;
+        private NumericUpDown nudDeslocNomeX;
+        private NumericUpDown nudDeslocNomeY;
         private CheckBox chkCalcada;
         private NumericUpDown nudLarguraCalcada;
         private ComboBox cmbTipoFaixa;
@@ -40,7 +44,7 @@ namespace CrimeSketcher.Forms
         private void InitializeComponent()
         {
             this.Text = "Configuração de Rua";
-            this.Size = new Size(450, 620);
+            this.Size = new Size(450, 760);
             this.FormBorderStyle = FormBorderStyle.FixedDialog;
             this.MaximizeBox = false;
             this.MinimizeBox = false;
@@ -68,6 +72,86 @@ namespace CrimeSketcher.Forms
                 BorderStyle = BorderStyle.FixedSingle
             };
             Controls.Add(txtNome);
+            y += 40;
+
+            Controls.Add(new Label
+            {
+                Text = "Fonte do nome:",
+                Location = new Point(20, y + 3),
+                AutoSize = true
+            });
+            txtFonteNome = new TextBox
+            {
+                Location = new Point(controlX, y),
+                Size = new Size(240, 25),
+                BackColor = Color.FromArgb(60, 60, 65),
+                ForeColor = Color.White,
+                BorderStyle = BorderStyle.FixedSingle
+            };
+            Controls.Add(txtFonteNome);
+            y += 40;
+
+            Controls.Add(new Label
+            {
+                Text = "Tamanho da fonte:",
+                Location = new Point(20, y + 3),
+                AutoSize = true
+            });
+            nudTamanhoFonteNome = new NumericUpDown
+            {
+                Location = new Point(controlX, y),
+                Size = new Size(80, 25),
+                Minimum = 6,
+                Maximum = 48,
+                DecimalPlaces = 1,
+                Increment = 0.5m,
+                Value = 9,
+                BackColor = Color.FromArgb(60, 60, 65),
+                ForeColor = Color.White
+            };
+            Controls.Add(nudTamanhoFonteNome);
+            y += 40;
+
+            Controls.Add(new Label
+            {
+                Text = "Desloc. nome X (m):",
+                Location = new Point(20, y + 3),
+                AutoSize = true
+            });
+            nudDeslocNomeX = new NumericUpDown
+            {
+                Location = new Point(controlX, y),
+                Size = new Size(100, 25),
+                Minimum = -100,
+                Maximum = 100,
+                DecimalPlaces = 2,
+                Increment = 0.1m,
+                Value = 0,
+                BackColor = Color.FromArgb(60, 60, 65),
+                ForeColor = Color.White
+            };
+            Controls.Add(nudDeslocNomeX);
+            y += 40;
+
+            Controls.Add(new Label
+            {
+                Text = "Desloc. nome Y (m):",
+                Location = new Point(20, y + 3),
+                AutoSize = true
+            });
+            nudDeslocNomeY = new NumericUpDown
+            {
+                Location = new Point(controlX, y),
+                Size = new Size(100, 25),
+                Minimum = -100,
+                Maximum = 100,
+                DecimalPlaces = 2,
+                Increment = 0.1m,
+                Value = 0,
+                BackColor = Color.FromArgb(60, 60, 65),
+                ForeColor = Color.White
+            };
+            Controls.Add(nudDeslocNomeY);
             y += 40;
 
             // Largura
@@ -315,6 +399,10 @@ namespace CrimeSketcher.Forms
             cmbTipoFaixa.SelectedIndexChanged += (s, e) => AtualizarPreview();
             nudLarguraCalcada.ValueChanged += (s, e) => AtualizarPreview();
             nudLarguraCanteiroCentral.ValueChanged += (s, e) => AtualizarPreview();
+            nudTamanhoFonteNome.ValueChanged += (s, e) => AtualizarPreview();
+            nudDeslocNomeX.ValueChanged += (s, e) => AtualizarPreview();
+            nudDeslocNomeY.ValueChanged += (s, e) => AtualizarPreview();
+            txtFonteNome.TextChanged += (s, e) => AtualizarPreview();
         }
 
         private float PxParaM(float px)
@@ -332,6 +420,13 @@ namespace CrimeSketcher.Forms
         private void CarregarValores()
         {
             txtNome.Text = StreetTool.NomeRua;
+            txtFonteNome.Text = StreetTool.FonteNomeRua;
+            nudTamanhoFonteNome.Value = (decimal)Math.Max((float)nudTamanhoFonteNome.Minimum,
+                Math.Min((float)nudTamanhoFonteNome.Maximum, StreetTool.TamanhoFonteNomeRua));
+            nudDeslocNomeX.Value = (decimal)Math.Max((float)nudDeslocNomeX.Minimum,
+                Math.Min((float)nudDeslocNomeX.Maximum, PxParaM(StreetTool.DeslocamentoNomeRuaX)));
+            nudDeslocNomeY.Value = (decimal)Math.Max((float)nudDeslocNomeY.Minimum,
+                Math.Min((float)nudDeslocNomeY.Maximum, PxParaM(StreetTool.DeslocamentoNomeRuaY)));
             nudLargura.Value = (decimal)Math.Max((float)nudLargura.Minimum,
                 Math.Min((float)nudLargura.Maximum, PxParaM(StreetTool.Largura)));
             nudFaixas.Value = StreetTool.NumeroFaixas;
@@ -351,6 +446,10 @@ namespace CrimeSketcher.Forms
         private void BtnOk_Click(object sender, EventArgs e)
         {
             StreetTool.NomeRua = txtNome.Text;
+            StreetTool.FonteNomeRua = txtFonteNome.Text;
+            StreetTool.TamanhoFonteNomeRua = (float)nudTamanhoFonteNome.Value;
+            StreetTool.DeslocamentoNomeRuaX = MParaPx((float)nudDeslocNomeX.Value);
+            StreetTool.DeslocamentoNomeRuaY = MParaPx((float)nudDeslocNomeY.Value);
             StreetTool.Largura = MParaPx((float)nudLargura.Value);
             StreetTool.NumeroFaixas = (int)nudFaixas.Value;
             StreetTool.TemCalcada = chkCalcada.Checked;
@@ -385,6 +484,11 @@ namespace CrimeSketcher.Forms
             {
                 PontoInicial = new PointF(0, 0),
                 PontoFinal = new PointF(200, 0),
+                NomeRua = txtNome.Text,
+                FonteNomeRua = txtFonteNome.Text,
+                TamanhoFonteNomeRua = (float)nudTamanhoFonteNome.Value,
+                DeslocamentoNomeRuaX = (float)nudDeslocNomeX.Value,
+                DeslocamentoNomeRuaY = (float)nudDeslocNomeY.Value,
                 TemCalcada = chkCalcada.Checked,
                 LarguraCalcada = (float)nudLarguraCalcada.Value,
                 TipoFaixaCentral = (TipoFaixaCentral)cmbTipoFaixa.SelectedIndex

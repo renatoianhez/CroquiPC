@@ -623,7 +623,7 @@ namespace CrimeSketcher.Objects
 
         public override RectangleF GetBounds()
         {
-            float margin = Largura + 10;
+            float margin = Math.Max(3f, Largura / 2f + 2f);
 
             if (!TemCurva || !PontoCurva.HasValue)
             {

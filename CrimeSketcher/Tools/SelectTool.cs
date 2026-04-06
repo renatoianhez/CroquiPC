@@ -582,9 +582,12 @@ namespace CrimeSketcher.Tools
             float anguloAtual = (float)Math.Atan2(worldPos.Y - centro.Y, worldPos.X - centro.X);
             float deltaGraus = (anguloAtual - anguloAnterior) * 180f / (float)Math.PI;
 
-            if (Math.Abs(deltaGraus) > 0.01f)
+            float passo = Control.ModifierKeys.HasFlag(Keys.Shift) ? 15f : 5f;
+            float deltaSnapped = (float)(Math.Round(deltaGraus / passo) * passo);
+
+            if (Math.Abs(deltaSnapped) > 0.01f)
             {
-                obj.RotacionarAoRedor(centro, deltaGraus);
+                obj.RotacionarAoRedor(centro, deltaSnapped);
             }
         }
 

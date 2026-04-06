@@ -124,8 +124,8 @@ namespace CrimeSketcher.Objects
             using (var pen = new Pen(Color.DodgerBlue, 1.5f))
             {
                 pen.DashStyle = DashStyle.Dash;
-                g.DrawRectangle(pen, bounds.X - 3, bounds.Y - 3,
-                    bounds.Width + 6, bounds.Height + 6);
+                g.DrawRectangle(pen, bounds.X, bounds.Y,
+                    bounds.Width, bounds.Height);
             }
 
             float handleSize = 6f;
