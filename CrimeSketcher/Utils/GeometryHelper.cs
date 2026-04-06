@@ -82,5 +82,17 @@ namespace CrimeSketcher.Utils
         {
             return SnapAngulo(origem, ponto, 15f);
         }
+
+        public static float NormalizarAngulo360(float angulo)
+        {
+            float normalizado = angulo % 360f;
+            if (normalizado < 0f)
+                normalizado += 360f;
+
+            if (Math.Abs(normalizado) < 0.0001f || Math.Abs(normalizado - 360f) < 0.0001f)
+                return 0f;
+
+            return normalizado;
+        }
     }
 }

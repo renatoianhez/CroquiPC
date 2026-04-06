@@ -82,14 +82,31 @@ namespace CrimeSketcher.Forms
             InicializarSistema();
             AplicarTemaSistemaUI();
 
-            this.Shown += (s, e) => AjustarLarguraPainelPropriedades();
-            this.Resize += (s, e) => AjustarLarguraPainelPropriedades();
+            this.Shown += (s, e) =>
+            {
+                AjustarLarguraPainelPropriedades();
+                AjustarAreaCanvasParaBarras();
+            };
+            this.Resize += (s, e) =>
+            {
+                AjustarLarguraPainelPropriedades();
+                AjustarAreaCanvasParaBarras();
+            };
 
             SystemEvents.UserPreferenceChanged += OnUserPreferenceChanged;
             this.FormClosed += (s, e) =>
             {
                 SystemEvents.UserPreferenceChanged -= OnUserPreferenceChanged;
             };
+        }
+
+        private void AjustarAreaCanvasParaBarras()
+        {
+            if (splitCentroDireita == null)
+                return;
+
+            int reservaInferior = Math.Max(0, statusStrip?.Height ?? 0);
+            splitCentroDireita.Panel1.Padding = new Padding(0, 0, 0, reservaInferior);
         }
 
         private void OnUserPreferenceChanged(object sender, UserPreferenceChangedEventArgs e)
@@ -122,25 +139,33 @@ namespace CrimeSketcher.Forms
 
             // ===== STATUS BAR =====
             CriarStatusBar();
+            statusStrip.Dock = DockStyle.Bottom;
 
             // ===== LAYOUT PRINCIPAL =====
             CriarLayout();
 
-            // Adicionar controles ao form na ordem correta
+            // Adicionar controles ao form na ordem correta de docking
+            this.Controls.Add(menuStrip);
+            this.Controls.Add(toolStrip);
+            this.Controls.Add(statusStrip);
             this.Controls.Add(splitPrincipal);
+
             splitPrincipal.Panel1MinSize = 200;
             splitPrincipal.Panel2MinSize = 400;
             splitPrincipal.SplitterDistance = 240;
-            this.Controls.Add(toolStrip);
-            this.Controls.Add(menuStrip);
-            this.Controls.Add(statusStrip);
             this.MainMenuStrip = menuStrip;
+
+            // Garantir barras superiores/inferior visíveis
+            menuStrip.BringToFront();
+            toolStrip.BringToFront();
+            statusStrip.BringToFront();
 
             // Agora é seguro definir o SplitterDistance
             splitPrincipal.SplitterDistance = 240;
 
             // Ajustar largura do painel de propriedades
             AjustarLarguraPainelPropriedades();
+            AjustarAreaCanvasParaBarras();
         }
 
         private void AjustarLarguraPainelPropriedades()
@@ -1920,7 +1945,7 @@ namespace CrimeSketcher.Forms
                 "técnicos de locais de crime.\n\n" +
                 "Renato Ianhez - Perito Criminal\n\n" +
                 "STRC - Patos de Minas\n\n" +
-                "renatoia@terra.com.br\n\n" + 
+                "renatoia@terra.com.br\n\n" +
                 "© 2026 - Todos os direitos reservados.",
                 "Sobre o CroquiPC",
                 MessageBoxButtons.OK,

@@ -2,6 +2,7 @@
 using System;
 using System.ComponentModel;
 using System.Drawing;
+using System.Text.Json.Serialization;
 
 namespace CrimeSketcher.Objects
 {
@@ -38,6 +39,32 @@ namespace CrimeSketcher.Objects
         [DisplayName("Tamanho da Fonte")]
         [Description("Tamanho da fonte do texto da medida")]
         public float TamanhoFonte { get; set; } = 8f;
+
+        [Browsable(false)]
+        public int CorTextoArgb { get; set; } = Color.FromArgb(200, 0, 0).ToArgb();
+
+        [Browsable(false)]
+        public int CorFundoTextoArgb { get; set; } = Color.FromArgb(220, 255, 255, 255).ToArgb();
+
+        [Category("Texto")]
+        [DisplayName("Cor do Texto")]
+        [Description("Cor do texto da medida")]
+        [JsonIgnore]
+        public Color CorTexto
+        {
+            get => Color.FromArgb(CorTextoArgb);
+            set => CorTextoArgb = value.ToArgb();
+        }
+
+        [Category("Texto")]
+        [DisplayName("Cor do Fundo")]
+        [Description("Cor da caixa de fundo do texto da medida")]
+        [JsonIgnore]
+        public Color CorFundoTexto
+        {
+            get => Color.FromArgb(CorFundoTextoArgb);
+            set => CorFundoTextoArgb = value.ToArgb();
+        }
 
         // Referência à escala para converter pixels em medida real
         [Browsable(false)]
@@ -127,16 +154,17 @@ namespace CrimeSketcher.Objects
                     format.LineAlignment = StringAlignment.Far;
 
                     var size = g.MeasureString(texto, font);
-                    using (var bg = new SolidBrush(
-                        Color.FromArgb(220, 255, 255, 255)))
+                    using (var bg = new SolidBrush(Color.FromArgb(CorFundoTextoArgb)))
                     {
                         g.FillRectangle(bg,
                             -size.Width / 2 - 2, -size.Height - 1,
                             size.Width + 4, size.Height + 2);
                     }
 
-                    g.DrawString(texto, font,
-                        new SolidBrush(CorContorno), 0, 0, format);
+                    using (var brushTexto = new SolidBrush(Color.FromArgb(CorTextoArgb)))
+                    {
+                        g.DrawString(texto, font, brushTexto, 0, 0, format);
+                    }
                 }
 
                 g.Restore(state);

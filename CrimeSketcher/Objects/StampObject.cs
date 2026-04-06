@@ -88,7 +88,7 @@ namespace CrimeSketcher.Objects
 
             var state = g.Save();
             g.TranslateTransform(Posicao.X + Largura / 2, Posicao.Y + Altura / 2);
-            g.RotateTransform(Rotacao);
+            g.RotateTransform(GeometryHelper.NormalizarAngulo360(Rotacao));
             g.ScaleTransform(EscalaX, EscalaY);
 
             var drawRect = new RectangleF(-Largura / 2, -Altura / 2, Largura, Altura);

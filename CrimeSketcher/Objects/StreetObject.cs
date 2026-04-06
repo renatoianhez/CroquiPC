@@ -1276,7 +1276,7 @@ namespace CrimeSketcher.Objects
             Posicao = RotacionarPonto(Posicao, centro, deltaGraus);
             if (PontoCurva.HasValue) PontoCurva = RotacionarPonto(PontoCurva.Value, centro, deltaGraus);
             Rotacao += deltaGraus;
-            _rotacaoAplicada += deltaGraus;
+            _rotacaoAplicada = Rotacao;
         }
 
         public bool ContemPontoCurva(PointF ponto, float tolerancia = 10f)

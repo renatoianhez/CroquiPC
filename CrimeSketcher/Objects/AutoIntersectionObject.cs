@@ -55,7 +55,7 @@ namespace CrimeSketcher.Objects
         public float AnguloRua1
         {
             get => _angulo1;
-            set => _angulo1 = value % 360f;
+            set => _angulo1 = GeometryHelper.NormalizarAngulo360(value);
         }
 
         [Category("Dimensões")]
@@ -63,7 +63,7 @@ namespace CrimeSketcher.Objects
         public float AnguloRua2
         {
             get => _angulo2;
-            set => _angulo2 = value % 360f;
+            set => _angulo2 = GeometryHelper.NormalizarAngulo360(value);
         }
 
         [Category("Dimensões")]

@@ -15,6 +15,8 @@ namespace CrimeSketcher.Objects
     [Serializable]
     public class RoundaboutObject : BaseSketchObject
     {
+        private float _anguloInicialSaidas = 0f;
+
         [Category("Dimensões")]
         [DisplayName("Raio Externo (m)")]
         [Description("Raio externo da rotatória em metros")]
@@ -41,7 +43,11 @@ namespace CrimeSketcher.Objects
         [Category("Configuração")]
         [DisplayName("Ângulo Inicial (graus)")]
         [Description("Ângulo de rotação da primeira saída")]
-        public float AnguloInicialSaidas { get; set; } = 0f;
+        public float AnguloInicialSaidas
+        {
+            get => _anguloInicialSaidas;
+            set => _anguloInicialSaidas = GeometryHelper.NormalizarAngulo360(value);
+        }
 
         [Category("Calçada")]
         [DisplayName("Possui Calçada")]

@@ -11,6 +11,9 @@ namespace CrimeSketcher.Objects
     [Serializable]
     public abstract class BaseSketchObject
     {
+        private float _rotacao = 0f;
+        private float _opacidade = 1f;
+
         [Browsable(false)]
         public string Id { get; set; } = Guid.NewGuid().ToString();
 
@@ -34,7 +37,11 @@ namespace CrimeSketcher.Objects
         [Category("Transformação")]
         [DisplayName("Rotação (graus)")]
         [Description("Ângulo de rotação em graus")]
-        public float Rotacao { get; set; } = 0f;
+        public float Rotacao
+        {
+            get => _rotacao;
+            set => _rotacao = GeometryHelper.NormalizarAngulo360(value);
+        }
 
         [Category("Transformação")]
         [DisplayName("Escala X")]
@@ -67,7 +74,11 @@ namespace CrimeSketcher.Objects
         [Category("Visibilidade")]
         [DisplayName("Opacidade")]
         [Description("Opacidade do objeto (0.0 a 1.0)")]
-        public float Opacidade { get; set; } = 1f;
+        public float Opacidade
+        {
+            get => _opacidade;
+            set => _opacidade = Math.Clamp(value, 0f, 1f);
+        }
 
         // Cores serializáveis
         [Browsable(false)]
@@ -121,14 +132,21 @@ namespace CrimeSketcher.Objects
             if (!Selecionado) return;
 
             var bounds = GetBounds();
-            using (var pen = new Pen(Color.DodgerBlue, 1.5f))
+
+            var elements = g.Transform.Elements;
+            float zoomX = (float)Math.Sqrt(elements[0] * elements[0] + elements[1] * elements[1]);
+            float zoomY = (float)Math.Sqrt(elements[2] * elements[2] + elements[3] * elements[3]);
+            float zoom = Math.Max(0.0001f, (zoomX + zoomY) * 0.5f);
+
+            float penWidth = 1.5f / zoom;
+            using (var pen = new Pen(Color.DodgerBlue, penWidth))
             {
                 pen.DashStyle = DashStyle.Dash;
                 g.DrawRectangle(pen, bounds.X, bounds.Y,
                     bounds.Width, bounds.Height);
             }
 
-            float handleSize = 6f;
+            float handleSize = 6f / zoom;
             var handles = new PointF[]
             {
                 new PointF(bounds.Left, bounds.Top),
@@ -141,30 +159,35 @@ namespace CrimeSketcher.Objects
                 new PointF(bounds.Right, bounds.Top + bounds.Height/2)
             };
 
+            using var handlePen = new Pen(Color.DodgerBlue, 1f / zoom);
             foreach (var h in handles)
             {
                 g.FillRectangle(Brushes.White,
                     h.X - handleSize / 2, h.Y - handleSize / 2,
                     handleSize, handleSize);
-                g.DrawRectangle(Pens.DodgerBlue,
+                g.DrawRectangle(handlePen,
                     h.X - handleSize / 2, h.Y - handleSize / 2,
                     handleSize, handleSize);
             }
 
-            var handleRotacao = new PointF(bounds.Left + bounds.Width / 2, bounds.Top - 18f);
-            g.DrawLine(Pens.DodgerBlue,
+            float rotacaoOffset = 18f / zoom;
+            var handleRotacao = new PointF(bounds.Left + bounds.Width / 2, bounds.Top - rotacaoOffset);
+            g.DrawLine(handlePen,
                 bounds.Left + bounds.Width / 2, bounds.Top,
                 handleRotacao.X, handleRotacao.Y + handleSize / 2);
             g.FillEllipse(Brushes.White,
                 handleRotacao.X - handleSize / 2, handleRotacao.Y - handleSize / 2,
                 handleSize, handleSize);
-            g.DrawEllipse(Pens.DodgerBlue,
+            g.DrawEllipse(handlePen,
                 handleRotacao.X - handleSize / 2, handleRotacao.Y - handleSize / 2,
                 handleSize, handleSize);
         }
 
-        public virtual int GetHandleAtPoint(PointF ponto, float tolerancia = 5f)
+        public virtual int GetHandleAtPoint(PointF ponto, float tolerancia = 5f, float zoomLevel = 1f)
         {
+            float zoom = Math.Max(0.0001f, zoomLevel);
+            float rotacaoOffset = 18f / zoom;
+
             var bounds = GetBounds();
             var handles = new PointF[]
             {
@@ -176,7 +199,7 @@ namespace CrimeSketcher.Objects
                 new PointF(bounds.Left + bounds.Width/2, bounds.Bottom),
                 new PointF(bounds.Left, bounds.Top + bounds.Height/2),
                 new PointF(bounds.Right, bounds.Top + bounds.Height/2),
-                new PointF(bounds.Left + bounds.Width/2, bounds.Top - 18f)
+                new PointF(bounds.Left + bounds.Width/2, bounds.Top - rotacaoOffset)
             };
 
             for (int i = 0; i < handles.Length; i++)
