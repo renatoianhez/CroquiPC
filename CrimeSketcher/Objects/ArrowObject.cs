@@ -183,7 +183,8 @@ namespace CrimeSketcher.Objects
             using (var path = CriarCaminhoSeta(pontoInicial, pontoFinal, pontoCurva))
             {
                 var bounds = path.GetBounds();
-                bounds.Inflate(TamanhoSeta + 8f, TamanhoSeta + 8f);
+                float margem = Math.Max(2f, Math.Max(EspessuraContorno, TamanhoSeta * 0.5f));
+                bounds.Inflate(margem, margem);
                 return bounds;
             }
         }
@@ -192,8 +193,11 @@ namespace CrimeSketcher.Objects
         {
             if (!TemCurva || !PontoCurva.HasValue) return false;
 
-            float dx = ponto.X - PontoCurva.Value.X;
-            float dy = ponto.Y - PontoCurva.Value.Y;
+            ObterPontosRotacionados(out _, out _, out var pontoCurva);
+            if (!pontoCurva.HasValue) return false;
+
+            float dx = ponto.X - pontoCurva.Value.X;
+            float dy = ponto.Y - pontoCurva.Value.Y;
             return Math.Sqrt(dx * dx + dy * dy) <= tolerancia;
         }
 
@@ -207,14 +211,19 @@ namespace CrimeSketcher.Objects
 
         private void DesenharPontoCurva(Graphics g, PointF pontoInicial, PointF pontoFinal, PointF pontoCurva)
         {
-            using (var pen = new Pen(Color.DodgerBlue, 1f))
+            var elements = g.Transform.Elements;
+            float zoomX = (float)Math.Sqrt(elements[0] * elements[0] + elements[1] * elements[1]);
+            float zoomY = (float)Math.Sqrt(elements[2] * elements[2] + elements[3] * elements[3]);
+            float zoom = Math.Max(0.0001f, (zoomX + zoomY) * 0.5f);
+
+            using (var pen = new Pen(Color.DodgerBlue, 1f / zoom))
             {
                 pen.DashStyle = DashStyle.Dash;
                 g.DrawLine(pen, pontoInicial, pontoCurva);
                 g.DrawLine(pen, pontoCurva, pontoFinal);
             }
 
-            float curveRadius = 7f;
+            float curveRadius = 7f / zoom;
             PointF[] diamond =
             {
                 new PointF(pontoCurva.X, pontoCurva.Y - curveRadius),
@@ -227,7 +236,7 @@ namespace CrimeSketcher.Objects
             {
                 g.FillPolygon(brush, diamond);
             }
-            using (var pen = new Pen(Color.DodgerBlue, 2f))
+            using (var pen = new Pen(Color.DodgerBlue, 2f / zoom))
             {
                 g.DrawPolygon(pen, diamond);
             }

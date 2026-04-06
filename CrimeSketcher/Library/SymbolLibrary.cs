@@ -95,7 +95,7 @@ namespace CrimeSketcher.Library
                     g.FillEllipse(Brushes.DarkGray, w - 18, h - 6, 8, 8);
                     // Para-brisa
                     g.DrawLine(Pens.DarkGray, w - 15, 5, w - 15, h - 5);
-                    g.DrawLine(Pens.DarkGray, 15, 5, 15, h - 5);
+                    g.DrawLine(Pens.DarkGray, 15, 5, 15, h - 5);                    
                 });
 
             // Móveis

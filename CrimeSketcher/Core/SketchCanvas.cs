@@ -6,12 +6,21 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Drawing2D;
+using System.Drawing.Imaging;
 using System.Windows.Forms;
 
 namespace CrimeSketcher.Core
 {
     public class SketchCanvas : Panel
     {
+        private const int ScrollRange = 200000;
+        private const int ScrollCenter = ScrollRange / 2;
+        private const float ScrollPanPorUnidade = 0.25f;
+
+        private readonly HScrollBar _scrollH;
+        private readonly VScrollBar _scrollV;
+        private bool _atualizandoScrollbars = false;
+
         private SketchDocument _documento;
         private ScaleManager _escala;
         private GridManager _grid;
@@ -87,6 +96,99 @@ namespace CrimeSketcher.Core
             _escala = new ScaleManager();
             _grid = new GridManager(_escala);
             AplicarTemaSistema();
+
+            _scrollH = new HScrollBar();
+            _scrollV = new VScrollBar();
+            InicializarScrollbars();
+        }
+
+        private void InicializarScrollbars()
+        {
+            _scrollH.TabStop = false;
+            _scrollV.TabStop = false;
+
+            _scrollH.Dock = DockStyle.Bottom;
+            _scrollV.Dock = DockStyle.Right;
+            _scrollH.Visible = true;
+            _scrollV.Visible = true;
+
+            _scrollH.Scroll += (_, __) =>
+            {
+                if (_atualizandoScrollbars) return;
+                AplicarPanAPartirDosScrollbars();
+                Invalidate();
+            };
+
+            _scrollV.Scroll += (_, __) =>
+            {
+                if (_atualizandoScrollbars) return;
+                AplicarPanAPartirDosScrollbars();
+                Invalidate();
+            };
+
+            Controls.Add(_scrollH);
+            Controls.Add(_scrollV);
+            _scrollH.BringToFront();
+            _scrollV.BringToFront();
+
+            AtualizarLayoutScrollbars();
+            AtualizarScrollbarsAPartirDoPan();
+        }
+
+        private int LarguraViewport => Math.Max(1, ClientSize.Width - _scrollV.Width);
+        private int AlturaViewport => Math.Max(1, ClientSize.Height - _scrollH.Height);
+
+        private void AtualizarLayoutScrollbars()
+        {
+            _atualizandoScrollbars = true;
+            try
+            {
+                _scrollH.Minimum = 0;
+                _scrollH.Maximum = ScrollRange - 1;
+                _scrollH.SmallChange = 20;
+                _scrollH.LargeChange = Math.Max(10, LarguraViewport);
+
+                _scrollV.Minimum = 0;
+                _scrollV.Maximum = ScrollRange - 1;
+                _scrollV.SmallChange = 20;
+                _scrollV.LargeChange = Math.Max(10, AlturaViewport);
+            }
+            finally
+            {
+                _atualizandoScrollbars = false;
+            }
+        }
+
+        private int LimitarValorScrollbar(ScrollBar sb, int valor)
+        {
+            int maxValor = Math.Max(sb.Minimum, sb.Maximum - sb.LargeChange + 1);
+            return Math.Max(sb.Minimum, Math.Min(maxValor, valor));
+        }
+
+        private void AtualizarScrollbarsAPartirDoPan()
+        {
+            _atualizandoScrollbars = true;
+            try
+            {
+                int valorH = LimitarValorScrollbar(_scrollH,
+                    (int)Math.Round(ScrollCenter - (_panOffset.X / ScrollPanPorUnidade)));
+                int valorV = LimitarValorScrollbar(_scrollV,
+                    (int)Math.Round(ScrollCenter - (_panOffset.Y / ScrollPanPorUnidade)));
+
+                _scrollH.Value = valorH;
+                _scrollV.Value = valorV;
+            }
+            finally
+            {
+                _atualizandoScrollbars = false;
+            }
+        }
+
+        private void AplicarPanAPartirDosScrollbars()
+        {
+            _panOffset = new PointF(
+                (ScrollCenter - _scrollH.Value) * ScrollPanPorUnidade,
+                (ScrollCenter - _scrollV.Value) * ScrollPanPorUnidade);
         }
 
         public void AplicarTemaSistema()
@@ -134,6 +236,20 @@ namespace CrimeSketcher.Core
             return new PointF(x, y);
         }
 
+        private float PixelsParaMundo(float pixels)
+        {
+            float zoom = Math.Max(0.0001f, _escala.ZoomLevel);
+            return pixels / zoom;
+        }
+
+        private void AtualizarContextoFerramenta()
+        {
+            if (_ferramentaAtual is SelectTool selectTool)
+            {
+                selectTool.ZoomLevel = _escala.ZoomLevel;
+            }
+        }
+
         protected override void OnPaint(PaintEventArgs e)
         {
             base.OnPaint(e);
@@ -153,7 +269,7 @@ namespace CrimeSketcher.Core
             // Área visível no mundo
             var topLeft = ScreenToWorld(Point.Empty);
             var bottomRight = ScreenToWorld(
-                new Point(Width, Height));
+                new Point(LarguraViewport, AlturaViewport));
             var areaVisivel = new RectangleF(
                 topLeft.X, topLeft.Y,
                 bottomRight.X - topLeft.X,
@@ -189,12 +305,12 @@ namespace CrimeSketcher.Core
                 // Desenhar camada inferior (ruas, cruzamentos, paredes, etc)
                 foreach (var obj in camadaInferior)
                 {
-                    obj.Desenhar(g);
+                    DesenharObjetoComOpacidade(g, obj);
                 }
                 // Desenhar camada superior (símbolos, corpos, setas, marcas, textos)
                 foreach (var obj in camadaSuperior)
                 {
-                    obj.Desenhar(g);
+                    DesenharObjetoComOpacidade(g, obj);
                 }
 
                 // Desenhar seleções após todos os objetos
@@ -214,31 +330,71 @@ namespace CrimeSketcher.Core
             DesenharHUD(g);
         }
 
+        private void DesenharObjetoComOpacidade(Graphics g, BaseSketchObject obj)
+        {
+            float opacidade = Math.Clamp(obj.Opacidade, 0f, 1f);
+
+            if (opacidade >= 0.999f)
+            {
+                obj.Desenhar(g);
+                return;
+            }
+
+            var bounds = obj.GetBounds();
+            if (bounds.Width <= 0.1f || bounds.Height <= 0.1f)
+            {
+                obj.Desenhar(g);
+                return;
+            }
+
+            const float margem = 8f;
+            var area = RectangleF.FromLTRB(
+                bounds.Left - margem,
+                bounds.Top - margem,
+                bounds.Right + margem,
+                bounds.Bottom + margem);
+
+            int bmpW = Math.Max(1, (int)Math.Ceiling(area.Width));
+            int bmpH = Math.Max(1, (int)Math.Ceiling(area.Height));
+
+            using var bmp = new Bitmap(bmpW, bmpH, PixelFormat.Format32bppPArgb);
+            using (var gb = Graphics.FromImage(bmp))
+            {
+                gb.SmoothingMode = SmoothingMode.AntiAlias;
+                gb.TextRenderingHint = System.Drawing.Text.TextRenderingHint.ClearTypeGridFit;
+                gb.Clear(Color.Transparent);
+                gb.TranslateTransform(-area.X, -area.Y);
+
+                float opOriginal = obj.Opacidade;
+                try
+                {
+                    obj.Opacidade = 1f;
+                    obj.Desenhar(gb);
+                }
+                finally
+                {
+                    obj.Opacidade = opOriginal;
+                }
+            }
+
+            using var ia = new ImageAttributes();
+            var cm = new ColorMatrix { Matrix33 = opacidade };
+            ia.SetColorMatrix(cm);
+
+            g.DrawImage(
+                bmp,
+                new Rectangle((int)area.X, (int)area.Y, bmpW, bmpH),
+                0,
+                0,
+                bmpW,
+                bmpH,
+                GraphicsUnit.Pixel,
+                ia);
+        }
+
         private void DesenharHUD(Graphics g)
         {
-            // Escala no canto inferior esquerdo
-            using (var font = new Font("Segoe UI", 9f))
-            using (var bgBrush = new SolidBrush(_corHudFundo))
-            using (var textBrush = new SolidBrush(_corHudTexto))
-            {
-                float xm = _escala.PixelsParaReal(_cursorWorld.X);
-                float ym = _escala.PixelsParaReal(_cursorWorld.Y);
-                string info = $"Escala: {_escala.TextoEscala}  |  " +
-                    $"Zoom: {_escala.ZoomLevel * 100:F0}%  |  " +
-                    $"Pos: ({xm:F2} {_escala.UnidadeReal}, {ym:F2} {_escala.UnidadeReal})";
-
-                if (_grid.SnapAtivo)
-                    info += "  |  SNAP";
-
-                var size = g.MeasureString(info, font);
-                var rect = new RectangleF(
-                    5, Height - size.Height - 8,
-                    size.Width + 10, size.Height + 6);
-
-                g.FillRoundedRectangle(bgBrush,
-                    rect.X, rect.Y, rect.Width, rect.Height, 3);
-                g.DrawString(info, font, textBrush, rect.X + 5, rect.Y + 3);
-            }
+            // Informações de escala/zoom/posição já são exibidas na status bar
 
             // Régua horizontal
             DesenharRegua(g, true);
@@ -254,13 +410,13 @@ namespace CrimeSketcher.Core
             {
                 if (horizontal)
                 {
-                    g.FillRectangle(bgBrush, 0, 0, Width, rulerSize);
-                    g.DrawLine(pen, 0, rulerSize, Width, rulerSize);
+                    g.FillRectangle(bgBrush, 0, 0, LarguraViewport, rulerSize);
+                    g.DrawLine(pen, 0, rulerSize, LarguraViewport, rulerSize);
 
                     float spacing = _grid.EspacamentoPixels * _escala.ZoomLevel;
                     float start = _panOffset.X % spacing;
 
-                    for (float x = start; x < Width; x += spacing)
+                    for (float x = start; x < LarguraViewport; x += spacing)
                     {
                         float worldX = (x - _panOffset.X) / _escala.ZoomLevel;
                         g.DrawLine(pen, x, rulerSize - 5, x, rulerSize);
@@ -280,13 +436,13 @@ namespace CrimeSketcher.Core
                 }
                 else
                 {
-                    g.FillRectangle(bgBrush, 0, 0, rulerSize, Height);
-                    g.DrawLine(pen, rulerSize, 0, rulerSize, Height);
+                    g.FillRectangle(bgBrush, 0, 0, rulerSize, AlturaViewport);
+                    g.DrawLine(pen, rulerSize, 0, rulerSize, AlturaViewport);
 
                     float spacing = _grid.EspacamentoPixels * _escala.ZoomLevel;
                     float start = _panOffset.Y % spacing;
 
-                    for (float y = start; y < Height; y += spacing)
+                    for (float y = start; y < AlturaViewport; y += spacing)
                     {
                         float worldY = (y - _panOffset.Y) / _escala.ZoomLevel;
                         g.DrawLine(pen, rulerSize - 5, y, rulerSize, y);
@@ -328,9 +484,10 @@ namespace CrimeSketcher.Core
             }
 
             var worldPos = ScreenToWorld(e.Location);
-            if (_grid.SnapAtivo)
+            if (_grid.SnapAtivo && _ferramentaAtual is not SelectTool)
                 worldPos = _grid.Snap(worldPos);
 
+            AtualizarContextoFerramenta();
             _ferramentaAtual?.OnMouseDown(e, worldPos);
             Invalidate();
         }
@@ -347,13 +504,16 @@ namespace CrimeSketcher.Core
                 _panOffset = new PointF(
                     _panOffsetStart.X + e.X - _panStart.X,
                     _panOffsetStart.Y + e.Y - _panStart.Y);
+                AtualizarScrollbarsAPartirDoPan();
                 Invalidate();
                 return;
             }
 
             var worldPos = _cursorWorld;
-            if (_grid.SnapAtivo)
+            if (_grid.SnapAtivo && _ferramentaAtual is not SelectTool)
                 worldPos = _grid.Snap(worldPos);
+
+            AtualizarContextoFerramenta();
 
             // Mudar cursor se estiver sobre ponto de controle de curva
             AtualizarCursor(worldPos);
@@ -377,12 +537,12 @@ namespace CrimeSketcher.Core
 
                 if (objetoSelecionado != null)
                 {
-                    int handle = objetoSelecionado.GetHandleAtPoint(worldPos, 8f);
+                    int handle = objetoSelecionado.GetHandleAtPoint(worldPos, PixelsParaMundo(8f), _escala.ZoomLevel);
                     if (handle == 8)
                     {
                         this.Cursor = Cursors.Hand;
                         return;
-                    }
+                      }
                     if (handle >= 0)
                     {
                         this.Cursor = Cursors.SizeNWSE;
@@ -393,7 +553,7 @@ namespace CrimeSketcher.Core
                 // Verificar StreetObject
                 if (objetoSelecionado is Objects.StreetObject street && street.TemCurva)
                 {
-                    if (street.ContemPontoCurva(worldPos, 12f))
+                    if (street.ContemPontoCurva(worldPos, PixelsParaMundo(12f)))
                     {
                         this.Cursor = Cursors.SizeAll;
                         return;
@@ -402,7 +562,15 @@ namespace CrimeSketcher.Core
                 // Verificar MarkObject
                 else if (objetoSelecionado is Objects.MarkObject mark && mark.TemCurva)
                 {
-                    if (mark.ContemPontoCurva(worldPos, 12f))
+                    if (mark.ContemPontoCurva(worldPos, PixelsParaMundo(12f)))
+                    {
+                        this.Cursor = Cursors.SizeAll;
+                        return;
+                    }
+                }
+                else if (objetoSelecionado is Objects.ArrowObject arrow && arrow.TemCurva)
+                {
+                    if (arrow.ContemPontoCurva(worldPos, PixelsParaMundo(12f)))
                     {
                         this.Cursor = Cursors.SizeAll;
                         return;
@@ -443,9 +611,10 @@ namespace CrimeSketcher.Core
             }
 
             var worldPos = ScreenToWorld(e.Location);
-            if (_grid.SnapAtivo)
+            if (_grid.SnapAtivo && _ferramentaAtual is not SelectTool)
                 worldPos = _grid.Snap(worldPos);
 
+            AtualizarContextoFerramenta();
             _ferramentaAtual?.OnMouseUp(e, worldPos);
             Invalidate();
         }
@@ -466,15 +635,16 @@ namespace CrimeSketcher.Core
                 e.X - (e.X - _panOffset.X) * ratio,
                 e.Y - (e.Y - _panOffset.Y) * ratio);
 
+            AtualizarScrollbarsAPartirDoPan();
             ZoomChanged?.Invoke(this, _escala.ZoomLevel);
             Invalidate();
         }
 
-        protected override void OnKeyDown(KeyEventArgs e)
+        protected override void OnResize(EventArgs eventargs)
         {
-            base.OnKeyDown(e);
-            _ferramentaAtual?.OnKeyDown(e);
-            Invalidate();
+            base.OnResize(eventargs);
+            AtualizarLayoutScrollbars();
+            AtualizarScrollbarsAPartirDoPan();
         }
 
         /// <summary>
@@ -482,7 +652,8 @@ namespace CrimeSketcher.Core
         /// </summary>
         public void CentralizarVista()
         {
-            _panOffset = new PointF(Width / 2f, Height / 2f);
+            _panOffset = new PointF(LarguraViewport / 2f, AlturaViewport / 2f);
+            AtualizarScrollbarsAPartirDoPan();
             Invalidate();
         }
 
@@ -513,13 +684,14 @@ namespace CrimeSketcher.Core
             float contentH = maxY - minY + 100;
 
             _escala.ZoomLevel = Math.Min(
-                Width / contentW,
-                Height / contentH);
+                LarguraViewport / contentW,
+                AlturaViewport / contentH);
 
             _panOffset = new PointF(
-                Width / 2f - (minX + contentW / 2) * _escala.ZoomLevel,
-                Height / 2f - (minY + contentH / 2) * _escala.ZoomLevel);
+                LarguraViewport / 2f - (minX + contentW / 2) * _escala.ZoomLevel,
+                AlturaViewport / 2f - (minY + contentH / 2) * _escala.ZoomLevel);
 
+            AtualizarScrollbarsAPartirDoPan();
             Invalidate();
         }
 

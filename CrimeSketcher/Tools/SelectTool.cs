@@ -62,6 +62,8 @@ namespace CrimeSketcher.Tools
         public event EventHandler<BaseSketchObject?>? SelectionChanged;
         public event EventHandler<IReadOnlyCollection<BaseSketchObject>>? MultiSelectionChanged;
 
+        public float ZoomLevel { get; set; } = 1f;
+
         public SelectTool(SketchDocument doc, UndoRedoManager undoRedo)
         {
             _doc = doc;
@@ -105,6 +107,12 @@ namespace CrimeSketcher.Tools
             }
         }
 
+        private float PixelsParaMundo(float pixels)
+        {
+            float zoom = Math.Max(0.0001f, ZoomLevel);
+            return pixels / zoom;
+        }
+
         public void OnMouseDown(MouseEventArgs e, PointF worldPos)
         {
             if (e.Button != MouseButtons.Left) return;
@@ -112,7 +120,7 @@ namespace CrimeSketcher.Tools
             // Verificar se está clicando no ponto de controle de curva
             if (ObjetoSelecionado is StreetObject street && street.TemCurva)
             {
-                if (street.ContemPontoCurva(worldPos, 12f))
+                if (street.ContemPontoCurva(worldPos, PixelsParaMundo(12f)))
                 {
                     _arrastandoPontoCurva = true;
                     _objetoComCurva = street;
@@ -122,7 +130,7 @@ namespace CrimeSketcher.Tools
             }
             else if (ObjetoSelecionado is MarkObject mark && mark.TemCurva)
             {
-                if (mark.ContemPontoCurva(worldPos, 12f))
+                if (mark.ContemPontoCurva(worldPos, PixelsParaMundo(12f)))
                 {
                     _arrastandoPontoCurva = true;
                     _objetoComCurva = mark;
@@ -132,7 +140,7 @@ namespace CrimeSketcher.Tools
             }
             else if (ObjetoSelecionado is ArrowObject arrow && arrow.TemCurva)
             {
-                if (arrow.ContemPontoCurva(worldPos, 12f))
+                if (arrow.ContemPontoCurva(worldPos, PixelsParaMundo(12f)))
                 {
                     _arrastandoPontoCurva = true;
                     _objetoComCurva = arrow;
@@ -143,7 +151,7 @@ namespace CrimeSketcher.Tools
 
             if (ObjetoSelecionado is StickFigure corpoSelecionado && !corpoSelecionado.Bloqueado)
             {
-                var articulacao = GetArticulacaoAtPoint(corpoSelecionado, worldPos, 10f);
+                var articulacao = GetArticulacaoAtPoint(corpoSelecionado, worldPos, PixelsParaMundo(10f));
                 if (articulacao != ArticulacaoCorpoHandle.Nenhuma)
                 {
                     _arrastandoArticulacaoCorpo = true;
@@ -155,7 +163,7 @@ namespace CrimeSketcher.Tools
 
             if (ObjetoSelecionado != null && !ObjetoSelecionado.Bloqueado)
             {
-                int handle = ObjetoSelecionado.GetHandleAtPoint(worldPos, 8f);
+                int handle = ObjetoSelecionado.GetHandleAtPoint(worldPos, PixelsParaMundo(8f), ZoomLevel);
                 if (handle >= 0)
                 {
                     _objetoTransformando = ObjetoSelecionado;
@@ -167,7 +175,7 @@ namespace CrimeSketcher.Tools
                 }
             }
 
-            var hit = _doc.HitTest(worldPos);
+            var hit = _doc.HitTest(worldPos, PixelsParaMundo(6f));
             bool ctrlPressed = Control.ModifierKeys.HasFlag(Keys.Control);
             bool shiftPressed = Control.ModifierKeys.HasFlag(Keys.Shift);
 
@@ -366,7 +374,7 @@ namespace CrimeSketcher.Tools
             if (ObjetoSelecionado is not StickFigure corpo || corpo.Bloqueado)
                 return false;
 
-            return GetArticulacaoAtPoint(corpo, worldPos, tolerancia) != ArticulacaoCorpoHandle.Nenhuma;
+            return GetArticulacaoAtPoint(corpo, worldPos, PixelsParaMundo(tolerancia)) != ArticulacaoCorpoHandle.Nenhuma;
         }
 
         private ArticulacaoCorpoHandle GetArticulacaoAtPoint(StickFigure corpo, PointF pontoMundo, float tolerancia)
@@ -582,9 +590,21 @@ namespace CrimeSketcher.Tools
             float anguloAtual = (float)Math.Atan2(worldPos.Y - centro.Y, worldPos.X - centro.X);
             float deltaGraus = (anguloAtual - anguloAnterior) * 180f / (float)Math.PI;
 
-            if (Math.Abs(deltaGraus) > 0.01f)
+            if (Control.ModifierKeys.HasFlag(Keys.Shift))
             {
-                obj.RotacionarAoRedor(centro, deltaGraus);
+                float passo = 15f;
+                float deltaSnapped = (float)(Math.Round(deltaGraus / passo) * passo);
+                if (Math.Abs(deltaSnapped) > 0.01f)
+                {
+                    obj.RotacionarAoRedor(centro, deltaSnapped);
+                }
+            }
+            else
+            {
+                if (Math.Abs(deltaGraus) > 0.01f)
+                {
+                    obj.RotacionarAoRedor(centro, deltaGraus);
+                }
             }
         }
 
@@ -618,7 +638,8 @@ namespace CrimeSketcher.Tools
                 Math.Max(left, right),
                 Math.Max(top, bottom));
 
-            if (novo.Width < 5f || novo.Height < 5f)
+            float minimoMundo = PixelsParaMundo(5f);
+            if (novo.Width < minimoMundo || novo.Height < minimoMundo)
                 return;
 
             float fatorX = novo.Width / bounds.Width;
@@ -718,9 +739,14 @@ namespace CrimeSketcher.Tools
         {
             var pontos = ObterPontosArticulacoesMundo(corpo).Values;
 
-            const float raio = 4.5f;
+            var elements = g.Transform.Elements;
+            float zoomX = (float)Math.Sqrt(elements[0] * elements[0] + elements[1] * elements[1]);
+            float zoomY = (float)Math.Sqrt(elements[2] * elements[2] + elements[3] * elements[3]);
+            float zoom = Math.Max(0.0001f, (zoomX + zoomY) * 0.5f);
+
+            float raio = 4.5f / zoom;
             using var brush = new SolidBrush(Color.FromArgb(235, 0, 122, 204));
-            using var pen = new Pen(Color.White, 1f);
+            using var pen = new Pen(Color.White, 1f / zoom);
 
             foreach (var p in pontos)
             {

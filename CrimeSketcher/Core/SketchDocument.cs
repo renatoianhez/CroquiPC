@@ -194,6 +194,7 @@ namespace CrimeSketcher.Core
                     "Texto" => JsonSerializer.Deserialize<TextLabel>(json, options),
                     "Seta" => JsonSerializer.Deserialize<ArrowObject>(json, options),
                     "Marca" => JsonSerializer.Deserialize<MarkObject>(json, options),
+                    "Área" => JsonSerializer.Deserialize<AreaObject>(json, options),
                     "Grupo" => JsonSerializer.Deserialize<GroupObject>(json, options),
                     _ => throw new JsonException($"Tipo desconhecido: {tipo}")
                 };

@@ -38,6 +38,7 @@ namespace CrimeSketcher.Forms
         private TextTool textTool;
         private ArrowTool arrowTool;
         private MarkTool markTool;
+        private AreaTool areaTool;
 
         // UI Principal
         private MenuStrip menuStrip;
@@ -81,14 +82,31 @@ namespace CrimeSketcher.Forms
             InicializarSistema();
             AplicarTemaSistemaUI();
 
-            this.Shown += (s, e) => AjustarLarguraPainelPropriedades();
-            this.Resize += (s, e) => AjustarLarguraPainelPropriedades();
+            this.Shown += (s, e) =>
+            {
+                AjustarLarguraPainelPropriedades();
+                AjustarAreaCanvasParaBarras();
+            };
+            this.Resize += (s, e) =>
+            {
+                AjustarLarguraPainelPropriedades();
+                AjustarAreaCanvasParaBarras();
+            };
 
             SystemEvents.UserPreferenceChanged += OnUserPreferenceChanged;
             this.FormClosed += (s, e) =>
             {
                 SystemEvents.UserPreferenceChanged -= OnUserPreferenceChanged;
             };
+        }
+
+        private void AjustarAreaCanvasParaBarras()
+        {
+            if (splitCentroDireita == null)
+                return;
+
+            int reservaInferior = Math.Max(0, statusStrip?.Height ?? 0);
+            splitCentroDireita.Panel1.Padding = new Padding(0, 0, 0, reservaInferior);
         }
 
         private void OnUserPreferenceChanged(object sender, UserPreferenceChangedEventArgs e)
@@ -121,25 +139,33 @@ namespace CrimeSketcher.Forms
 
             // ===== STATUS BAR =====
             CriarStatusBar();
+            statusStrip.Dock = DockStyle.Bottom;
 
             // ===== LAYOUT PRINCIPAL =====
             CriarLayout();
 
-            // Adicionar controles ao form na ordem correta
+            // Adicionar controles ao form na ordem correta de docking
+            this.Controls.Add(menuStrip);
+            this.Controls.Add(toolStrip);
+            this.Controls.Add(statusStrip);
             this.Controls.Add(splitPrincipal);
+
             splitPrincipal.Panel1MinSize = 200;
             splitPrincipal.Panel2MinSize = 400;
             splitPrincipal.SplitterDistance = 240;
-            this.Controls.Add(toolStrip);
-            this.Controls.Add(menuStrip);
-            this.Controls.Add(statusStrip);
             this.MainMenuStrip = menuStrip;
+
+            // Garantir barras superiores/inferior visíveis
+            menuStrip.BringToFront();
+            toolStrip.BringToFront();
+            statusStrip.BringToFront();
 
             // Agora é seguro definir o SplitterDistance
             splitPrincipal.SplitterDistance = 240;
 
             // Ajustar largura do painel de propriedades
             AjustarLarguraPainelPropriedades();
+            AjustarAreaCanvasParaBarras();
         }
 
         private void AjustarLarguraPainelPropriedades()
@@ -588,6 +614,7 @@ namespace CrimeSketcher.Forms
                 ("🚪 Parede + Porta", "ParedePorta", "Ctrl+Alt+P"),
                 ("🪟 Parede + Janela", "ParedeJanela", "Ctrl+J"),
                 ("🚪🪟 Parede + Porta + Janela", "ParedePortaJanela", "Ctrl+P"),
+                ("🟩 Área (Polígono)", "Area", "Ctrl+Alt+Q"),
             }));
 
             container.Controls.Add(CriarGrupoFerramentas("Elementos de Trânsito", new[]
@@ -953,6 +980,7 @@ namespace CrimeSketcher.Forms
             textTool = new TextTool(documento, grid);
             arrowTool = new ArrowTool(documento, grid);
             markTool = new MarkTool(documento, undoRedo);
+            areaTool = new AreaTool(documento, grid);
         }
 
         private void RecriarFerramentas()
@@ -979,6 +1007,7 @@ namespace CrimeSketcher.Forms
             textTool = new TextTool(documento, grid);
             arrowTool = new ArrowTool(documento, grid);
             markTool = new MarkTool(documento, undoRedo);
+            areaTool = new AreaTool(documento, grid);
 
             canvas.FerramentaAtual = selectTool;
         }
@@ -1078,6 +1107,9 @@ namespace CrimeSketcher.Forms
                     wallTool.ComPorta = false;
                     wallTool.ComJanela = false;
                     canvas.FerramentaAtual = wallTool;
+                    break;
+                case "Area":
+                    canvas.FerramentaAtual = areaTool;
                     break;
                 case "ParedePorta":
                     wallTool.ComPorta = true;
@@ -1881,6 +1913,7 @@ namespace CrimeSketcher.Forms
                 "FERRAMENTAS:\n" +
                 "  Esc            Selecionar\n" +
                 "  Ctrl+W         Parede\n" +
+                "  Ctrl+Alt+Q     Área (Polígono)\n" +
                 "  Ctrl+Alt+P     Parede + Porta\n" +
                 "  Ctrl+J         Parede + Janela\n" +
                 "  Ctrl+P         Parede + Porta + Janela\n" +
@@ -1912,7 +1945,7 @@ namespace CrimeSketcher.Forms
                 "técnicos de locais de crime.\n\n" +
                 "Renato Ianhez - Perito Criminal\n\n" +
                 "STRC - Patos de Minas\n\n" +
-                "renatoia@terra.com.br\n\n" + 
+                "renatoia@terra.com.br\n\n" +
                 "© 2026 - Todos os direitos reservados.",
                 "Sobre o CroquiPC",
                 MessageBoxButtons.OK,
@@ -1973,7 +2006,8 @@ namespace CrimeSketcher.Forms
                     case Keys.N: NovoDocumento(); e.Handled = true; break;
                     case Keys.O: AbrirDocumento(); e.Handled = true; break;
                     case Keys.S: SalvarDocumento(); e.Handled = true; break;
-                    case Keys.P: DefinirFerramenta("ParedePortaJanela"); e.Handled = true; break;
+                    case Keys.P: DefinirFerramenta("ParedePorta"); e.Handled = true; break;
+                    case Keys.Q: DefinirFerramenta("Area"); e.Handled = true; break;
                     case Keys.Z: undoRedo?.Desfazer(); e.Handled = true; break;
                     case Keys.Y: undoRedo?.Refazer(); e.Handled = true; break;
                     case Keys.C: Copiar(); e.Handled = true; break;
@@ -2008,6 +2042,7 @@ namespace CrimeSketcher.Forms
                 switch (e.KeyCode)
                 {
                     case Keys.P: DefinirFerramenta("ParedePorta"); e.Handled = true; break;
+                    case Keys.Q: DefinirFerramenta("Area"); e.Handled = true; break;
                     case Keys.S: DefinirFerramenta("Rua"); e.Handled = true; break;
                     case Keys.T: DefinirFerramenta("Texto"); e.Handled = true; break;
                     case Keys.A: DefinirFerramenta("Seta"); e.Handled = true; break;

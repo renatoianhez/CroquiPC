@@ -542,7 +542,14 @@ namespace CrimeSketcher.Objects
 
         private void DesenharPontosControle(Graphics g)
         {
-            float radius = 6f;
+            var elements = g.Transform.Elements;
+            float zoomX = (float)Math.Sqrt(elements[0] * elements[0] + elements[1] * elements[1]);
+            float zoomY = (float)Math.Sqrt(elements[2] * elements[2] + elements[3] * elements[3]);
+            float zoom = Math.Max(0.0001f, (zoomX + zoomY) * 0.5f);
+
+            float radius = 6f / zoom;
+
+            using var penContornoBranco = new Pen(Color.White, 1f / zoom);
 
             // Ponto inicial
             using (var brush = new SolidBrush(Color.Orange))
@@ -551,7 +558,7 @@ namespace CrimeSketcher.Objects
                     PontoInicial.X - radius, PontoInicial.Y - radius,
                     radius * 2, radius * 2);
             }
-            g.DrawEllipse(Pens.White,
+            g.DrawEllipse(penContornoBranco,
                 PontoInicial.X - radius, PontoInicial.Y - radius,
                 radius * 2, radius * 2);
 
@@ -562,7 +569,7 @@ namespace CrimeSketcher.Objects
                     PontoFinal.X - radius, PontoFinal.Y - radius,
                     radius * 2, radius * 2);
             }
-            g.DrawEllipse(Pens.White,
+            g.DrawEllipse(penContornoBranco,
                 PontoFinal.X - radius, PontoFinal.Y - radius,
                 radius * 2, radius * 2);
 
@@ -572,7 +579,7 @@ namespace CrimeSketcher.Objects
                 var pc = PontoCurva.Value;
 
                 // Linhas de controle tracejadas
-                using (var pen = new Pen(Color.DodgerBlue, 1f))
+                using (var pen = new Pen(Color.DodgerBlue, 1f / zoom))
                 {
                     pen.DashStyle = DashStyle.Dash;
                     g.DrawLine(pen, PontoInicial, pc);
@@ -580,7 +587,7 @@ namespace CrimeSketcher.Objects
                 }
 
                 // Ponto de controle (diamante)
-                float curveRadius = 7f;
+                float curveRadius = 7f / zoom;
                 PointF[] diamond = new PointF[]
                 {
                     new PointF(pc.X, pc.Y - curveRadius),
@@ -593,7 +600,7 @@ namespace CrimeSketcher.Objects
                 {
                     g.FillPolygon(brush, diamond);
                 }
-                using (var pen = new Pen(Color.DodgerBlue, 2f))
+                using (var pen = new Pen(Color.DodgerBlue, 2f / zoom))
                 {
                     g.DrawPolygon(pen, diamond);
                 }
@@ -623,7 +630,7 @@ namespace CrimeSketcher.Objects
 
         public override RectangleF GetBounds()
         {
-            float margin = Largura + 10;
+            float margin = Math.Max(3f, Largura / 2f + 2f);
 
             if (!TemCurva || !PontoCurva.HasValue)
             {

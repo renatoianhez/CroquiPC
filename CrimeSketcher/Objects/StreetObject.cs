@@ -24,6 +24,7 @@ namespace CrimeSketcher.Objects
         private const float LARGURA_FAIXA_PADRAO = 40f;
         private const float LARGURA_CICLOFAIXA = 15f;
         private const float LARGURA_ESTACIONAMENTO = 30f;
+        private float _tamanhoFonteNomeRua = 9f;
 
         [Browsable(false)]
         public PointF PontoInicial { get; set; }
@@ -152,6 +153,32 @@ namespace CrimeSketcher.Objects
         [DisplayName("Nome da Rua")]
         [Description("Nome ou identificação da via")]
         public string NomeRua { get; set; } = "";
+
+        [Category("Identificação")]
+        [DisplayName("Fonte do Nome")]
+        [Description("Nome da fonte usada para desenhar o nome da rua")]
+        public string FonteNomeRua { get; set; } = "Segoe UI";
+
+        [Category("Identificação")]
+        [DisplayName("Tamanho da Fonte")]
+        [Description("Tamanho da fonte do nome da rua")]
+        public float TamanhoFonteNomeRua
+        {
+            get => _tamanhoFonteNomeRua;
+            set => _tamanhoFonteNomeRua = Math.Max(6f, value);
+        }
+
+        [Category("Identificação")]
+        [DisplayName("Deslocamento X do Nome (m)")]
+        [Description("Desloca o nome ao longo da direção da rua")]
+        [TypeConverter(typeof(MetrosTypeConverter))]
+        public float DeslocamentoNomeRuaX { get; set; } = 0f;
+
+        [Category("Identificação")]
+        [DisplayName("Deslocamento Y do Nome (m)")]
+        [Description("Desloca o nome lateralmente em relação ao eixo da rua")]
+        [TypeConverter(typeof(MetrosTypeConverter))]
+        public float DeslocamentoNomeRuaY { get; set; } = 0f;
 
         [Category("Faixas")]
         [DisplayName("Número de Faixas")]
@@ -1034,15 +1061,21 @@ namespace CrimeSketcher.Objects
             float textAngle = Angulo;
             if (textAngle > 90 || textAngle < -90) textAngle += 180;
             g.RotateTransform(textAngle);
-            using (var font = new Font("Segoe UI", 9f, FontStyle.Bold))
+
+            string nomeFonte = string.IsNullOrWhiteSpace(FonteNomeRua) ? "Segoe UI" : FonteNomeRua;
+            using (var font = new Font(nomeFonte, TamanhoFonteNomeRua, FontStyle.Bold))
             using (var format = new StringFormat())
             {
                 format.Alignment = StringAlignment.Center;
                 format.LineAlignment = StringAlignment.Center;
+
+                float tx = DeslocamentoNomeRuaX;
+                float ty = DeslocamentoNomeRuaY;
+
                 var size = g.MeasureString(NomeRua, font);
                 using (var bg = new SolidBrush(Color.FromArgb(220, 255, 255, 255)))
-                    g.FillRectangle(bg, -size.Width / 2 - 4, -size.Height / 2 - 2, size.Width + 8, size.Height + 4);
-                g.DrawString(NomeRua, font, Brushes.DarkSlateGray, 0, 0, format);
+                    g.FillRectangle(bg, tx - size.Width / 2 - 4, ty - size.Height / 2 - 2, size.Width + 8, size.Height + 4);
+                g.DrawString(NomeRua, font, Brushes.DarkSlateGray, tx, ty, format);
             }
             g.Restore(state);
         }
@@ -1173,12 +1206,13 @@ namespace CrimeSketcher.Objects
         {
             AplicarRotacaoPendente();
             float totalW = Largura + (TemCalcada ? LarguraCalcada * 2 : 0);
+            float halfW = totalW / 2f;
             if (!TemCurva || !PontoCurva.HasValue)
             {
-                float minX = Math.Min(PontoInicial.X, PontoFinal.X) - totalW;
-                float minY = Math.Min(PontoInicial.Y, PontoFinal.Y) - totalW;
-                float maxX = Math.Max(PontoInicial.X, PontoFinal.X) + totalW;
-                float maxY = Math.Max(PontoInicial.Y, PontoFinal.Y) + totalW;
+                float minX = Math.Min(PontoInicial.X, PontoFinal.X) - halfW;
+                float minY = Math.Min(PontoInicial.Y, PontoFinal.Y) - halfW;
+                float maxX = Math.Max(PontoInicial.X, PontoFinal.X) + halfW;
+                float maxY = Math.Max(PontoInicial.Y, PontoFinal.Y) + halfW;
                 return new RectangleF(minX, minY, maxX - minX, maxY - minY);
             }
             else
@@ -1190,7 +1224,6 @@ namespace CrimeSketcher.Objects
                     float t = i / 20f;
                     var ponto = GetPontoNaCurva(t);
                     var perp = GetPerpendicularNaCurva(t);
-                    float halfW = totalW / 2;
                     float x1 = ponto.X + perp.X * halfW, y1 = ponto.Y + perp.Y * halfW;
                     float x2 = ponto.X - perp.X * halfW, y2 = ponto.Y - perp.Y * halfW;
                     minX = Math.Min(minX, Math.Min(x1, x2)); minY = Math.Min(minY, Math.Min(y1, y2));
@@ -1243,7 +1276,7 @@ namespace CrimeSketcher.Objects
             Posicao = RotacionarPonto(Posicao, centro, deltaGraus);
             if (PontoCurva.HasValue) PontoCurva = RotacionarPonto(PontoCurva.Value, centro, deltaGraus);
             Rotacao += deltaGraus;
-            _rotacaoAplicada += deltaGraus;
+            _rotacaoAplicada = Rotacao;
         }
 
         public bool ContemPontoCurva(PointF ponto, float tolerancia = 10f)

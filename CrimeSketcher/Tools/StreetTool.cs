@@ -49,6 +49,10 @@ namespace CrimeSketcher.Tools
         }
 
         public string NomeRua { get; set; } = "";
+        public string FonteNomeRua { get; set; } = "Segoe UI";
+        public float TamanhoFonteNomeRua { get; set; } = 9f;
+        public float DeslocamentoNomeRuaX { get; set; } = 0f;
+        public float DeslocamentoNomeRuaY { get; set; } = 0f;
 
         public int NumeroFaixas
         {
@@ -168,6 +172,12 @@ namespace CrimeSketcher.Tools
                 }
                 else
                 {
+                    if (!_pontoSnapConexao.HasValue && _pontoInicial.HasValue)
+                    {
+                        float passo = (Control.ModifierKeys & Keys.Shift) != 0 ? 15f : 5f;
+                        snapped = Utils.GeometryHelper.SnapAngulo(_pontoInicial.Value, snapped, passo);
+                    }
+
                     FinalizarRua(snapped);
                     _arrastandoComMouse = false;
                     _houveArraste = false;
@@ -182,6 +192,12 @@ namespace CrimeSketcher.Tools
         public void OnMouseMove(MouseEventArgs e, PointF worldPos)
         {
             _pontoAtual = ProcessarSnapConexao(worldPos);
+
+            if (_desenhando && _pontoInicial.HasValue && !_pontoSnapConexao.HasValue)
+            {
+                float passo = (Control.ModifierKeys & Keys.Shift) != 0 ? 15f : 5f;
+                _pontoAtual = Utils.GeometryHelper.SnapAngulo(_pontoInicial.Value, _pontoAtual, passo);
+            }
 
             if (_arrastandoComMouse && _desenhando && _pontoInicial.HasValue && e.Button == MouseButtons.Left)
             {
@@ -224,6 +240,10 @@ namespace CrimeSketcher.Tools
                 PontoFinal = pontoFinalAjustado,
                 PontoCurva = pontoCurva,
                 NomeRua = NomeRua,
+                FonteNomeRua = FonteNomeRua,
+                TamanhoFonteNomeRua = TamanhoFonteNomeRua,
+                DeslocamentoNomeRuaX = DeslocamentoNomeRuaX,
+                DeslocamentoNomeRuaY = DeslocamentoNomeRuaY,
                 TemCalcada = TemCalcada,
                 LarguraCalcada = LarguraCalcada,
                 TipoFaixaCentral = TipoFaixa,
@@ -503,6 +523,13 @@ namespace CrimeSketcher.Tools
             if (e.Button == MouseButtons.Left && _arrastandoComMouse && _desenhando && _pontoInicial.HasValue)
             {
                 var snapped = ProcessarSnapConexao(worldPos);
+
+                if (!_pontoSnapConexao.HasValue)
+                {
+                    float passo = (Control.ModifierKeys & Keys.Shift) != 0 ? 15f : 5f;
+                    snapped = Utils.GeometryHelper.SnapAngulo(_pontoInicial.Value, snapped, passo);
+                }
+
                 _pontoAtual = snapped;
 
                 if (_houveArraste)
@@ -530,6 +557,10 @@ namespace CrimeSketcher.Tools
                     PontoInicial = _pontoInicial.Value,
                     PontoFinal = _pontoAtual,
                     NomeRua = NomeRua,
+                    FonteNomeRua = FonteNomeRua,
+                    TamanhoFonteNomeRua = TamanhoFonteNomeRua,
+                    DeslocamentoNomeRuaX = DeslocamentoNomeRuaX,
+                    DeslocamentoNomeRuaY = DeslocamentoNomeRuaY,
                     TemCalcada = TemCalcada,
                     LarguraCalcada = LarguraCalcada,
                     TipoFaixaCentral = TipoFaixa,

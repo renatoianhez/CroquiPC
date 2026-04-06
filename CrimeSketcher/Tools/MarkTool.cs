@@ -58,7 +58,9 @@ namespace CrimeSketcher.Tools
         {
             if (_pontoInicial.HasValue && _marcaPreview != null)
             {
-                _marcaPreview.PontoFinal = worldPos;
+                float passo = (Control.ModifierKeys & Keys.Shift) != 0 ? 15f : 5f;
+                var ponto = Utils.GeometryHelper.SnapAngulo(_pontoInicial.Value, worldPos, passo);
+                _marcaPreview.PontoFinal = ponto;
             }
         }
 
@@ -66,8 +68,11 @@ namespace CrimeSketcher.Tools
         {
             if (e.Button == MouseButtons.Left && _pontoInicial.HasValue && _marcaPreview != null)
             {
+                float passo = (Control.ModifierKeys & Keys.Shift) != 0 ? 15f : 5f;
+                var ponto = Utils.GeometryHelper.SnapAngulo(_pontoInicial.Value, worldPos, passo);
+
                 // Finalizar marca
-                _marcaPreview.PontoFinal = worldPos;
+                _marcaPreview.PontoFinal = ponto;
 
                 // Verificar se tem tamanho mínimo
                 float dx = _marcaPreview.PontoFinal.X - _marcaPreview.PontoInicial.X;

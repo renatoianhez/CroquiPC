@@ -18,6 +18,9 @@ namespace CrimeSketcher.Tools
         private PointF _pontoAtual;
         private bool _desenhando = false;
 
+        public Color CorTexto { get; set; } = Color.FromArgb(200, 0, 0);
+        public Color CorFundoTexto { get; set; } = Color.FromArgb(220, 255, 255, 255);
+
         public DimensionTool(SketchDocument doc, GridManager grid,
             ScaleManager scale)
         {
@@ -38,11 +41,16 @@ namespace CrimeSketcher.Tools
                 }
                 else
                 {
+                    float passo = (Control.ModifierKeys & Keys.Shift) != 0 ? 15f : 5f;
+                    snapped = Utils.GeometryHelper.SnapAngulo(_pontoInicial.Value, snapped, passo);
+
                     var dim = new DimensionLine
                     {
                         PontoInicial = _pontoInicial.Value,
                         PontoFinal = snapped,
-                        Escala = _scale
+                        Escala = _scale,
+                        CorTexto = CorTexto,
+                        CorFundoTexto = CorFundoTexto
                     };
                     _doc.AdicionarObjeto(dim);
                     _desenhando = false;
@@ -53,7 +61,13 @@ namespace CrimeSketcher.Tools
 
         public void OnMouseMove(MouseEventArgs e, PointF worldPos)
         {
-            _pontoAtual = _grid.Snap(worldPos);
+            var snapped = _grid.Snap(worldPos);
+            if (_desenhando && _pontoInicial.HasValue)
+            {
+                float passo = (Control.ModifierKeys & Keys.Shift) != 0 ? 15f : 5f;
+                snapped = Utils.GeometryHelper.SnapAngulo(_pontoInicial.Value, snapped, passo);
+            }
+            _pontoAtual = snapped;
         }
 
         public void OnMouseUp(MouseEventArgs e, PointF worldPos) { }
@@ -71,7 +85,9 @@ namespace CrimeSketcher.Tools
             {
                 PontoInicial = _pontoInicial.Value,
                 PontoFinal = _pontoAtual,
-                Escala = _scale
+                Escala = _scale,
+                CorTexto = CorTexto,
+                CorFundoTexto = CorFundoTexto
             };
             preview.Desenhar(g);
         }
