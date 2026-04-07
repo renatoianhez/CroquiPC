@@ -79,16 +79,30 @@ namespace CrimeSketcher.Forms
         public FormPrincipal()
         {
             InitializeComponent();
+
+            CriarMenu();
+            CriarToolbar();
+            CriarStatusBar();
+            CriarLayout();
+
+            Controls.Add(splitPrincipal);
+            Controls.Add(toolStrip);
+            Controls.Add(statusStrip);
+            Controls.Add(menuStrip);
+            MainMenuStrip = menuStrip;
+
             InicializarSistema();
             AplicarTemaSistemaUI();
 
             this.Shown += (s, e) =>
             {
+                AjustarLarguraPainelFerramentas();
                 AjustarLarguraPainelPropriedades();
                 AjustarAreaCanvasParaBarras();
             };
             this.Resize += (s, e) =>
             {
+                AjustarLarguraPainelFerramentas();
                 AjustarLarguraPainelPropriedades();
                 AjustarAreaCanvasParaBarras();
             };
@@ -119,53 +133,36 @@ namespace CrimeSketcher.Forms
             }
         }
 
+        private void AjustarLarguraPainelFerramentas()
+        {
+            if (splitPrincipal == null || splitPrincipal.Width <= 0)
+                return;
+
+            const int larguraFerramentas = 300;
+            if (splitPrincipal.Width > larguraFerramentas)
+            {
+                splitPrincipal.SplitterDistance = larguraFerramentas;
+            }
+        }
+
         #region Inicialização da Interface
 
         private void InitializeComponent()
         {
-            // ===== FORM =====
-            this.Text = "🔍 CroquiPC - Croqui de Local de Crime";
-            this.Size = new Size(1400, 900);
-            this.StartPosition = FormStartPosition.CenterScreen;
-            this.WindowState = FormWindowState.Maximized;
-            this.KeyPreview = true;
-            this.BackColor = Color.FromArgb(45, 45, 48);
-
-            // ===== MENU =====
-            CriarMenu();
-
-            // ===== TOOLBAR =====
-            CriarToolbar();
-
-            // ===== STATUS BAR =====
-            CriarStatusBar();
-            statusStrip.Dock = DockStyle.Bottom;
-
-            // ===== LAYOUT PRINCIPAL =====
-            CriarLayout();
-
-            // Adicionar controles ao form na ordem correta de docking
-            this.Controls.Add(menuStrip);
-            this.Controls.Add(toolStrip);
-            this.Controls.Add(statusStrip);
-            this.Controls.Add(splitPrincipal);
-
-            splitPrincipal.Panel1MinSize = 200;
-            splitPrincipal.Panel2MinSize = 400;
-            splitPrincipal.SplitterDistance = 240;
-            this.MainMenuStrip = menuStrip;
-
-            // Garantir barras superiores/inferior visíveis
-            menuStrip.BringToFront();
-            toolStrip.BringToFront();
-            statusStrip.BringToFront();
-
-            // Agora é seguro definir o SplitterDistance
-            splitPrincipal.SplitterDistance = 240;
-
-            // Ajustar largura do painel de propriedades
-            AjustarLarguraPainelPropriedades();
-            AjustarAreaCanvasParaBarras();
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(FormPrincipal));
+            SuspendLayout();
+            // 
+            // FormPrincipal
+            // 
+            BackColor = Color.FromArgb(45, 45, 48);
+            ClientSize = new Size(1384, 861);
+            Icon = (Icon)resources.GetObject("$this.Icon");
+            KeyPreview = true;
+            Name = "FormPrincipal";
+            StartPosition = FormStartPosition.CenterScreen;
+            Text = "🔍 CroquiPC - Croqui de Local de Crime";
+            WindowState = FormWindowState.Maximized;
+            ResumeLayout(false);
         }
 
         private void AjustarLarguraPainelPropriedades()
@@ -1940,7 +1937,7 @@ namespace CrimeSketcher.Forms
         private void MostrarSobre()
         {
             MessageBox.Show(
-                "🔍 CroquiPC v1.0\n\n" +
+                "🔍 CroquiPC v1.7.3\n\n" +
                 "Aplicação para elaboração de croquis\n" +
                 "técnicos de locais de crime.\n\n" +
                 "Renato Ianhez - Perito Criminal\n\n" +
