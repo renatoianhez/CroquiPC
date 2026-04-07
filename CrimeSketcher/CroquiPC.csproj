@@ -8,7 +8,12 @@
 		<AssemblyName>CroquiPC</AssemblyName>
 		<ImplicitUsings>disable</ImplicitUsings>
 		<Nullable>disable</Nullable>
+		<ApplicationIcon>Icone1.ico</ApplicationIcon>
 	</PropertyGroup>
+
+	<ItemGroup>
+	  <Content Include="Icone1.ico" />
+	</ItemGroup>
 
 	<ItemGroup>
 		<PackageReference Include="System.Text.Json" Version="10.0.5" />
