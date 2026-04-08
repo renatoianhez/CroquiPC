@@ -1,4 +1,4 @@
-// Forms/FormPrincipal.cs
+﻿// Forms/FormPrincipal.cs
 using CrimeSketcher.Core;
 using CrimeSketcher.Library;
 using CrimeSketcher.Objects;
@@ -1079,6 +1079,7 @@ namespace CrimeSketcher.Forms
                             string nome = Path.GetFileNameWithoutExtension(dlg.FileName);
                             biblioteca.ImportarSimbolo(dlg.FileName, catNome, nome);
                             PreencherBiblioteca();
+                            AplicarTemaSistemaUI();
                         }
                     }
                 };
@@ -1558,7 +1559,7 @@ namespace CrimeSketcher.Forms
             }
 
             canvas.Invalidate();
-            statusLabel.Text = $"✓ {grupos.Count} grupo(s) desagrupado(s)";
+            statusLabel.Text = $"✓ {grupos.Count} grupo(s) desaguparado(s)";
         }
 
         private void AlterarZoom(float fator)
