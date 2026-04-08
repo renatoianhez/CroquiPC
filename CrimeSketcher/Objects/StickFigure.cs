@@ -31,6 +31,11 @@ namespace CrimeSketcher.Objects
         public GeneroCorpo Genero { get; set; } = GeneroCorpo.Masculino;
         public PoseCorpo Pose { get; set; } = PoseCorpo.EmPe;
 
+        [Category("Pose")]
+        [DisplayName("De Costas")]
+        [Description("Quando ativo, representa o corpo visto de costas")]
+        public bool DeCostas { get; set; } = false;
+
         // Proporções (em pixels)
         public float EscalaCorpo { get; set; } = 1f;
 
@@ -446,6 +451,35 @@ namespace CrimeSketcher.Objects
 
         private void DesenharCabeca(Graphics g, float cx, float cy, float opacidade)
         {
+            DesenharCabeloFemininoTrapazio(g, cx, cy, opacidade);
+
+            if (DeCostas)
+            {
+                using (var brushCabelo = new SolidBrush(AplicarOpacidade(CorCabelo, opacidade)))
+                {
+                    float cabeloExtra = 3f;
+                    g.FillEllipse(brushCabelo,
+                        cx - LarguraCabeca / 2 - cabeloExtra / 2,
+                        cy - AlturaCabeca / 2 - cabeloExtra / 2,
+                        LarguraCabeca + cabeloExtra,
+                        AlturaCabeca + cabeloExtra);
+                }
+
+                if (MostrarContorno)
+                {
+                    using (var pen = new Pen(AplicarOpacidade(Color.FromArgb(70, 50, 40), opacidade), EspessuraContorno))
+                    {
+                        g.DrawEllipse(pen,
+                            cx - LarguraCabeca / 2,
+                            cy - AlturaCabeca / 2,
+                            LarguraCabeca,
+                            AlturaCabeca);
+                    }
+                }
+
+                return;
+            }
+
             // Cabelo (oval maior atrás)
             using (var brushCabelo = new SolidBrush(AplicarOpacidade(CorCabelo, opacidade)))
             {
@@ -493,6 +527,36 @@ namespace CrimeSketcher.Objects
 
         private void DesenharTopoCabeca(Graphics g, float cx, float cy, float opacidade)
         {
+            DesenharCabeloFemininoTrapazio(g, cx, cy, opacidade);
+
+            if (DeCostas)
+            {
+                using (var brushCabelo = new SolidBrush(AplicarOpacidade(CorCabelo, opacidade)))
+                {
+                    float diametro = Math.Max(LarguraCabeca, AlturaCabeca) + 3f;
+                    g.FillEllipse(brushCabelo,
+                        cx - diametro / 2,
+                        cy - diametro / 2,
+                        diametro,
+                        diametro);
+                }
+
+                if (MostrarContorno)
+                {
+                    using (var pen = new Pen(AplicarOpacidade(Color.FromArgb(70, 50, 40), opacidade), EspessuraContorno))
+                    {
+                        float diametro = Math.Max(LarguraCabeca, AlturaCabeca) + 1f;
+                        g.DrawEllipse(pen,
+                            cx - diametro / 2,
+                            cy - diametro / 2,
+                            diametro,
+                            diametro);
+                    }
+                }
+
+                return;
+            }
+
             using (var brushCabelo = new SolidBrush(AplicarOpacidade(CorCabelo, opacidade)))
             {
                 float diametro = Math.Max(LarguraCabeca, AlturaCabeca) + 3f;
@@ -545,6 +609,40 @@ namespace CrimeSketcher.Objects
             g.TranslateTransform(-px, -py);
             DesenharTopoCabeca(g, cx, cy, opacidade);
             g.Restore(state);
+        }
+
+        private void DesenharCabeloFemininoTrapazio(Graphics g, float cx, float cy, float opacidade)
+        {
+            if (Genero != GeneroCorpo.Feminino)
+                return;
+
+            float yTopo = cy - AlturaCabeca / 2f + 2f;
+            float altura = AlturaCabeca * 0.95f;
+            float larguraTopo = LarguraCabeca * 0.56f;
+            float larguraBase = LarguraCabeca * 1.18f;
+
+            var p1 = new PointF(cx - larguraTopo / 2f, yTopo);
+            var p2 = new PointF(cx + larguraTopo / 2f, yTopo);
+            var p3 = new PointF(cx + larguraBase / 2f, yTopo + altura);
+            var p4 = new PointF(cx - larguraBase / 2f, yTopo + altura);
+
+            using (var path = new GraphicsPath())
+            {
+                path.AddPolygon(new[] { p1, p2, p3, p4 });
+
+                using (var brush = new SolidBrush(AplicarOpacidade(EscurecerCor(CorCabelo, 0.06f), opacidade)))
+                {
+                    g.FillPath(brush, path);
+                }
+
+                if (MostrarContorno)
+                {
+                    using (var pen = new Pen(AplicarOpacidade(Color.FromArgb(70, 50, 40), opacidade), EspessuraContorno * 0.8f))
+                    {
+                        g.DrawPath(pen, path);
+                    }
+                }
+            }
         }
 
         private void DesenharTronco(Graphics g, float yTop, float opacidade)
