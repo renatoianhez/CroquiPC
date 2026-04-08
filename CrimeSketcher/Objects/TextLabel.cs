@@ -1,6 +1,7 @@
 ﻿// Objects/TextLabel.cs
 using System;
 using System.ComponentModel;
+using System.Drawing.Design;
 using System.Drawing;
 using System.Text.Json.Serialization;
 
@@ -12,6 +13,7 @@ namespace CrimeSketcher.Objects
         [Category("Conteúdo")]
         [DisplayName("Texto")]
         [Description("Conteúdo do texto a ser exibido")]
+        [Editor(typeof(System.ComponentModel.Design.MultilineStringEditor), typeof(UITypeEditor))]
         public string Texto { get; set; } = "Texto";
 
         [Category("Fonte")]
