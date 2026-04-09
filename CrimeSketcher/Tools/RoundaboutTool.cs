@@ -20,6 +20,7 @@ namespace CrimeSketcher.Tools
         public int NumeroSaidas { get; set; } = 4;
         public float LarguraRua { get; set; } = 80f;
         public bool TemCalcada { get; set; } = true;
+        public float LarguraCalcada { get; set; } = 15f;
 
         public RoundaboutTool(SketchDocument doc, GridManager grid)
         {
@@ -39,7 +40,8 @@ namespace CrimeSketcher.Tools
                     RaioInterno = RaioInterno,
                     NumeroSaidas = NumeroSaidas,
                     LarguraRua = LarguraRua,
-                    TemCalcada = TemCalcada
+                    TemCalcada = TemCalcada,
+                    LarguraCalcada = LarguraCalcada
                 };
                 _doc.AdicionarObjeto(roundabout);
             }
@@ -63,6 +65,7 @@ namespace CrimeSketcher.Tools
                 NumeroSaidas = NumeroSaidas,
                 LarguraRua = LarguraRua,
                 TemCalcada = TemCalcada,
+                LarguraCalcada = LarguraCalcada,
                 Opacidade = 0.5f
             };
             preview.Desenhar(g);

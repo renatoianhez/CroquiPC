@@ -26,6 +26,13 @@ namespace CrimeSketcher.Objects
         private const float LARGURA_ESTACIONAMENTO = 30f;
         private float _tamanhoFonteNomeRua = 9f;
 
+        public static float FatorEscalaLarguras { get; set; } = 1f;
+
+        private static float EscalaLarguras => Math.Max(0.1f, FatorEscalaLarguras);
+        private static float LarguraFaixaPadraoEscalada => LARGURA_FAIXA_PADRAO * EscalaLarguras;
+        private static float LarguraCiclofaixaEscalada => LARGURA_CICLOFAIXA * EscalaLarguras;
+        private static float LarguraEstacionamentoEscalada => LARGURA_ESTACIONAMENTO * EscalaLarguras;
+
         [Browsable(false)]
         public PointF PontoInicial { get; set; }
 
@@ -228,7 +235,7 @@ namespace CrimeSketcher.Objects
             float larguraCanteiro = novoTemCanteiro ? Math.Max(2f, novaLarguraCanteiro) : 0f;
             float larguraExtras = ObterLarguraExtras(novoTemCiclofaixa, novoTemFaixaEstacionamento);
 
-            _largura = Math.Max(10f, LARGURA_FAIXA_PADRAO * numeroFaixasNormalizado + larguraCanteiro + larguraExtras);
+            _largura = Math.Max(10f, LarguraFaixaPadraoEscalada * numeroFaixasNormalizado + larguraCanteiro + larguraExtras);
         }
 
         private float ObterLarguraFaixaAtual()
@@ -238,7 +245,7 @@ namespace CrimeSketcher.Objects
             float larguraUtil = _largura - larguraCanteiroAtual - larguraExtrasAtual;
 
             if (larguraUtil <= 1f)
-                return LARGURA_FAIXA_PADRAO;
+                return LarguraFaixaPadraoEscalada;
 
             return Math.Max(4f, larguraUtil / Math.Max(1, _numeroFaixas));
         }
@@ -247,9 +254,9 @@ namespace CrimeSketcher.Objects
         {
             float porLado = 0f;
             if (temFaixaEstacionamento)
-                porLado += LARGURA_ESTACIONAMENTO;
+                porLado += LarguraEstacionamentoEscalada;
             if (temCiclofaixa)
-                porLado += LARGURA_CICLOFAIXA;
+                porLado += LarguraCiclofaixaEscalada;
             return porLado * 2f;
         }
 
@@ -743,8 +750,8 @@ namespace CrimeSketcher.Objects
 
         private void DesenharFaixasAuxiliares(Graphics g)
         {
-            float larguraEstac = TemFaixaEstacionamento ? LARGURA_ESTACIONAMENTO : 0f;
-            float larguraCiclo = TemCiclofaixa ? LARGURA_CICLOFAIXA : 0f;
+            float larguraEstac = TemFaixaEstacionamento ? LarguraEstacionamentoEscalada : 0f;
+            float larguraCiclo = TemCiclofaixa ? LarguraCiclofaixaEscalada : 0f;
 
             if (larguraEstac <= 0.1f && larguraCiclo <= 0.1f)
                 return;

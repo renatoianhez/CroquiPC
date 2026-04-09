@@ -69,6 +69,9 @@ namespace CrimeSketcher.Forms
         private string _arquivoAtual;
         private Button _botaoFerramentaAtiva;
 
+        private const float FatorEscalaTransitoLinear = 1f;
+        private const float FatorEscalaTransitoRadial = 1f;
+
         // Clipboard para copiar/colar
         private string _objetosCopiados = null;
 
@@ -978,6 +981,8 @@ namespace CrimeSketcher.Forms
             arrowTool = new ArrowTool(documento, grid);
             markTool = new MarkTool(documento, undoRedo);
             areaTool = new AreaTool(documento, grid);
+
+            AplicarEscalaPadraoElementosTransito();
         }
 
         private void RecriarFerramentas()
@@ -1006,7 +1011,35 @@ namespace CrimeSketcher.Forms
             markTool = new MarkTool(documento, undoRedo);
             areaTool = new AreaTool(documento, grid);
 
+            AplicarEscalaPadraoElementosTransito();
+
             canvas.FerramentaAtual = selectTool;
+        }
+
+        private void AplicarEscalaPadraoElementosTransito()
+        {
+            StreetTool.FatorEscalaLarguras = FatorEscalaTransitoLinear;
+            StreetObject.FatorEscalaLarguras = FatorEscalaTransitoLinear;
+
+            if (streetTool != null)
+            {
+                streetTool.Largura *= FatorEscalaTransitoLinear;
+                streetTool.LarguraCalcada *= FatorEscalaTransitoLinear;
+                streetTool.LarguraCanteiroCentral *= FatorEscalaTransitoLinear;
+            }
+
+            if (markTool != null)
+            {
+                markTool.LarguraPadrao *= FatorEscalaTransitoLinear;
+            }
+
+            if (roundaboutTool != null)
+            {
+                roundaboutTool.RaioExterno *= FatorEscalaTransitoRadial;
+                roundaboutTool.RaioInterno *= FatorEscalaTransitoRadial;
+                roundaboutTool.LarguraRua *= FatorEscalaTransitoLinear;
+                roundaboutTool.LarguraCalcada *= FatorEscalaTransitoLinear;
+            }
         }
 
         private void PreencherBiblioteca()

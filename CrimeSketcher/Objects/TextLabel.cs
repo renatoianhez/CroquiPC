@@ -10,6 +10,8 @@ namespace CrimeSketcher.Objects
     [Serializable]
     public class TextLabel : BaseSketchObject
     {
+        private float _tamanhoFonte = 12f;
+
         [Category("Conteúdo")]
         [DisplayName("Texto")]
         [Description("Conteúdo do texto a ser exibido")]
@@ -24,7 +26,12 @@ namespace CrimeSketcher.Objects
         [Category("Fonte")]
         [DisplayName("Tamanho da Fonte")]
         [Description("Tamanho da fonte em pontos")]
-        public float FonteTamanho { get; set; } = 12f;
+
+        public float FonteTamanho
+        {
+            get => _tamanhoFonte;
+            set => _tamanhoFonte = Math.Max(6f, value);
+        }
 
         [Category("Fonte")]
         [DisplayName("Negrito")]

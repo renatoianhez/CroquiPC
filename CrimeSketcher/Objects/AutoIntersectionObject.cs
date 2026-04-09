@@ -27,6 +27,10 @@ namespace CrimeSketcher.Objects
         private bool _temEstacionamentoRua2 = false;
         private float _deslocamentoRua2 = -50f;
 
+        private static float EscalaTransitoLinear => Math.Max(0.1f, StreetObject.FatorEscalaLarguras);
+        private static float LarguraCiclofaixaEscalada => 15f * EscalaTransitoLinear;
+        private static float LarguraEstacionamentoEscalada => 30f * EscalaTransitoLinear;
+
         [Category("Configuração")]
         [DisplayName("Tipo de Cruzamento")]
         [Description("Tipo de interseção: Cruz (4 vias) ou T (3 vias)")]
@@ -72,7 +76,7 @@ namespace CrimeSketcher.Objects
         [TypeConverter(typeof(MetrosTypeConverter))]
         public float DeslocamentoRua2
         {
-            get => _deslocamentoRua2 - 50f;
+            get => _deslocamentoRua2;
             set => _deslocamentoRua2 = value;
         }
 
@@ -228,8 +232,8 @@ namespace CrimeSketcher.Objects
         {
             float maxLargura = Math.Max(_larguraRua1, _larguraRua2) +
                 Math.Max(_larguraCalcadaRua1, _larguraCalcadaRua2) * 2 +
-                (_temCiclofaixaRua1 || _temCiclofaixaRua2 ? 30f : 0f) +
-                (_temEstacionamentoRua1 || _temEstacionamentoRua2 ? 60f : 0f);
+                (_temCiclofaixaRua1 || _temCiclofaixaRua2 ? LarguraCiclofaixaEscalada * 2f : 0f) +
+                (_temEstacionamentoRua1 || _temEstacionamentoRua2 ? LarguraEstacionamentoEscalada * 2f : 0f);
 
             ObterDimensoesBaseCruzamento(out float semiComprimentoR1, out float comprimentoR2);
             float deslocamentoR1 = ObterDeslocamentoLongitudinalR1Escalar();
@@ -288,7 +292,7 @@ namespace CrimeSketcher.Objects
                 float l2Half = _larguraRua2 / 2f;
                 float c1Half = _larguraCalcadaRua1 / 2f;
                 float c2Half = _larguraCalcadaRua2 / 2f;
-                const float larguraCiclofaixa = 15f;
+                float larguraCiclofaixa = LarguraCiclofaixaEscalada;
 
                 // Camada 3 (mais externa): Ciclofaixas — união R1 ∪ R2
                 if (_temCiclofaixaRua1 || _temCiclofaixaRua2)
@@ -386,9 +390,12 @@ namespace CrimeSketcher.Objects
         /// Margem em pixels que cada braço do cruzamento ultrapassa
         /// a borda do asfalto da rua oposta. Deve ser ≥ 0.
         /// </summary>
-        private const float MARGEM_BRACO = 25f;
-        private const float BASE_COMPRIMENTO_R2 = 35f;
+        private const float MARGEM_BRACO_BASE = 25f;
+        private const float BASE_COMPRIMENTO_R2_BASE = 35f;
         private const float TOLERANCIA_ORTOGONAL_GRAUS = 2f;
+
+        private static float MARGEM_BRACO => MARGEM_BRACO_BASE * EscalaTransitoLinear;
+        private static float BASE_COMPRIMENTO_R2 => BASE_COMPRIMENTO_R2_BASE * EscalaTransitoLinear;
 
         /// <summary>
         /// Limite inferior do seno do ângulo de inserção para evitar comprimentos
@@ -427,10 +434,10 @@ namespace CrimeSketcher.Objects
             float acrescimo = 0f;
 
             if (_temEstacionamentoRua1)
-                acrescimo += 30f;
+                acrescimo += LarguraEstacionamentoEscalada;
 
             if (_temCiclofaixaRua1)
-                acrescimo += 17f;
+                acrescimo += 17f * EscalaTransitoLinear;
 
             return acrescimo;
         }
@@ -440,10 +447,10 @@ namespace CrimeSketcher.Objects
             float acrescimo = 0f;
 
             if (_temEstacionamentoRua2)
-                acrescimo += 30f;
+                acrescimo += LarguraEstacionamentoEscalada;
 
             if (_temCiclofaixaRua2)
-                acrescimo += 17f;
+                acrescimo += 17f * EscalaTransitoLinear;
 
             return acrescimo;
         }

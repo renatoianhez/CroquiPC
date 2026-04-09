@@ -9,6 +9,7 @@ namespace CrimeSketcher.Objects
     [Serializable]
     public class DimensionLine : BaseSketchObject
     {
+        private float _tamanhoFonteCota = 9f;
         [Browsable(false)]
         public PointF PontoInicial { get; set; }
 
@@ -38,7 +39,13 @@ namespace CrimeSketcher.Objects
         [Category("Texto")]
         [DisplayName("Tamanho da Fonte")]
         [Description("Tamanho da fonte do texto da medida")]
-        public float TamanhoFonte { get; set; } = 8f;
+
+        public float TamanhoFonte
+        {
+            get => _tamanhoFonteCota;
+            set => _tamanhoFonteCota = Math.Max(6f, value);
+        }
+
 
         [Browsable(false)]
         public int CorTextoArgb { get; set; } = Color.FromArgb(200, 0, 0).ToArgb();
