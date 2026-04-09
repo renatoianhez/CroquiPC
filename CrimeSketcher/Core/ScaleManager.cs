@@ -60,5 +60,29 @@ namespace CrimeSketcher.Core
         public float ZoomLevel { get; set; } = 1.0f;
 
         public float PixelsEfetivos => PixelsPorUnidadeReal * ZoomLevel;
+
+        /// <summary>
+        /// Fator de escala visual para elementos de trânsito (não altera geometria, só o que é exibido).
+        /// </summary>
+        public bool FatorTransitoAtivo { get; set; } = false;
+
+        /// <summary>
+        /// Multiplicador aplicado às medidas exibidas dos elementos de trânsito.
+        /// </summary>
+        public float FatorTransito { get; set; } = 1.0f;
+
+        /// <summary>
+        /// Texto formatado da medida com fator de escala de trânsito aplicado (somente display).
+        /// </summary>
+        public string FormatarMedidaTransito(float pixels)
+        {
+            float real = PixelsParaReal(pixels);
+            if (FatorTransitoAtivo && FatorTransito > 0)
+                real *= FatorTransito;
+            if (real >= 1f)
+                return $"{real:F2} {UnidadeReal}";
+            else
+                return $"{real * 100f:F1} cm";
+        }
     }
 }

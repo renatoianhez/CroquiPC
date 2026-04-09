@@ -56,7 +56,7 @@ namespace CrimeSketcher.Objects
         [Category("Aparência")]
         [DisplayName("Largura (m)")]
         [Description("Largura da marca em metros")]
-        [TypeConverter(typeof(MetrosTypeConverter))]
+        [TypeConverter(typeof(MetrosTransitoTypeConverter))]
         public float Largura { get; set; } = 15f;
 
         [Category("Aparência")]
@@ -96,7 +96,7 @@ namespace CrimeSketcher.Objects
         [Description("Comprimento total da marca em metros")]
         [ReadOnly(true)]
         [JsonIgnore]
-        [TypeConverter(typeof(MetrosTypeConverter))]
+        [TypeConverter(typeof(MetrosTransitoTypeConverter))]
         public float Comprimento
         {
             get

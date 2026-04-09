@@ -1,6 +1,7 @@
 ﻿// Objects/TextLabel.cs
 using System;
 using System.ComponentModel;
+using System.Drawing.Design;
 using System.Drawing;
 using System.Text.Json.Serialization;
 
@@ -9,9 +10,11 @@ namespace CrimeSketcher.Objects
     [Serializable]
     public class TextLabel : BaseSketchObject
     {
+        private float _Fontetamanho = 12f;
         [Category("Conteúdo")]
         [DisplayName("Texto")]
         [Description("Conteúdo do texto a ser exibido")]
+        [Editor(typeof(System.ComponentModel.Design.MultilineStringEditor), typeof(UITypeEditor))]
         public string Texto { get; set; } = "Texto";
 
         [Category("Fonte")]
@@ -22,7 +25,11 @@ namespace CrimeSketcher.Objects
         [Category("Fonte")]
         [DisplayName("Tamanho da Fonte")]
         [Description("Tamanho da fonte em pontos")]
-        public float FonteTamanho { get; set; } = 12f;
+        public float FonteTamanho
+        {
+            get => _Fontetamanho;
+            set => _Fontetamanho = Math.Max(6f, value);
+        }
 
         [Category("Fonte")]
         [DisplayName("Negrito")]

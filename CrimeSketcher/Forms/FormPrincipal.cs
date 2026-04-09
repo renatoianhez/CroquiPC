@@ -1,4 +1,4 @@
-// Forms/FormPrincipal.cs
+﻿// Forms/FormPrincipal.cs
 using CrimeSketcher.Core;
 using CrimeSketcher.Library;
 using CrimeSketcher.Objects;
@@ -614,12 +614,67 @@ namespace CrimeSketcher.Forms
                 ("🟩 Área (Polígono)", "Area", "Ctrl+Alt+Q"),
             }));
 
-            container.Controls.Add(CriarGrupoFerramentas("Elementos de Trânsito", new[]
             {
-                ("🛣️ Rua", "Rua", "Ctrl+Alt+S"),
-                ("⭕ Rotatória", "Rotatoria", "Ctrl+Alt+R"),
-                ("🔴 Marca", "Marca", "Ctrl+M"),
-            }));
+                var ferramentasTransito = new (string texto, string tool, string atalho)[]
+                {
+                    ("🛣️ Rua", "Rua", "Ctrl+Alt+S"),
+                    ("⭕ Rotatória", "Rotatoria", "Ctrl+Alt+R"),
+                    ("🔴 Marca", "Marca", "Ctrl+M"),
+                };
+                var grpTransito = CriarGrupoFerramentas("Elementos de Trânsito", ferramentasTransito);
+
+                int yExtra = 25 + ferramentasTransito.Length * 34;
+                grpTransito.Height = yExtra + 58;
+
+                var chkFatorTransito = new CheckBox
+                {
+                    Text = "Escala para elem. de trânsito",
+                    Location = new Point(8, yExtra + 4),
+                    Size = new Size(204, 20),
+                    ForeColor = Color.Black,
+                    BackColor = Color.Transparent,
+                    Font = new Font("Segoe UI", 8f),
+                    Checked = false
+                };
+
+                var numFatorTransito = new NumericUpDown
+                {
+                    Location = new Point(8, yExtra + 28),
+                    Size = new Size(204, 24),
+                    Minimum = 0.01m,
+                    Maximum = 1000m,
+                    DecimalPlaces = 2,
+                    Increment = 0.1m,
+                    Value = 3.3m,
+                    Enabled = false,
+                    BackColor = Color.FromArgb(55, 55, 58),
+                    ForeColor = Color.White
+                };
+
+                chkFatorTransito.CheckedChanged += (s, e) =>
+                {
+                    numFatorTransito.Enabled = chkFatorTransito.Checked;
+                    if (ScaleManager.Atual != null)
+                    {
+                        ScaleManager.Atual.FatorTransitoAtivo = chkFatorTransito.Checked;
+                        ScaleManager.Atual.FatorTransito = (float)numFatorTransito.Value;
+                    }
+                    propGrid?.Refresh();
+                    canvas?.Invalidate();
+                };
+
+                numFatorTransito.ValueChanged += (s, e) =>
+                {
+                    if (ScaleManager.Atual != null)
+                        ScaleManager.Atual.FatorTransito = (float)numFatorTransito.Value;
+                    propGrid?.Refresh();
+                    canvas?.Invalidate();
+                };
+
+                grpTransito.Controls.Add(chkFatorTransito);
+                grpTransito.Controls.Add(numFatorTransito);
+                container.Controls.Add(grpTransito);
+            }
 
             container.Controls.Add(CriarGrupoFerramentas("Medições e Indicações", new[]
             {
@@ -1079,6 +1134,7 @@ namespace CrimeSketcher.Forms
                             string nome = Path.GetFileNameWithoutExtension(dlg.FileName);
                             biblioteca.ImportarSimbolo(dlg.FileName, catNome, nome);
                             PreencherBiblioteca();
+                            AplicarTemaSistemaUI();
                         }
                     }
                 };
@@ -1558,7 +1614,7 @@ namespace CrimeSketcher.Forms
             }
 
             canvas.Invalidate();
-            statusLabel.Text = $"✓ {grupos.Count} grupo(s) desagrupado(s)";
+            statusLabel.Text = $"✓ {grupos.Count} grupo(s) desaguparado(s)";
         }
 
         private void AlterarZoom(float fator)

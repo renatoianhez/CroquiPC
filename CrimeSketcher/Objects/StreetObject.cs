@@ -60,7 +60,7 @@ namespace CrimeSketcher.Objects
         [Category("Dimensões")]
         [DisplayName("Largura (m)")]
         [Description("Largura total da via em metros")]
-        [TypeConverter(typeof(MetrosTypeConverter))]
+        [TypeConverter(typeof(MetrosTransitoTypeConverter))]
         public float Largura
         {
             get => _largura;
@@ -90,7 +90,7 @@ namespace CrimeSketcher.Objects
         [Category("Canteiro Central")]
         [DisplayName("Largura do Canteiro (m)")]
         [Description("Largura do canteiro central em metros")]
-        [TypeConverter(typeof(MetrosTypeConverter))]
+        [TypeConverter(typeof(MetrosTransitoTypeConverter))]
         public float LarguraCanteiroCentral
         {
             get => _larguraCanteiroCentral;
@@ -171,13 +171,13 @@ namespace CrimeSketcher.Objects
         [Category("Identificação")]
         [DisplayName("Deslocamento X do Nome (m)")]
         [Description("Desloca o nome ao longo da direção da rua")]
-        [TypeConverter(typeof(MetrosTypeConverter))]
+        [TypeConverter(typeof(MetrosTransitoTypeConverter))]
         public float DeslocamentoNomeRuaX { get; set; } = 0f;
 
         [Category("Identificação")]
         [DisplayName("Deslocamento Y do Nome (m)")]
         [Description("Desloca o nome lateralmente em relação ao eixo da rua")]
-        [TypeConverter(typeof(MetrosTypeConverter))]
+        [TypeConverter(typeof(MetrosTransitoTypeConverter))]
         public float DeslocamentoNomeRuaY { get; set; } = 0f;
 
         [Category("Faixas")]
@@ -270,7 +270,7 @@ namespace CrimeSketcher.Objects
         [Category("Calçada")]
         [DisplayName("Largura da Calçada (m)")]
         [Description("Largura das calçadas em metros")]
-        [TypeConverter(typeof(MetrosTypeConverter))]
+        [TypeConverter(typeof(MetrosTransitoTypeConverter))]
         public float LarguraCalcada { get; set; } = 15f;
 
         [Category("Calçada")]
@@ -365,13 +365,13 @@ namespace CrimeSketcher.Objects
         [Category("Sinalização")]
         [DisplayName("Espaçamento do Tracejado (m)")]
         [Description("Espaçamento entre os traços da faixa tracejada em metros")]
-        [TypeConverter(typeof(MetrosTypeConverter))]
+        [TypeConverter(typeof(MetrosTransitoTypeConverter))]
         public float EspacamentoTracejado { get; set; } = 15f;
 
         [Category("Sinalização")]
         [DisplayName("Comprimento do Tracejado (m)")]
         [Description("Comprimento de cada traço da faixa em metros")]
-        [TypeConverter(typeof(MetrosTypeConverter))]
+        [TypeConverter(typeof(MetrosTransitoTypeConverter))]
         public float ComprimentoTracejado { get; set; } = 25f;
 
         [Browsable(false)]
@@ -383,7 +383,7 @@ namespace CrimeSketcher.Objects
         [Category("Sinalização")]
         [DisplayName("Espessura da Faixa (m)")]
         [Description("Espessura das linhas de sinalização em metros")]
-        [TypeConverter(typeof(MetrosTypeConverter))]
+        [TypeConverter(typeof(MetrosTransitoTypeConverter))]
         public float EspessuraFaixa { get; set; } = 2f;
 
         #endregion
@@ -410,7 +410,7 @@ namespace CrimeSketcher.Objects
         [DisplayName("Comprimento (m)")]
         [Description("Comprimento total da via em metros")]
         [JsonIgnore]
-        [TypeConverter(typeof(MetrosTypeConverter))]
+        [TypeConverter(typeof(MetrosTransitoTypeConverter))]
         public float Comprimento
         {
             get

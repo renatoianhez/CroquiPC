@@ -17,6 +17,7 @@ namespace CrimeSketcher.Tools
 
         public PoseCorpo Pose { get; set; } = PoseCorpo.EmPe;
         public GeneroCorpo Genero { get; set; } = GeneroCorpo.Masculino;
+        public bool DeCostas { get; set; } = false;
         public string Rotulo { get; set; } = "Vítima";
         public int NumeroMarcador { get; set; } = 0;
 
@@ -37,6 +38,7 @@ namespace CrimeSketcher.Tools
                     Posicao = snapped,
                     Pose = Pose,
                     Genero = Genero,
+                    DeCostas = DeCostas,
                     Rotulo = Rotulo,
                     NumeroMarcador = NumeroMarcador,
                     BracosEstendidos = Pose == PoseCorpo.VistaAerea
@@ -67,6 +69,7 @@ namespace CrimeSketcher.Tools
                 Posicao = _posAtual,
                 Pose = Pose,
                 Genero = Genero,
+                DeCostas = DeCostas,
                 Rotulo = Rotulo,
                 NumeroMarcador = NumeroMarcador,
                 BracosEstendidos = Pose == PoseCorpo.VistaAerea,
