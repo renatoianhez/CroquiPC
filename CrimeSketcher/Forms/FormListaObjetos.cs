@@ -9,9 +9,13 @@ namespace CrimeSketcher.Forms
     public class FormListaObjetos : Form
     {
         private ListView listViewObjetos;
+        private Button btnSubir;
+        private Button btnDescer;
         private SketchDocument _documento;
+
         public event Action<BaseSketchObject> ObjetoSelecionado;
         public event Action<BaseSketchObject> ObjetoExcluido;
+        public event Action OrdemAlterada;
 
         public FormListaObjetos(SketchDocument documento)
         {
@@ -23,7 +27,8 @@ namespace CrimeSketcher.Forms
         private void InitializeComponent()
         {
             Text = "Objetos na Cena";
-            Size = new Size(560, 400);
+            Size = new Size(690, 420);
+
             listViewObjetos = new ListView
             {
                 Dock = DockStyle.Fill,
@@ -33,21 +38,57 @@ namespace CrimeSketcher.Forms
             };
             listViewObjetos.Columns.Add("Nome", 150);
             listViewObjetos.Columns.Add("Tipo", 100);
-            listViewObjetos.Columns.Add("Posição", 180);
-            listViewObjetos.Columns.Add("Ação", 80);
+            listViewObjetos.Columns.Add("Camada", 80);
+            listViewObjetos.Columns.Add("Posição", 190);
+            listViewObjetos.Columns.Add("Ação", 90);
             listViewObjetos.SelectedIndexChanged += ListViewObjetos_SelectedIndexChanged;
             listViewObjetos.MouseClick += ListViewObjetos_MouseClick;
+
+            var painelLateral = new Panel
+            {
+                Dock = DockStyle.Right,
+                Width = 120,
+                Padding = new Padding(8)
+            };
+
+            btnSubir = new Button
+            {
+                Text = "⬆ Subir",
+                Dock = DockStyle.Top,
+                Height = 34
+            };
+            btnSubir.Click += (s, e) => MoverSelecionado(+1);
+
+            btnDescer = new Button
+            {
+                Text = "⬇ Descer",
+                Dock = DockStyle.Top,
+                Height = 34,
+                Margin = new Padding(0, 6, 0, 0)
+            };
+            btnDescer.Click += (s, e) => MoverSelecionado(-1);
+
+            painelLateral.Controls.Add(btnDescer);
+            painelLateral.Controls.Add(btnSubir);
+
             Controls.Add(listViewObjetos);
+            Controls.Add(painelLateral);
         }
 
-        public void AtualizarLista()
+        public void AtualizarLista(BaseSketchObject objetoSelecionado = null)
         {
             listViewObjetos.Items.Clear();
+
             var esc = ScaleManager.Atual;
-            foreach (var obj in _documento.Objetos)
+            int total = _documento.Objetos.Count;
+
+            for (int i = 0; i < total; i++)
             {
+                var obj = _documento.Objetos[i];
                 var item = new ListViewItem(obj.Nome);
                 item.SubItems.Add(obj.Tipo);
+                item.SubItems.Add((i + 1).ToString());
+
                 if (esc != null)
                 {
                     float xm = esc.PixelsParaReal(obj.Posicao.X);
@@ -62,6 +103,9 @@ namespace CrimeSketcher.Forms
                 item.SubItems.Add("🗑 Excluir");
                 item.Tag = obj;
                 listViewObjetos.Items.Add(item);
+
+                if (objetoSelecionado != null && ReferenceEquals(obj, objetoSelecionado))
+                    item.Selected = true;
             }
         }
 
@@ -84,7 +128,7 @@ namespace CrimeSketcher.Forms
                 return;
 
             int subItemIndex = hit.Item.SubItems.IndexOf(hit.SubItem);
-            if (subItemIndex != 3)
+            if (subItemIndex != 4)
                 return;
 
             if (hit.Item.Tag is not BaseSketchObject obj)
@@ -102,6 +146,30 @@ namespace CrimeSketcher.Forms
             _documento.RemoverObjeto(obj);
             ObjetoExcluido?.Invoke(obj);
             AtualizarLista();
+        }
+
+        private void MoverSelecionado(int delta)
+        {
+            if (listViewObjetos.SelectedItems.Count == 0)
+                return;
+
+            if (listViewObjetos.SelectedItems[0].Tag is not BaseSketchObject obj)
+                return;
+
+            int indexAtual = _documento.Objetos.IndexOf(obj);
+            if (indexAtual < 0)
+                return;
+
+            int novoIndex = indexAtual + delta;
+            if (novoIndex < 0 || novoIndex >= _documento.Objetos.Count)
+                return;
+
+            _documento.Objetos.RemoveAt(indexAtual);
+            _documento.Objetos.Insert(novoIndex, obj);
+            _documento.NotificarAlteracao();
+
+            AtualizarLista(obj);
+            OrdemAlterada?.Invoke();
         }
     }
 }
