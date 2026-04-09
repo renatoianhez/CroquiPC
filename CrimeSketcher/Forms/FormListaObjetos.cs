@@ -1,7 +1,6 @@
 using CrimeSketcher.Core;
 using CrimeSketcher.Objects;
 using System;
-using System.Collections.Generic;
 using System.Drawing;
 using System.Windows.Forms;
 
@@ -12,6 +11,7 @@ namespace CrimeSketcher.Forms
         private ListView listViewObjetos;
         private SketchDocument _documento;
         public event Action<BaseSketchObject> ObjetoSelecionado;
+        public event Action<BaseSketchObject> ObjetoExcluido;
 
         public FormListaObjetos(SketchDocument documento)
         {
@@ -22,19 +22,22 @@ namespace CrimeSketcher.Forms
 
         private void InitializeComponent()
         {
-            this.Text = "Objetos na Cena";
-            this.Size = new Size(500, 400);
+            Text = "Objetos na Cena";
+            Size = new Size(560, 400);
             listViewObjetos = new ListView
             {
                 Dock = DockStyle.Fill,
                 View = View.Details,
-                FullRowSelect = true
+                FullRowSelect = true,
+                GridLines = true
             };
             listViewObjetos.Columns.Add("Nome", 150);
             listViewObjetos.Columns.Add("Tipo", 100);
-            listViewObjetos.Columns.Add("Posição", 120);
+            listViewObjetos.Columns.Add("Posição", 180);
+            listViewObjetos.Columns.Add("Ação", 80);
             listViewObjetos.SelectedIndexChanged += ListViewObjetos_SelectedIndexChanged;
-            this.Controls.Add(listViewObjetos);
+            listViewObjetos.MouseClick += ListViewObjetos_MouseClick;
+            Controls.Add(listViewObjetos);
         }
 
         public void AtualizarLista()
@@ -55,6 +58,8 @@ namespace CrimeSketcher.Forms
                 {
                     item.SubItems.Add($"({obj.Posicao.X:F0}, {obj.Posicao.Y:F0})");
                 }
+
+                item.SubItems.Add("🗑 Excluir");
                 item.Tag = obj;
                 listViewObjetos.Items.Add(item);
             }
@@ -67,6 +72,36 @@ namespace CrimeSketcher.Forms
                 var obj = listViewObjetos.SelectedItems[0].Tag as BaseSketchObject;
                 ObjetoSelecionado?.Invoke(obj);
             }
+        }
+
+        private void ListViewObjetos_MouseClick(object sender, MouseEventArgs e)
+        {
+            if (e.Button != MouseButtons.Left)
+                return;
+
+            var hit = listViewObjetos.HitTest(e.Location);
+            if (hit?.Item == null || hit.SubItem == null)
+                return;
+
+            int subItemIndex = hit.Item.SubItems.IndexOf(hit.SubItem);
+            if (subItemIndex != 3)
+                return;
+
+            if (hit.Item.Tag is not BaseSketchObject obj)
+                return;
+
+            var confirm = MessageBox.Show(
+                $"Deseja excluir o objeto '{obj.Nome}'?",
+                "Excluir objeto",
+                MessageBoxButtons.YesNo,
+                MessageBoxIcon.Question);
+
+            if (confirm != DialogResult.Yes)
+                return;
+
+            _documento.RemoverObjeto(obj);
+            ObjetoExcluido?.Invoke(obj);
+            AtualizarLista();
         }
     }
 }
