@@ -31,6 +31,7 @@ namespace CrimeSketcher.Forms
         private SelectTool selectTool;
         private WallTool wallTool;
         private StreetTool streetTool;
+        private StreetTool estradaTool;
         private RoundaboutTool roundaboutTool;
         private DimensionTool dimensionTool;
         private StampTool stampTool;
@@ -615,6 +616,7 @@ namespace CrimeSketcher.Forms
                 var ferramentasTransito = new (string texto, string tool, string atalho)[]
                 {
                     ("🛣️ Rua", "Rua", "Ctrl+Alt+S"),
+                    ("🛤️ Estrada", "Estrada", ""),
                     ("⭕ Rotatória", "Rotatoria", "Ctrl+Alt+R"),
                     ("🔴 Marca", "Marca", "Ctrl+M"),
                 };
@@ -1022,6 +1024,8 @@ namespace CrimeSketcher.Forms
 
             wallTool = new WallTool(documento, grid);
             streetTool = new StreetTool(documento, grid);
+            streetTool.TipoViaCriada = "Rua";
+            estradaTool = CriarFerramentaEstrada();
             roundaboutTool = new RoundaboutTool(documento, grid);
             dimensionTool = new DimensionTool(documento, grid, escala);
             stampTool = new StampTool(documento, grid);
@@ -1049,6 +1053,8 @@ namespace CrimeSketcher.Forms
 
             wallTool = new WallTool(documento, grid);
             streetTool = new StreetTool(documento, grid);
+            streetTool.TipoViaCriada = "Rua";
+            estradaTool = CriarFerramentaEstrada();
             roundaboutTool = new RoundaboutTool(documento, grid);
             dimensionTool = new DimensionTool(documento, grid, escala);
             stampTool = new StampTool(documento, grid);
@@ -1059,6 +1065,21 @@ namespace CrimeSketcher.Forms
             areaTool = new AreaTool(documento, grid);
 
             canvas.FerramentaAtual = selectTool;
+        }
+
+        private StreetTool CriarFerramentaEstrada()
+        {
+            return new StreetTool(documento, grid)
+            {
+                TipoViaCriada = "Estrada",
+                TemCalcada = false,
+                NumeroFaixas = 2,
+                TemFaixaEstacionamento = true,
+                CorEstacionamento = Color.FromArgb(195, 195, 195),
+                CorLinhaEstacionamento = Color.White,
+                TipoLinhaEstacionamento = TipoLinhaEstacionamento.Continua,
+                TipoFaixa = TipoFaixaCentral.TracejadaSimples
+            };
         }
 
         private void PreencherBiblioteca()
@@ -1160,6 +1181,12 @@ namespace CrimeSketcher.Forms
                     break;
                 case "Area":
                     canvas.FerramentaAtual = areaTool;
+                    break;
+                case "Rua":
+                    canvas.FerramentaAtual = streetTool;
+                    break;
+                case "Estrada":
+                    canvas.FerramentaAtual = estradaTool;
                     break;
                 case "Rotatoria":
                     canvas.FerramentaAtual = roundaboutTool;
