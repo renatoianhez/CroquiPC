@@ -608,9 +608,6 @@ namespace CrimeSketcher.Forms
             container.Controls.Add(CriarGrupoFerramentas("Construção", new[]
             {
                 ("🧱 Parede", "Parede", "Ctrl+W"),
-                ("🚪 Parede + Porta", "ParedePorta", "Ctrl+Alt+P"),
-                ("🪟 Parede + Janela", "ParedeJanela", "Ctrl+J"),
-                ("🚪🪟 Parede + Porta + Janela", "ParedePortaJanela", "Ctrl+P"),
                 ("🟩 Área (Polígono)", "Area", "Ctrl+Alt+Q"),
             }));
 
@@ -1163,26 +1160,6 @@ namespace CrimeSketcher.Forms
                     break;
                 case "Area":
                     canvas.FerramentaAtual = areaTool;
-                    break;
-                case "ParedePorta":
-                    wallTool.ComPorta = true;
-                    wallTool.ComJanela = false;
-                    canvas.FerramentaAtual = wallTool;
-                    break;
-                case "ParedeJanela":
-                    wallTool.ComPorta = false;
-                    wallTool.ComJanela = true;
-                    canvas.FerramentaAtual = wallTool;
-                    break;
-                case "ParedePortaJanela":
-                    wallTool.ComPorta = true;
-                    wallTool.ComJanela = true;
-                    canvas.FerramentaAtual = wallTool;
-                    break;
-                case "Rua":
-                    string nomeRua = InputBox("Nome da rua:", "Nova Rua", "");
-                    streetTool.NomeRua = nomeRua;
-                    canvas.FerramentaAtual = streetTool;
                     break;
                 case "Rotatoria":
                     canvas.FerramentaAtual = roundaboutTool;
@@ -1967,9 +1944,6 @@ namespace CrimeSketcher.Forms
                 "  Esc            Selecionar\n" +
                 "  Ctrl+W         Parede\n" +
                 "  Ctrl+Alt+Q     Área (Polígono)\n" +
-                "  Ctrl+Alt+P     Parede + Porta\n" +
-                "  Ctrl+J         Parede + Janela\n" +
-                "  Ctrl+P         Parede + Porta + Janela\n" +
                 "  Ctrl+Alt+S     Rua\n" +
                 "  Ctrl+Alt+R     Rotatória\n" +
                 "  Ctrl+M         Marca\n" +
@@ -2094,7 +2068,6 @@ namespace CrimeSketcher.Forms
             {
                 switch (e.KeyCode)
                 {
-                    case Keys.P: DefinirFerramenta("ParedePorta"); e.Handled = true; break;
                     case Keys.Q: DefinirFerramenta("Area"); e.Handled = true; break;
                     case Keys.S: DefinirFerramenta("Rua"); e.Handled = true; break;
                     case Keys.T: DefinirFerramenta("Texto"); e.Handled = true; break;
