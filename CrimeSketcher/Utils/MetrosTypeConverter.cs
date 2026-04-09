@@ -167,4 +167,75 @@ namespace CrimeSketcher.Utils
             return base.ConvertFrom(context, culture, value);
         }
     }
+
+    /// <summary>
+    /// TypeConverter que exibe valores float (em pixels) como medida em metros,
+    /// aplicando o fator de escala visual de trânsito quando ativo.
+    /// </summary>
+    public class MetrosTransitoTypeConverter : TypeConverter
+    {
+        public override bool CanConvertTo(ITypeDescriptorContext context, Type destinationType)
+        {
+            if (destinationType == typeof(string)) return true;
+            return base.CanConvertTo(context, destinationType);
+        }
+
+        public override object ConvertTo(ITypeDescriptorContext context,
+            CultureInfo culture, object value, Type destinationType)
+        {
+            if (destinationType == typeof(string) && value is float f)
+            {
+                var esc = ScaleManager.Atual;
+                if (esc != null)
+                    return esc.FormatarMedidaTransito(f);
+                return $"{f:F1} px";
+            }
+            return base.ConvertTo(context, culture, value, destinationType);
+        }
+
+        public override bool CanConvertFrom(ITypeDescriptorContext context, Type sourceType)
+        {
+            if (sourceType == typeof(string)) return true;
+            return base.CanConvertFrom(context, sourceType);
+        }
+
+        public override object ConvertFrom(ITypeDescriptorContext context,
+            CultureInfo culture, object value)
+        {
+            if (value is string s)
+            {
+                s = s.Trim();
+                foreach (var sufixo in new[] { "mm", "cm", "px", "m" })
+                {
+                    if (s.EndsWith(sufixo, StringComparison.OrdinalIgnoreCase))
+                    {
+                        s = s.Substring(0, s.Length - sufixo.Length).Trim();
+                        break;
+                    }
+                }
+
+                float valorMetros = 0f;
+                bool parsed = float.TryParse(s, NumberStyles.Float,
+                    CultureInfo.CurrentCulture, out valorMetros)
+                    || float.TryParse(s, NumberStyles.Float,
+                    CultureInfo.InvariantCulture, out valorMetros);
+
+                if (parsed)
+                {
+                    var esc = ScaleManager.Atual;
+                    if (esc != null)
+                    {
+                        // O usuário editou o valor exibido (já com fator aplicado);
+                        // reverter o fator para obter os metros reais antes de converter para pixels.
+                        float metrosReais = valorMetros;
+                        if (esc.FatorTransitoAtivo && esc.FatorTransito > 0)
+                            metrosReais /= esc.FatorTransito;
+                        return esc.RealParaPixels(metrosReais);
+                    }
+                    return valorMetros;
+                }
+            }
+            return base.ConvertFrom(context, culture, value);
+        }
+    }
 }

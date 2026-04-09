@@ -585,7 +585,7 @@ namespace CrimeSketcher.Tools
                 using (var font = new Font("Segoe UI", 9f, FontStyle.Bold))
                 {
                     var esc = ScaleManager.Atual;
-                    string texto = esc != null ? esc.FormatarMedida(comp) : $"{comp:F0} px";
+                    string texto = esc != null ? esc.FormatarMedidaTransito(comp) : $"{comp:F0} px";
                     var size = g.MeasureString(texto, font);
 
                     using (var bg = new SolidBrush(Color.FromArgb(200, 0, 0, 0)))
