@@ -185,7 +185,7 @@ namespace CrimeSketcher.Core
                 {
                     "Parede" => JsonSerializer.Deserialize<WallObject>(json, options),
                     "Cômodo" => JsonSerializer.Deserialize<RoomObject>(json, options),
-                    "Rua" => JsonSerializer.Deserialize<StreetObject>(json, options),
+                    "Rua" or "Estrada" => JsonSerializer.Deserialize<StreetObject>(json, options),
                     "Cruzamento" => JsonSerializer.Deserialize<IntersectionObject>(json, options),
                     "Rotatória" => JsonSerializer.Deserialize<RoundaboutObject>(json, options),
                     "Cota" => JsonSerializer.Deserialize<DimensionLine>(json, options),

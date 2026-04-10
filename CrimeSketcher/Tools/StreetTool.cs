@@ -75,6 +75,7 @@ namespace CrimeSketcher.Tools
         public bool TemCalcada { get; set; } = true;
         public float LarguraCalcada { get; set; } = 15f;
         public TipoFaixaCentral TipoFaixa { get; set; } = TipoFaixaCentral.TracejadaSimples;
+        public CorSinalizacaoViaria CorSinalizacao { get; set; } = CorSinalizacaoViaria.Laranja;
         public bool MaoUnica { get; set; } = false;
         public TipoLinhaEstacionamento TipoLinhaEstacionamento { get; set; } = TipoLinhaEstacionamento.Tracejada;
         public Color CorEstacionamento { get; set; } = Color.Transparent;
@@ -252,6 +253,7 @@ namespace CrimeSketcher.Tools
                 TemCalcada = TemCalcada,
                 LarguraCalcada = LarguraCalcada,
                 TipoFaixaCentral = TipoFaixa,
+                CorSinalizacao = CorSinalizacao,
                 MaoUnica = MaoUnica
             };
 
@@ -569,6 +571,7 @@ namespace CrimeSketcher.Tools
                     TemCalcada = TemCalcada,
                     LarguraCalcada = LarguraCalcada,
                     TipoFaixaCentral = TipoFaixa,
+                    CorSinalizacao = CorSinalizacao,
                     Opacidade = 0.6f
                 };
 

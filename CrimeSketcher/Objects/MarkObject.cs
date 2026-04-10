@@ -24,6 +24,41 @@ namespace CrimeSketcher.Objects
         public PointF? PontoCurva { get; set; } = null;
 
         [Category("Curvatura")]
+        [DisplayName("Curva Circular")]
+        [Description("Quando habilitado, a curvatura passa a ser tratada como arco circular.")]
+        public bool CurvaCircular { get; set; } = false;
+
+        [Category("Curvatura")]
+        [DisplayName("Raio da Curva (m)")]
+        [Description("Ajusta o raio quando a curva circular está habilitada.")]
+        [TypeConverter(typeof(MetrosTransitoTypeConverter))]
+        public float RaioCurva
+        {
+            get
+            {
+                if (!TemCurva || !CurvaCircular || !PontoCurva.HasValue)
+                    return 0f;
+
+                return GeometryHelper.TryGetCircunferenciaPorTresPontos(PontoInicial, PontoCurva.Value, PontoFinal, out _, out var raio)
+                    ? raio
+                    : 0f;
+            }
+            set
+            {
+                if (value <= 0f)
+                    return;
+
+                if (!TemCurva)
+                    TemCurva = true;
+
+                CurvaCircular = true;
+                var referencia = PontoCurva ?? ObterReferenciaCurvaCircular();
+                if (GeometryHelper.TryGetPontoCurvaArcoPorRaio(PontoInicial, PontoFinal, value, referencia, out var pontoCurva))
+                    PontoCurva = pontoCurva;
+            }
+        }
+
+        [Category("Curvatura")]
         [DisplayName("Tem Curva")]
         [Description("Define se a marca possui curvatura")]
         public bool TemCurva
@@ -40,6 +75,7 @@ namespace CrimeSketcher.Objects
                 else if (!value)
                 {
                     PontoCurva = null;
+                    CurvaCircular = false;
                 }
             }
         }
@@ -146,6 +182,18 @@ namespace CrimeSketcher.Objects
                     PontoInicial.Y + (PontoFinal.Y - PontoInicial.Y) * t);
             }
 
+            if (CurvaCircular && Utils.GeometryHelper.TryGetArcoCircular(
+                PontoInicial,
+                PontoCurva.Value,
+                PontoFinal,
+                out var centro,
+                out var raio,
+                out var anguloInicial,
+                out var varredura))
+            {
+                return Utils.GeometryHelper.ObterPontoArcoCircular(centro, raio, anguloInicial, varredura, t);
+            }
+
             float u = 1 - t;
             float tt = t * t;
             float uu = u * u;
@@ -165,7 +213,20 @@ namespace CrimeSketcher.Objects
                 float deltaX = PontoFinal.X - PontoInicial.X;
                 float deltaY = PontoFinal.Y - PontoInicial.Y;
                 float length = (float)Math.Sqrt(deltaX * deltaX + deltaY * deltaY);
-                return new PointF(deltaX / length, deltaY / length);
+                return length > 0.0001f ? new PointF(deltaX / length, deltaY / length) : new PointF(1, 0);
+            }
+
+            if (CurvaCircular && Utils.GeometryHelper.TryGetArcoCircular(
+                PontoInicial,
+                PontoCurva.Value,
+                PontoFinal,
+                out _,
+                out _,
+                out var anguloInicial,
+                out var varredura))
+            {
+                float angulo = anguloInicial + varredura * t;
+                return Utils.GeometryHelper.ObterTangenteArcoCircular(angulo, varredura >= 0f);
             }
 
             float u = 1 - t;
@@ -196,12 +257,26 @@ namespace CrimeSketcher.Objects
             return dist <= tolerancia;
         }
 
-        public void MoverPontoCurva(PointF novaPosicao)
+        public void MoverPontoCurva(PointF novaPosicao, bool curvaCircular = false)
         {
             if (TemCurva)
             {
                 PontoCurva = novaPosicao;
+                CurvaCircular = curvaCircular;
             }
+        }
+
+        private PointF ObterReferenciaCurvaCircular()
+        {
+            var meio = GeometryHelper.PontoMedio(PontoInicial, PontoFinal);
+            float dx = PontoFinal.X - PontoInicial.X;
+            float dy = PontoFinal.Y - PontoInicial.Y;
+            float len = (float)Math.Sqrt(dx * dx + dy * dy);
+            if (len <= 0.0001f)
+                return meio;
+
+            float offset = Math.Max(len / 4f, 1f);
+            return new PointF(meio.X - dy / len * offset, meio.Y + dx / len * offset);
         }
 
         #endregion

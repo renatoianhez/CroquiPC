@@ -4,6 +4,7 @@ using System;
 using System.ComponentModel;
 using System.Drawing;
 using System.Drawing.Drawing2D;
+using System.Collections.Generic;
 
 namespace CrimeSketcher.Objects
 {
@@ -34,6 +35,41 @@ namespace CrimeSketcher.Objects
         public PointF? PontoCurva { get; set; } = null;
 
         [Category("Curvatura")]
+        [DisplayName("Curva Circular")]
+        [Description("Quando habilitado, a curvatura passa a ser tratada como arco circular.")]
+        public bool CurvaCircular { get; set; } = false;
+
+        [Category("Curvatura")]
+        [DisplayName("Raio da Curva (m)")]
+        [Description("Ajusta o raio quando a curva circular está habilitada.")]
+        [TypeConverter(typeof(MetrosTypeConverter))]
+        public float RaioCurva
+        {
+            get
+            {
+                if (!TemCurva || !CurvaCircular || !PontoCurva.HasValue)
+                    return 0f;
+
+                return GeometryHelper.TryGetCircunferenciaPorTresPontos(PontoInicial, PontoCurva.Value, PontoFinal, out _, out var raio)
+                    ? raio
+                    : 0f;
+            }
+            set
+            {
+                if (value <= 0f)
+                    return;
+
+                if (!TemCurva)
+                    TemCurva = true;
+
+                CurvaCircular = true;
+                var referencia = PontoCurva ?? ObterReferenciaCurvaCircular();
+                if (GeometryHelper.TryGetPontoCurvaArcoPorRaio(PontoInicial, PontoFinal, value, referencia, out var pontoCurva))
+                    PontoCurva = pontoCurva;
+            }
+        }
+
+        [Category("Curvatura")]
         [DisplayName("Tem Curva")]
         [Description("Define se a seta possui curvatura")]
         public bool TemCurva
@@ -50,6 +86,7 @@ namespace CrimeSketcher.Objects
                 else if (!value)
                 {
                     PontoCurva = null;
+                    CurvaCircular = false;
                 }
             }
         }
@@ -201,11 +238,12 @@ namespace CrimeSketcher.Objects
             return Math.Sqrt(dx * dx + dy * dy) <= tolerancia;
         }
 
-        public void MoverPontoCurva(PointF novaPosicao)
+        public void MoverPontoCurva(PointF novaPosicao, bool curvaCircular = false)
         {
             if (TemCurva)
             {
                 PontoCurva = novaPosicao;
+                CurvaCircular = curvaCircular;
             }
         }
 
@@ -252,6 +290,33 @@ namespace CrimeSketcher.Objects
                 return path;
             }
 
+            if (CurvaCircular && Utils.GeometryHelper.TryGetArcoCircular(
+                pontoInicial,
+                pontoCurva.Value,
+                pontoFinal,
+                out var centro,
+                out var raio,
+                out var anguloInicial,
+                out var varredura))
+            {
+                var pontos = new List<PointF>();
+                const int segmentos = 30;
+                for (int i = 0; i <= segmentos; i++)
+                {
+                    pontos.Add(Utils.GeometryHelper.ObterPontoArcoCircular(
+                        centro,
+                        raio,
+                        anguloInicial,
+                        varredura,
+                        i / (float)segmentos));
+                }
+
+                if (pontos.Count > 1)
+                    path.AddLines(pontos.ToArray());
+
+                return path;
+            }
+
             path.AddBezier(pontoInicial, pontoCurva.Value, pontoCurva.Value, pontoFinal);
             return path;
         }
@@ -263,6 +328,18 @@ namespace CrimeSketcher.Objects
                 return new PointF(
                     (pontoInicial.X + pontoFinal.X) / 2f,
                     (pontoInicial.Y + pontoFinal.Y) / 2f);
+            }
+
+            if (CurvaCircular && Utils.GeometryHelper.TryGetArcoCircular(
+                pontoInicial,
+                pontoCurva.Value,
+                pontoFinal,
+                out var centro,
+                out var raio,
+                out var anguloInicial,
+                out var varredura))
+            {
+                return Utils.GeometryHelper.ObterPontoArcoCircular(centro, raio, anguloInicial, varredura, 0.5f);
             }
 
             // Quadrática em t=0.5
@@ -345,6 +422,19 @@ namespace CrimeSketcher.Objects
 
             Rotacao += deltaGraus;
             Posicao = RotacionarPonto(Posicao, centro, deltaGraus);
+        }
+
+        private PointF ObterReferenciaCurvaCircular()
+        {
+            var meio = GeometryHelper.PontoMedio(PontoInicial, PontoFinal);
+            float dx = PontoFinal.X - PontoInicial.X;
+            float dy = PontoFinal.Y - PontoInicial.Y;
+            float len = (float)Math.Sqrt(dx * dx + dy * dy);
+            if (len <= 0.0001f)
+                return meio;
+
+            float offset = Math.Max(len / 4f, 1f);
+            return new PointF(meio.X - dy / len * offset, meio.Y + dx / len * offset);
         }
     }
 }

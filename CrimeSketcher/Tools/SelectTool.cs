@@ -233,17 +233,19 @@ namespace CrimeSketcher.Tools
         {
             if (_arrastandoPontoCurva && _objetoComCurva != null)
             {
+                bool shiftCircular = Control.ModifierKeys.HasFlag(Keys.Shift);
+
                 if (_objetoComCurva is StreetObject street)
                 {
-                    street.MoverPontoCurva(worldPos);
+                    street.MoverPontoCurva(worldPos, shiftCircular || street.CurvaCircular);
                 }
                 else if (_objetoComCurva is MarkObject mark)
                 {
-                    mark.MoverPontoCurva(worldPos);
+                    mark.MoverPontoCurva(worldPos, shiftCircular || mark.CurvaCircular);
                 }
                 else if (_objetoComCurva is ArrowObject arrow)
                 {
-                    arrow.MoverPontoCurva(worldPos);
+                    arrow.MoverPontoCurva(worldPos, shiftCircular || arrow.CurvaCircular);
                 }
             }
             else if (_arrastandoArticulacaoCorpo && _corpoArticulando != null)

@@ -618,6 +618,7 @@ namespace CrimeSketcher.Forms
                     ("🛣️ Rua", "Rua", "Ctrl+Alt+S"),
                     ("🛤️ Estrada", "Estrada", ""),
                     ("⭕ Rotatória", "Rotatoria", "Ctrl+Alt+R"),
+                    ("🍀 Trevos DNIT", "Trevos", ""),
                     ("🔴 Marca", "Marca", "Ctrl+M"),
                 };
                 var grpTransito = CriarGrupoFerramentas("Elementos de Trânsito", ferramentasTransito);
@@ -727,7 +728,10 @@ namespace CrimeSketcher.Forms
                 btn.Click += (s, e) =>
                 {
                     DefinirFerramenta(tool);
-                    MarcarBotaoAtivo(btn);
+                    if (tool != "Trevos")
+                    {
+                        MarcarBotaoAtivo(btn);
+                    }
                 };
 
                 grp.Controls.Add(btn);
@@ -1228,6 +1232,22 @@ namespace CrimeSketcher.Forms
                     stickFigureTool.Pose = PoseCorpo.EmPe;
                     ConfigurarCorpo();
                     break;
+                case "Trevos":
+                    var centroTela = canvas.ScreenToWorld(new Point(canvas.ClientSize.Width / 2, canvas.ClientSize.Height / 2));
+                    using (var dlg = new FormTemplatesTrevo(centroTela))
+                    {
+                        if (dlg.ShowDialog() == DialogResult.OK)
+                        {
+                            foreach (var obj in dlg.ObjetosCriados)
+                            {
+                                documento.AdicionarObjeto(obj);
+                            }
+
+                            canvas.FerramentaAtual = selectTool;
+                            statusLabel.Text = $"Template de trevo inserido: {dlg.ObjetosCriados.Count} elementos";
+                        }
+                    }
+                    return;
             }
 
             statusLabel.Text = $"Ferramenta: {ferramenta}";
