@@ -634,6 +634,9 @@ namespace CrimeSketcher.Tools
                 default: return;
             }
 
+            float larguraAssinada = right - left;
+            float alturaAssinada = bottom - top;
+
             var novo = RectangleF.FromLTRB(
                 Math.Min(left, right),
                 Math.Min(top, bottom),
@@ -644,8 +647,8 @@ namespace CrimeSketcher.Tools
             if (novo.Width < minimoMundo || novo.Height < minimoMundo)
                 return;
 
-            float fatorX = novo.Width / bounds.Width;
-            float fatorY = novo.Height / bounds.Height;
+            float fatorX = (obj is StreetObject ? larguraAssinada : novo.Width) / bounds.Width;
+            float fatorY = (obj is StreetObject ? alturaAssinada : novo.Height) / bounds.Height;
 
             if (_alcaAtiva == 4 || _alcaAtiva == 5) fatorX = 1f;
             if (_alcaAtiva == 6 || _alcaAtiva == 7) fatorY = 1f;
@@ -664,7 +667,7 @@ namespace CrimeSketcher.Tools
             }
 
             var centroAntigo = new PointF(bounds.Left + bounds.Width / 2f, bounds.Top + bounds.Height / 2f);
-            var centroNovo = new PointF(novo.Left + novo.Width / 2f, novo.Top + novo.Height / 2f);
+            var centroNovo = new PointF((left + right) / 2f, (top + bottom) / 2f);
 
             obj.EscalarAoRedor(centroAntigo, fatorX, fatorY);
             obj.Mover(centroNovo.X - centroAntigo.X, centroNovo.Y - centroAntigo.Y);

@@ -10,11 +10,12 @@ using System.Text.Json.Serialization;
 namespace CrimeSketcher.Objects
 {
     [Serializable]
-    public class StreetObject : BaseSketchObject
+    public class StreetObject : BaseSketchObject, IJsonOnSerializing, IJsonOnDeserializing, IJsonOnDeserialized
     {
         #region Propriedades Básicas
 
         private float _rotacaoAplicada = 0f;
+        private bool _desserializandoJson = false;
         private float _largura = 80f;
         private int _numeroFaixas = 2;
         private bool _temCanteiroCentral = false;
@@ -44,6 +45,7 @@ namespace CrimeSketcher.Objects
         [DisplayName("Raio da Curva (m)")]
         [Description("Ajusta o raio quando a curva circular está habilitada.")]
         [TypeConverter(typeof(MetrosTransitoTypeConverter))]
+        [JsonIgnore]
         public float RaioCurva
         {
             get
@@ -111,6 +113,12 @@ namespace CrimeSketcher.Objects
             get => _temCanteiroCentral;
             set
             {
+                if (_desserializandoJson)
+                {
+                    _temCanteiroCentral = value;
+                    return;
+                }
+
                 int novoNumeroFaixas = NormalizarNumeroFaixas(_numeroFaixas, value);
                 AjustarLarguraParaManterFaixas(
                     novoNumeroFaixas,
@@ -133,6 +141,13 @@ namespace CrimeSketcher.Objects
             set
             {
                 float novaLargura = Math.Max(2f, value);
+
+                if (_desserializandoJson)
+                {
+                    _larguraCanteiroCentral = novaLargura;
+                    return;
+                }
+
                 int novoNumeroFaixas = NormalizarNumeroFaixas(_numeroFaixas, _temCanteiroCentral);
                 AjustarLarguraParaManterFaixas(
                     novoNumeroFaixas,
@@ -153,6 +168,12 @@ namespace CrimeSketcher.Objects
             get => _temCiclofaixa;
             set
             {
+                if (_desserializandoJson)
+                {
+                    _temCiclofaixa = value;
+                    return;
+                }
+
                 int novoNumeroFaixas = NormalizarNumeroFaixas(_numeroFaixas, _temCanteiroCentral);
                 AjustarLarguraParaManterFaixas(
                     novoNumeroFaixas,
@@ -173,6 +194,12 @@ namespace CrimeSketcher.Objects
             get => _temFaixaEstacionamento;
             set
             {
+                if (_desserializandoJson)
+                {
+                    _temFaixaEstacionamento = value;
+                    return;
+                }
+
                 int novoNumeroFaixas = NormalizarNumeroFaixas(_numeroFaixas, _temCanteiroCentral);
                 AjustarLarguraParaManterFaixas(
                     novoNumeroFaixas,
@@ -224,6 +251,12 @@ namespace CrimeSketcher.Objects
             get => _numeroFaixas;
             set
             {
+                if (_desserializandoJson)
+                {
+                    _numeroFaixas = value;
+                    return;
+                }
+
                 int novoNumero = NormalizarNumeroFaixas(value, _temCanteiroCentral);
                 AjustarLarguraParaManterFaixas(
                     novoNumero,
@@ -556,6 +589,22 @@ namespace CrimeSketcher.Objects
             Tipo = "Rua";
             CorPreenchimento = Color.FromArgb(180, 180, 180);
             CorContorno = Color.FromArgb(100, 100, 100);
+        }
+
+        public void OnSerializing()
+        {
+            AplicarRotacaoPendente();
+        }
+
+        public void OnDeserializing()
+        {
+            _desserializandoJson = true;
+        }
+
+        public void OnDeserialized()
+        {
+            _desserializandoJson = false;
+            _rotacaoAplicada = Rotacao;
         }
 
         #region Desenho
