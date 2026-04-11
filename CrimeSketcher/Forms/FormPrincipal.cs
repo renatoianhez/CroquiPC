@@ -2044,6 +2044,31 @@ namespace CrimeSketcher.Forms
 
         private void PropGrid_ValueChanged(object sender, PropertyValueChangedEventArgs e)
         {
+            if (e.ChangedItem?.PropertyDescriptor?.Name == nameof(BaseSketchObject.Rotacao) &&
+                propGrid.SelectedObject is BaseSketchObject obj &&
+                (obj is MarkObject || obj is ArrowObject))
+            {
+                float anguloAnterior = 0f;
+                if (e.OldValue is IConvertible antigo)
+                {
+                    anguloAnterior = Convert.ToSingle(antigo);
+                }
+
+                float anguloAtual = obj.Rotacao;
+                float delta = anguloAtual - anguloAnterior;
+                while (delta > 180f) delta -= 360f;
+                while (delta < -180f) delta += 360f;
+
+                if (Math.Abs(delta) > 0.001f)
+                {
+                    obj.Rotacao = anguloAnterior;
+
+                    var bounds = obj.GetBounds();
+                    var centro = new PointF(bounds.Left + bounds.Width / 2f, bounds.Top + bounds.Height / 2f);
+                    obj.RotacionarAoRedor(centro, delta);
+                }
+            }
+
             canvas.Invalidate();
             documento.NotificarAlteracao();
         }

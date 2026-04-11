@@ -15,7 +15,14 @@ namespace CrimeSketcher.Objects
         Diagonal,
         Cruzada,
         Pontilhada,
-        Grade
+        Grade,
+        DiagonalReversa,
+        Cruz,
+        Tijolo,
+        ZigueZague,
+        Ondulada,
+        Esferas,
+        PontosClaros
     }
 
     [Serializable]
@@ -42,6 +49,11 @@ namespace CrimeSketcher.Objects
             set => CorTexturaArgb = value.ToArgb();
         }
 
+        [Category("Edição")]
+        [DisplayName("Editar Vértices")]
+        [Description("Permite arrastar os vértices da área usando a ferramenta Selecionar")]
+        public bool EditarVertices { get; set; } = false;
+
         public AreaObject()
         {
             Tipo = "Área";
@@ -56,6 +68,39 @@ namespace CrimeSketcher.Objects
             var area = new AreaObject { Vertices = lista };
             area.Posicao = area.ObterCentro();
             return area;
+        }
+
+        public int ObterIndiceVertice(PointF ponto, float tolerancia)
+        {
+            if (Vertices.Count == 0)
+                return -1;
+
+            float melhorDist = float.MaxValue;
+            int melhorIndice = -1;
+
+            for (int i = 0; i < Vertices.Count; i++)
+            {
+                float dx = ponto.X - Vertices[i].X;
+                float dy = ponto.Y - Vertices[i].Y;
+                float dist = (float)Math.Sqrt(dx * dx + dy * dy);
+
+                if (dist <= tolerancia && dist < melhorDist)
+                {
+                    melhorDist = dist;
+                    melhorIndice = i;
+                }
+            }
+
+            return melhorIndice;
+        }
+
+        public void MoverVertice(int indice, PointF novoPonto)
+        {
+            if (indice < 0 || indice >= Vertices.Count)
+                return;
+
+            Vertices[indice] = novoPonto;
+            Posicao = ObterCentro();
         }
 
         public override void Desenhar(Graphics g)
@@ -139,6 +184,29 @@ namespace CrimeSketcher.Objects
             Rotacao += deltaGraus;
         }
 
+        public override void DesenharSelecao(Graphics g)
+        {
+            base.DesenharSelecao(g);
+
+            if (!Selecionado || !EditarVertices || Vertices.Count == 0)
+                return;
+
+            var elements = g.Transform.Elements;
+            float zoomX = (float)Math.Sqrt(elements[0] * elements[0] + elements[1] * elements[1]);
+            float zoomY = (float)Math.Sqrt(elements[2] * elements[2] + elements[3] * elements[3]);
+            float zoom = Math.Max(0.0001f, (zoomX + zoomY) * 0.5f);
+
+            float raio = 4.5f / zoom;
+            using var brush = new SolidBrush(Color.FromArgb(235, 0, 122, 204));
+            using var pen = new Pen(Color.White, 1f / zoom);
+
+            foreach (var p in Vertices)
+            {
+                g.FillEllipse(brush, p.X - raio, p.Y - raio, raio * 2f, raio * 2f);
+                g.DrawEllipse(pen, p.X - raio, p.Y - raio, raio * 2f, raio * 2f);
+            }
+        }
+
         private PointF ObterCentro()
         {
             if (Vertices.Count == 0)
@@ -155,6 +223,13 @@ namespace CrimeSketcher.Objects
                 TexturaArea.Cruzada => HatchStyle.DiagonalCross,
                 TexturaArea.Pontilhada => HatchStyle.DottedGrid,
                 TexturaArea.Grade => HatchStyle.LargeGrid,
+                TexturaArea.DiagonalReversa => HatchStyle.BackwardDiagonal,
+                TexturaArea.Cruz => HatchStyle.Cross,
+                TexturaArea.Tijolo => HatchStyle.DiagonalBrick,
+                TexturaArea.ZigueZague => HatchStyle.ZigZag,
+                TexturaArea.Ondulada => HatchStyle.Wave,
+                TexturaArea.Esferas => HatchStyle.Sphere,
+                TexturaArea.PontosClaros => HatchStyle.Percent20,
                 _ => HatchStyle.ForwardDiagonal
             };
         }

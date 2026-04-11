@@ -42,6 +42,10 @@ namespace CrimeSketcher.Tools
         private PointF _inicioSelecao;
         private readonly UndoRedoManager _undoRedo;
 
+        private bool _arrastandoVerticeArea = false;
+        private AreaObject? _areaEditandoVertice = null;
+        private int _indiceVerticeArea = -1;
+
         // Controle de arrasto de ponto de curva
         private bool _arrastandoPontoCurva = false;
         private BaseSketchObject? _objetoComCurva = null;
@@ -116,6 +120,18 @@ namespace CrimeSketcher.Tools
         public void OnMouseDown(MouseEventArgs e, PointF worldPos)
         {
             if (e.Button != MouseButtons.Left) return;
+
+            if (ObjetoSelecionado is AreaObject areaSelecionada && areaSelecionada.EditarVertices && !areaSelecionada.Bloqueado)
+            {
+                int indiceVertice = areaSelecionada.ObterIndiceVertice(worldPos, PixelsParaMundo(10f));
+                if (indiceVertice >= 0)
+                {
+                    _arrastandoVerticeArea = true;
+                    _areaEditandoVertice = areaSelecionada;
+                    _indiceVerticeArea = indiceVertice;
+                    return;
+                }
+            }
 
             // Verificar se está clicando no ponto de controle de curva
             if (ObjetoSelecionado is StreetObject street && street.TemCurva)
@@ -231,7 +247,11 @@ namespace CrimeSketcher.Tools
 
         public void OnMouseMove(MouseEventArgs e, PointF worldPos)
         {
-            if (_arrastandoPontoCurva && _objetoComCurva != null)
+            if (_arrastandoVerticeArea && _areaEditandoVertice != null)
+            {
+                _areaEditandoVertice.MoverVertice(_indiceVerticeArea, worldPos);
+            }
+            else if (_arrastandoPontoCurva && _objetoComCurva != null)
             {
                 bool shiftCircular = Control.ModifierKeys.HasFlag(Keys.Shift);
 
@@ -288,7 +308,13 @@ namespace CrimeSketcher.Tools
 
         public void OnMouseUp(MouseEventArgs e, PointF worldPos)
         {
-            if (_arrastandoPontoCurva && _objetoComCurva != null)
+            if (_arrastandoVerticeArea)
+            {
+                _arrastandoVerticeArea = false;
+                _areaEditandoVertice = null;
+                _indiceVerticeArea = -1;
+            }
+            else if (_arrastandoPontoCurva && _objetoComCurva != null)
             {
                 if (_objetoComCurva is StreetObject street && street.PontoCurva.HasValue)
                 {
@@ -768,6 +794,9 @@ namespace CrimeSketcher.Tools
             _alcaAtiva = -1;
             _objetoTransformando = null;
             _selecionandoArea = false;
+            _arrastandoVerticeArea = false;
+            _areaEditandoVertice = null;
+            _indiceVerticeArea = -1;
             _arrastandoPontoCurva = false;
             _objetoComCurva = null;
             _arrastandoArticulacaoCorpo = false;
