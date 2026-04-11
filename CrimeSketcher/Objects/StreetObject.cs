@@ -36,6 +36,41 @@ namespace CrimeSketcher.Objects
         public PointF? PontoCurva { get; set; } = null;
 
         [Category("Curvatura")]
+        [DisplayName("Curva Circular")]
+        [Description("Quando habilitado, a curvatura passa a ser tratada como arco circular.")]
+        public bool CurvaCircular { get; set; } = false;
+
+        [Category("Curvatura")]
+        [DisplayName("Raio da Curva (m)")]
+        [Description("Ajusta o raio quando a curva circular está habilitada.")]
+        [TypeConverter(typeof(MetrosTransitoTypeConverter))]
+        public float RaioCurva
+        {
+            get
+            {
+                if (!TemCurva || !CurvaCircular || !PontoCurva.HasValue)
+                    return 0f;
+
+                return GeometryHelper.TryGetCircunferenciaPorTresPontos(PontoInicial, PontoCurva.Value, PontoFinal, out _, out var raio)
+                    ? raio
+                    : 0f;
+            }
+            set
+            {
+                if (value <= 0f)
+                    return;
+
+                if (!TemCurva)
+                    TemCurva = true;
+
+                CurvaCircular = true;
+                var referencia = PontoCurva ?? ObterReferenciaCurvaCircular();
+                if (GeometryHelper.TryGetPontoCurvaArcoPorRaio(PontoInicial, PontoFinal, value, referencia, out var pontoCurva))
+                    PontoCurva = pontoCurva;
+            }
+        }
+
+        [Category("Curvatura")]
         [DisplayName("Tem Curva")]
         [Description("Define se a rua possui curvatura")]
         public bool TemCurva
@@ -53,6 +88,7 @@ namespace CrimeSketcher.Objects
                 else if (!value)
                 {
                     PontoCurva = null;
+                    CurvaCircular = false;
                 }
             }
         }
@@ -204,6 +240,19 @@ namespace CrimeSketcher.Objects
         [Description("Define se a via é de mão única")]
         public bool MaoUnica { get; set; } = false;
 
+        private PointF ObterReferenciaCurvaCircular()
+        {
+            var meio = GeometryHelper.PontoMedio(PontoInicial, PontoFinal);
+            float dx = PontoFinal.X - PontoInicial.X;
+            float dy = PontoFinal.Y - PontoInicial.Y;
+            float len = (float)Math.Sqrt(dx * dx + dy * dy);
+            if (len <= 0.0001f)
+                return meio;
+
+            float offset = Math.Max(len / 4f, 1f);
+            return new PointF(meio.X - dy / len * offset, meio.Y + dx / len * offset);
+        }
+
         private static int NormalizarNumeroFaixas(int valor, bool temCanteiro)
         {
             int n = Math.Max(1, valor);
@@ -348,23 +397,30 @@ namespace CrimeSketcher.Objects
             set => CorLinhaEstacionamentoArgb = value.ToArgb();
         }
 
-        #endregion
+        [Browsable(false)]
+        public int CorFaixaAmarelaArgb { get; set; } = Color.FromArgb(255, 200, 0).ToArgb();
 
-        #region Faixas de Sinalização
+        [Browsable(false)]
+        public int CorFaixaBrancaArgb { get; set; } = Color.White.ToArgb();
+
+        [Category("Sinalização")]
+        [DisplayName("Cor da Sinalização")]
+        [Description("Define a cor das faixas de sinalização horizontal da via.")]
+        public CorSinalizacaoViaria CorSinalizacao { get; set; } = CorSinalizacaoViaria.Laranja;
 
         [Category("Sinalização")]
         [DisplayName("Tipo de Faixa Central")]
-        [Description("Tipo de faixa de separação no centro da via")]
-        public TipoFaixaCentral TipoFaixaCentral { get; set; } = TipoFaixaCentral.TracejadaSimples;
+        [Description("Define o padrão da faixa central da via")]
+        public TipoFaixaCentral TipoFaixaCentral { get; set; } = global::CrimeSketcher.Objects.TipoFaixaCentral.TracejadaSimples;
 
         [Category("Sinalização")]
         [DisplayName("Mostrar Faixas Laterais")]
-        [Description("Exibe as faixas de borda da via")]
+        [Description("Exibe divisórias internas adicionais entre faixas")]
         public bool MostrarFaixasLaterais { get; set; } = true;
 
         [Category("Sinalização")]
         [DisplayName("Espaçamento do Tracejado (m)")]
-        [Description("Espaçamento entre os traços da faixa tracejada em metros")]
+        [Description("Espaçamento entre os traços da faixa em metros")]
         [TypeConverter(typeof(MetrosTransitoTypeConverter))]
         public float EspacamentoTracejado { get; set; } = 15f;
 
@@ -373,12 +429,6 @@ namespace CrimeSketcher.Objects
         [Description("Comprimento de cada traço da faixa em metros")]
         [TypeConverter(typeof(MetrosTransitoTypeConverter))]
         public float ComprimentoTracejado { get; set; } = 25f;
-
-        [Browsable(false)]
-        public int CorFaixaAmarelaArgb { get; set; } = Color.FromArgb(255, 200, 0).ToArgb();
-
-        [Browsable(false)]
-        public int CorFaixaBrancaArgb { get; set; } = Color.White.ToArgb();
 
         [Category("Sinalização")]
         [DisplayName("Espessura da Faixa (m)")]
@@ -781,20 +831,27 @@ namespace CrimeSketcher.Objects
                     }
                     else
                     {
-                        float inicioSup = meiaRua - larguraEstac;
-                        DesenharFaixaEntreOffsets(g, inicioSup, inicioSup - larguraCiclo, brushCiclo, penCiclo);
-                        float inicioInf = -meiaRua + larguraEstac;
-                        DesenharFaixaEntreOffsets(g, inicioInf, inicioInf + larguraCiclo, brushCiclo, penCiclo);
+                        float InicioSup = meiaRua - larguraEstac;
+                        DesenharFaixaEntreOffsets(g, InicioSup, InicioSup - larguraCiclo, brushCiclo, penCiclo);
+                        float InicioInf = -meiaRua + larguraEstac;
+                        DesenharFaixaEntreOffsets(g, InicioInf, InicioInf + larguraCiclo, brushCiclo, penCiclo);
                     }
                 }
             }
+        }
+
+        private Color ObterCorSinalizacaoFaixas()
+        {
+            return CorSinalizacao == CorSinalizacaoViaria.Branca
+                ? Color.FromArgb(CorFaixaBrancaArgb)
+                : Color.FromArgb(CorFaixaAmarelaArgb);
         }
 
         private void DesenharFaixaCentral(Graphics g, PointF dir, float comp)
         {
             if (TipoFaixaCentral == TipoFaixaCentral.Nenhuma) return;
 
-            var corAmarela = Color.FromArgb(CorFaixaAmarelaArgb);
+            var corAmarela = ObterCorSinalizacaoFaixas();
             float espessura = EspessuraFaixa;
             float larguraFaixa = ObterLarguraFaixaAtual();
             ObterDivisaoSentidosSemCanteiro(larguraFaixa, out _, out _, out float offsetDivisoria);
@@ -893,7 +950,7 @@ namespace CrimeSketcher.Objects
 
         private void DesenharFaixasLaterais(Graphics g, PointF dir, PointF perp, float comp)
         {
-            var corBranca = Color.FromArgb(CorFaixaBrancaArgb);
+            var corBranca = ObterCorSinalizacaoFaixas();
             float larguraFaixa = ObterLarguraFaixaAtual();
 
             if (!TemCanteiroCentral)
@@ -1148,6 +1205,19 @@ namespace CrimeSketcher.Objects
         {
             if (!TemCurva || !PontoCurva.HasValue)
                 return new PointF(PontoInicial.X + (PontoFinal.X - PontoInicial.X) * t, PontoInicial.Y + (PontoFinal.Y - PontoInicial.Y) * t);
+
+            if (CurvaCircular && Utils.GeometryHelper.TryGetArcoCircular(
+                PontoInicial,
+                PontoCurva.Value,
+                PontoFinal,
+                out var centro,
+                out var raio,
+                out var anguloInicial,
+                out var varredura))
+            {
+                return Utils.GeometryHelper.ObterPontoArcoCircular(centro, raio, anguloInicial, varredura, t);
+            }
+
             float u = 1 - t; float tt = t * t; float uu = u * u; float ut2 = 2 * u * t;
             return new PointF(
                 uu * PontoInicial.X + ut2 * PontoCurva.Value.X + tt * PontoFinal.X,
@@ -1160,8 +1230,22 @@ namespace CrimeSketcher.Objects
             {
                 float dx = PontoFinal.X - PontoInicial.X; float dy = PontoFinal.Y - PontoInicial.Y;
                 float len = (float)Math.Sqrt(dx * dx + dy * dy);
-                return new PointF(dx / len, dy / len);
+                return len > 0.0001f ? new PointF(dx / len, dy / len) : new PointF(1, 0);
             }
+
+            if (CurvaCircular && Utils.GeometryHelper.TryGetArcoCircular(
+                PontoInicial,
+                PontoCurva.Value,
+                PontoFinal,
+                out _,
+                out _,
+                out var anguloInicial,
+                out var varredura))
+            {
+                float angulo = anguloInicial + varredura * t;
+                return Utils.GeometryHelper.ObterTangenteArcoCircular(angulo, varredura >= 0f);
+            }
+
             float u = 1 - t;
             float tdx = 2 * u * (PontoCurva.Value.X - PontoInicial.X) + 2 * t * (PontoFinal.X - PontoCurva.Value.X);
             float tdy = 2 * u * (PontoCurva.Value.Y - PontoInicial.Y) + 2 * t * (PontoFinal.Y - PontoCurva.Value.Y);
@@ -1199,7 +1283,20 @@ namespace CrimeSketcher.Objects
         {
             AplicarRotacaoPendente();
             float totalW = Largura + (TemCalcada ? LarguraCalcada * 2 : 0);
-            return Utils.GeometryHelper.DistanciaPontoSegmento(ponto, PontoInicial, PontoFinal) <= totalW / 2 + tolerancia;
+
+            if (!TemCurva || !PontoCurva.HasValue)
+                return Utils.GeometryHelper.DistanciaPontoSegmento(ponto, PontoInicial, PontoFinal) <= totalW / 2 + tolerancia;
+
+            const int segmentos = 30;
+            for (int i = 0; i < segmentos; i++)
+            {
+                var p1 = GetPontoNaCurva(i / (float)segmentos);
+                var p2 = GetPontoNaCurva((i + 1) / (float)segmentos);
+                if (Utils.GeometryHelper.DistanciaPontoSegmento(ponto, p1, p2) <= totalW / 2 + tolerancia)
+                    return true;
+            }
+
+            return false;
         }
 
         public override RectangleF GetBounds()
@@ -1286,9 +1383,13 @@ namespace CrimeSketcher.Objects
             return (float)Math.Sqrt(dx * dx + dy * dy) <= tolerancia;
         }
 
-        public void MoverPontoCurva(PointF novaPosicao)
+        public void MoverPontoCurva(PointF novaPosicao, bool curvaCircular = false)
         {
-            if (TemCurva) PontoCurva = novaPosicao;
+            if (TemCurva)
+            {
+                PontoCurva = novaPosicao;
+                CurvaCircular = curvaCircular;
+            }
         }
 
         #endregion

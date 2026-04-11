@@ -61,6 +61,142 @@ namespace CrimeSketcher.Utils
                 centro.Y + dx * sin + dy * cos);
         }
 
+        public static bool TryGetCircunferenciaPorTresPontos(
+            PointF a,
+            PointF b,
+            PointF c,
+            out PointF centro,
+            out float raio)
+        {
+            float d = 2f * (a.X * (b.Y - c.Y) + b.X * (c.Y - a.Y) + c.X * (a.Y - b.Y));
+            if (Math.Abs(d) < 0.0001f)
+            {
+                centro = PointF.Empty;
+                raio = 0f;
+                return false;
+            }
+
+            float a2 = a.X * a.X + a.Y * a.Y;
+            float b2 = b.X * b.X + b.Y * b.Y;
+            float c2 = c.X * c.X + c.Y * c.Y;
+
+            float ux = (a2 * (b.Y - c.Y) + b2 * (c.Y - a.Y) + c2 * (a.Y - b.Y)) / d;
+            float uy = (a2 * (c.X - b.X) + b2 * (a.X - c.X) + c2 * (b.X - a.X)) / d;
+
+            centro = new PointF(ux, uy);
+            raio = Distancia(centro, a);
+            return raio > 0.0001f;
+        }
+
+        public static bool TryGetArcoCircular(
+            PointF inicio,
+            PointF passagem,
+            PointF fim,
+            out PointF centro,
+            out float raio,
+            out float anguloInicialGraus,
+            out float varreduraGraus)
+        {
+            if (!TryGetCircunferenciaPorTresPontos(inicio, passagem, fim, out centro, out raio))
+            {
+                anguloInicialGraus = 0f;
+                varreduraGraus = 0f;
+                return false;
+            }
+
+            float angInicio = NormalizarAngulo360(AnguloGraus(centro, inicio));
+            float angPassagem = NormalizarAngulo360(AnguloGraus(centro, passagem));
+            float angFim = NormalizarAngulo360(AnguloGraus(centro, fim));
+
+            float sweepCcw = DeltaAnguloCcw(angInicio, angFim);
+            float sweepCcwPassagem = DeltaAnguloCcw(angInicio, angPassagem);
+
+            if (sweepCcw > 0.0001f && sweepCcwPassagem > 0.0001f && sweepCcwPassagem < sweepCcw)
+            {
+                anguloInicialGraus = angInicio;
+                varreduraGraus = sweepCcw;
+                return true;
+            }
+
+            float sweepCw = DeltaAnguloCw(angInicio, angFim);
+            float sweepCwPassagem = DeltaAnguloCw(angInicio, angPassagem);
+            if (sweepCw < -0.0001f && sweepCwPassagem < -0.0001f && sweepCwPassagem > sweepCw)
+            {
+                anguloInicialGraus = angInicio;
+                varreduraGraus = sweepCw;
+                return true;
+            }
+
+            anguloInicialGraus = angInicio;
+            varreduraGraus = Math.Abs(sweepCcw) <= Math.Abs(sweepCw) ? sweepCcw : sweepCw;
+            return true;
+        }
+
+        public static PointF ObterPontoArcoCircular(
+            PointF centro,
+            float raio,
+            float anguloInicialGraus,
+            float varreduraGraus,
+            float t)
+        {
+            float angulo = anguloInicialGraus + varreduraGraus * t;
+            float rad = angulo * (float)Math.PI / 180f;
+            return new PointF(
+                centro.X + raio * (float)Math.Cos(rad),
+                centro.Y + raio * (float)Math.Sin(rad));
+        }
+
+        public static PointF ObterTangenteArcoCircular(float anguloGraus, bool sentidoAntiHorario)
+        {
+            float rad = anguloGraus * (float)Math.PI / 180f;
+            float tx = -(float)Math.Sin(rad);
+            float ty = (float)Math.Cos(rad);
+
+            if (!sentidoAntiHorario)
+            {
+                tx = -tx;
+                ty = -ty;
+            }
+
+            float len = (float)Math.Sqrt(tx * tx + ty * ty);
+            if (len <= 0.0001f)
+                return new PointF(1f, 0f);
+
+            return new PointF(tx / len, ty / len);
+        }
+
+        public static bool TryGetPontoCurvaArcoPorRaio(
+            PointF inicio,
+            PointF fim,
+            float raioDesejado,
+            PointF referenciaLado,
+            out PointF pontoCurva)
+        {
+            pontoCurva = PontoMedio(inicio, fim);
+
+            float dx = fim.X - inicio.X;
+            float dy = fim.Y - inicio.Y;
+            float comprimento = (float)Math.Sqrt(dx * dx + dy * dy);
+            if (comprimento <= 0.0001f)
+                return false;
+
+            float meiaCorda = comprimento / 2f;
+            float raio = Math.Max(Math.Abs(raioDesejado), meiaCorda + 0.01f);
+            float h = (float)Math.Sqrt(Math.Max(0f, raio * raio - meiaCorda * meiaCorda));
+
+            var meio = PontoMedio(inicio, fim);
+            var perp = new PointF(-dy / comprimento, dx / comprimento);
+            float lado = Math.Sign((referenciaLado.X - meio.X) * perp.X + (referenciaLado.Y - meio.Y) * perp.Y);
+            if (lado == 0f)
+                lado = 1f;
+
+            pontoCurva = new PointF(
+                meio.X + perp.X * lado * (raio - h),
+                meio.Y + perp.Y * lado * (raio - h));
+
+            return true;
+        }
+
         public static PointF SnapAngulo(PointF origem, PointF ponto, float incrementoGraus)
         {
             float dx = ponto.X - origem.X;
@@ -93,6 +229,16 @@ namespace CrimeSketcher.Utils
                 return 0f;
 
             return normalizado;
+        }
+
+        private static float DeltaAnguloCcw(float anguloInicial, float anguloFinal)
+        {
+            return NormalizarAngulo360(anguloFinal - anguloInicial);
+        }
+
+        private static float DeltaAnguloCw(float anguloInicial, float anguloFinal)
+        {
+            return -NormalizarAngulo360(anguloInicial - anguloFinal);
         }
     }
 }

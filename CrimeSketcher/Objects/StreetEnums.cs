@@ -25,6 +25,15 @@ namespace CrimeSketcher.Objects
     }
 
     /// <summary>
+    /// Cor padrão da sinalização horizontal da via
+    /// </summary>
+    public enum CorSinalizacaoViaria
+    {
+        Laranja,
+        Branca
+    }
+
+    /// <summary>
     /// Tipo de conexão nas extremidades da rua
     /// </summary>
     public enum TipoExtremidade

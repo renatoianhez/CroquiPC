@@ -31,6 +31,7 @@ namespace CrimeSketcher.Forms
         private SelectTool selectTool;
         private WallTool wallTool;
         private StreetTool streetTool;
+        private StreetTool estradaTool;
         private RoundaboutTool roundaboutTool;
         private DimensionTool dimensionTool;
         private StampTool stampTool;
@@ -608,9 +609,6 @@ namespace CrimeSketcher.Forms
             container.Controls.Add(CriarGrupoFerramentas("Construção", new[]
             {
                 ("🧱 Parede", "Parede", "Ctrl+W"),
-                ("🚪 Parede + Porta", "ParedePorta", "Ctrl+Alt+P"),
-                ("🪟 Parede + Janela", "ParedeJanela", "Ctrl+J"),
-                ("🚪🪟 Parede + Porta + Janela", "ParedePortaJanela", "Ctrl+P"),
                 ("🟩 Área (Polígono)", "Area", "Ctrl+Alt+Q"),
             }));
 
@@ -618,7 +616,9 @@ namespace CrimeSketcher.Forms
                 var ferramentasTransito = new (string texto, string tool, string atalho)[]
                 {
                     ("🛣️ Rua", "Rua", "Ctrl+Alt+S"),
+                    ("🛤️ Estrada", "Estrada", ""),
                     ("⭕ Rotatória", "Rotatoria", "Ctrl+Alt+R"),
+                    ("🍀 Trevos DNIT", "Trevos", ""),
                     ("🔴 Marca", "Marca", "Ctrl+M"),
                 };
                 var grpTransito = CriarGrupoFerramentas("Elementos de Trânsito", ferramentasTransito);
@@ -728,7 +728,10 @@ namespace CrimeSketcher.Forms
                 btn.Click += (s, e) =>
                 {
                     DefinirFerramenta(tool);
-                    MarcarBotaoAtivo(btn);
+                    if (tool != "Trevos")
+                    {
+                        MarcarBotaoAtivo(btn);
+                    }
                 };
 
                 grp.Controls.Add(btn);
@@ -1025,6 +1028,8 @@ namespace CrimeSketcher.Forms
 
             wallTool = new WallTool(documento, grid);
             streetTool = new StreetTool(documento, grid);
+            streetTool.TipoViaCriada = "Rua";
+            estradaTool = CriarFerramentaEstrada();
             roundaboutTool = new RoundaboutTool(documento, grid);
             dimensionTool = new DimensionTool(documento, grid, escala);
             stampTool = new StampTool(documento, grid);
@@ -1052,6 +1057,8 @@ namespace CrimeSketcher.Forms
 
             wallTool = new WallTool(documento, grid);
             streetTool = new StreetTool(documento, grid);
+            streetTool.TipoViaCriada = "Rua";
+            estradaTool = CriarFerramentaEstrada();
             roundaboutTool = new RoundaboutTool(documento, grid);
             dimensionTool = new DimensionTool(documento, grid, escala);
             stampTool = new StampTool(documento, grid);
@@ -1062,6 +1069,21 @@ namespace CrimeSketcher.Forms
             areaTool = new AreaTool(documento, grid);
 
             canvas.FerramentaAtual = selectTool;
+        }
+
+        private StreetTool CriarFerramentaEstrada()
+        {
+            return new StreetTool(documento, grid)
+            {
+                TipoViaCriada = "Estrada",
+                TemCalcada = false,
+                NumeroFaixas = 2,
+                TemFaixaEstacionamento = true,
+                CorEstacionamento = Color.FromArgb(195, 195, 195),
+                CorLinhaEstacionamento = Color.White,
+                TipoLinhaEstacionamento = TipoLinhaEstacionamento.Continua,
+                TipoFaixa = TipoFaixaCentral.TracejadaSimples
+            };
         }
 
         private void PreencherBiblioteca()
@@ -1164,25 +1186,11 @@ namespace CrimeSketcher.Forms
                 case "Area":
                     canvas.FerramentaAtual = areaTool;
                     break;
-                case "ParedePorta":
-                    wallTool.ComPorta = true;
-                    wallTool.ComJanela = false;
-                    canvas.FerramentaAtual = wallTool;
-                    break;
-                case "ParedeJanela":
-                    wallTool.ComPorta = false;
-                    wallTool.ComJanela = true;
-                    canvas.FerramentaAtual = wallTool;
-                    break;
-                case "ParedePortaJanela":
-                    wallTool.ComPorta = true;
-                    wallTool.ComJanela = true;
-                    canvas.FerramentaAtual = wallTool;
-                    break;
                 case "Rua":
-                    string nomeRua = InputBox("Nome da rua:", "Nova Rua", "");
-                    streetTool.NomeRua = nomeRua;
                     canvas.FerramentaAtual = streetTool;
+                    break;
+                case "Estrada":
+                    canvas.FerramentaAtual = estradaTool;
                     break;
                 case "Rotatoria":
                     canvas.FerramentaAtual = roundaboutTool;
@@ -1224,6 +1232,22 @@ namespace CrimeSketcher.Forms
                     stickFigureTool.Pose = PoseCorpo.EmPe;
                     ConfigurarCorpo();
                     break;
+                case "Trevos":
+                    var centroTela = canvas.ScreenToWorld(new Point(canvas.ClientSize.Width / 2, canvas.ClientSize.Height / 2));
+                    using (var dlg = new FormTemplatesTrevo(centroTela))
+                    {
+                        if (dlg.ShowDialog() == DialogResult.OK)
+                        {
+                            foreach (var obj in dlg.ObjetosCriados)
+                            {
+                                documento.AdicionarObjeto(obj);
+                            }
+
+                            canvas.FerramentaAtual = selectTool;
+                            statusLabel.Text = $"Template de trevo inserido: {dlg.ObjetosCriados.Count} elementos";
+                        }
+                    }
+                    return;
             }
 
             statusLabel.Text = $"Ferramenta: {ferramenta}";
@@ -1967,9 +1991,6 @@ namespace CrimeSketcher.Forms
                 "  Esc            Selecionar\n" +
                 "  Ctrl+W         Parede\n" +
                 "  Ctrl+Alt+Q     Área (Polígono)\n" +
-                "  Ctrl+Alt+P     Parede + Porta\n" +
-                "  Ctrl+J         Parede + Janela\n" +
-                "  Ctrl+P         Parede + Porta + Janela\n" +
                 "  Ctrl+Alt+S     Rua\n" +
                 "  Ctrl+Alt+R     Rotatória\n" +
                 "  Ctrl+M         Marca\n" +
@@ -2094,7 +2115,6 @@ namespace CrimeSketcher.Forms
             {
                 switch (e.KeyCode)
                 {
-                    case Keys.P: DefinirFerramenta("ParedePorta"); e.Handled = true; break;
                     case Keys.Q: DefinirFerramenta("Area"); e.Handled = true; break;
                     case Keys.S: DefinirFerramenta("Rua"); e.Handled = true; break;
                     case Keys.T: DefinirFerramenta("Texto"); e.Handled = true; break;

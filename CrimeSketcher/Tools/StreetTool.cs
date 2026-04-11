@@ -42,6 +42,8 @@ namespace CrimeSketcher.Tools
         private bool _snapTemCanteiroInicial = false;
         private float _larguraCanteiroSnapInicial = 0f;
 
+        public string TipoViaCriada { get; set; } = "Rua";
+
         public float Largura
         {
             get => _largura;
@@ -73,6 +75,7 @@ namespace CrimeSketcher.Tools
         public bool TemCalcada { get; set; } = true;
         public float LarguraCalcada { get; set; } = 15f;
         public TipoFaixaCentral TipoFaixa { get; set; } = TipoFaixaCentral.TracejadaSimples;
+        public CorSinalizacaoViaria CorSinalizacao { get; set; } = CorSinalizacaoViaria.Laranja;
         public bool MaoUnica { get; set; } = false;
         public TipoLinhaEstacionamento TipoLinhaEstacionamento { get; set; } = TipoLinhaEstacionamento.Tracejada;
         public Color CorEstacionamento { get; set; } = Color.Transparent;
@@ -118,14 +121,15 @@ namespace CrimeSketcher.Tools
             get => _temCiclofaixa;
             set
             {
-                float novaLargura = _largura;
-                if (value && !_temCiclofaixa)
-                    novaLargura = _largura + LARGURA_CICLOFAIXA;
-                else if (!value && _temCiclofaixa)
-                    novaLargura = Math.Max(30f, _largura - LARGURA_CICLOFAIXA);
-
+                int novoNumeroFaixas = NormalizarNumeroFaixas(_numeroFaixas, _temCanteiroCentral);
+                AjustarLarguraParaManterFaixas(
+                    novoNumeroFaixas,
+                    _temCanteiroCentral,
+                    _larguraCanteiroCentral,
+                    value,
+                    _temFaixaEstacionamento);
                 _temCiclofaixa = value;
-                Largura = novaLargura;
+                _numeroFaixas = novoNumeroFaixas;
             }
         }
 
@@ -134,14 +138,15 @@ namespace CrimeSketcher.Tools
             get => _temFaixaEstacionamento;
             set
             {
-                float novaLargura = _largura;
-                if (value && !_temFaixaEstacionamento)
-                    novaLargura = _largura + LARGURA_ESTACIONAMENTO;
-                else if (!value && _temFaixaEstacionamento)
-                    novaLargura = Math.Max(30f, _largura - LARGURA_ESTACIONAMENTO);
-
+                int novoNumeroFaixas = NormalizarNumeroFaixas(_numeroFaixas, _temCanteiroCentral);
+                AjustarLarguraParaManterFaixas(
+                    novoNumeroFaixas,
+                    _temCanteiroCentral,
+                    _larguraCanteiroCentral,
+                    _temCiclofaixa,
+                    value);
                 _temFaixaEstacionamento = value;
-                Largura = novaLargura;
+                _numeroFaixas = novoNumeroFaixas;
             }
         }
 
@@ -236,6 +241,7 @@ namespace CrimeSketcher.Tools
 
             var street = new StreetObject
             {
+                Tipo = TipoViaCriada,
                 PontoInicial = pontoInicialAjustado,
                 PontoFinal = pontoFinalAjustado,
                 PontoCurva = pontoCurva,
@@ -247,6 +253,7 @@ namespace CrimeSketcher.Tools
                 TemCalcada = TemCalcada,
                 LarguraCalcada = LarguraCalcada,
                 TipoFaixaCentral = TipoFaixa,
+                CorSinalizacao = CorSinalizacao,
                 MaoUnica = MaoUnica
             };
 
@@ -564,6 +571,7 @@ namespace CrimeSketcher.Tools
                     TemCalcada = TemCalcada,
                     LarguraCalcada = LarguraCalcada,
                     TipoFaixaCentral = TipoFaixa,
+                    CorSinalizacao = CorSinalizacao,
                     Opacidade = 0.6f
                 };
 
@@ -775,9 +783,17 @@ namespace CrimeSketcher.Tools
 
         private int NormalizarNumeroFaixas(int num, bool temCanteiro)
         {
+            int numeroNormalizado = Math.Max(1, num);
+
             if (temCanteiro)
-                return num % 2 == 0 ? num : num + 1;
-            return Math.Max(1, num);
+            {
+                if (numeroNormalizado < 2)
+                    numeroNormalizado = 2;
+                if (numeroNormalizado % 2 != 0)
+                    numeroNormalizado += 1;
+            }
+
+            return numeroNormalizado;
         }
 
         private void AjustarLarguraParaManterFaixas(
@@ -787,6 +803,21 @@ namespace CrimeSketcher.Tools
             bool temCiclofaixa,
             bool temEstacionamento)
         {
+            int numeroFaixasNormalizado = NormalizarNumeroFaixas(numeroFaixas, temCanteiro);
+            float larguraCanteiro = temCanteiro ? Math.Max(2f, larguraCanteiroDesejada) : 0f;
+            float larguraExtras = ObterLarguraExtras(temCiclofaixa, temEstacionamento);
+
+            _largura = Math.Max(30f, LARGURA_FAIXA_PADRAO * numeroFaixasNormalizado + larguraCanteiro + larguraExtras);
+        }
+
+        private float ObterLarguraExtras(bool temCiclofaixa, bool temEstacionamento)
+        {
+            float porLado = 0f;
+            if (temEstacionamento)
+                porLado += LARGURA_ESTACIONAMENTO;
+            if (temCiclofaixa)
+                porLado += LARGURA_CICLOFAIXA;
+            return porLado * 2f;
         }
 
         public void Cancelar()

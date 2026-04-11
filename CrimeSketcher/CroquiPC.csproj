@@ -13,10 +13,17 @@
 
 	<ItemGroup>
 	  <Content Include="Icone1.ico" />
+	  <Content Include="Templates\**\*.csk">
+		<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </Content>
 	</ItemGroup>
 
 	<ItemGroup>
 		<PackageReference Include="System.Text.Json" Version="10.0.5" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Folder Include="Templates\" />
 	</ItemGroup>
 
 </Project>
