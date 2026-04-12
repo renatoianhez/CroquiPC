@@ -352,23 +352,12 @@ namespace CrimeSketcher.Objects
 
         private void ObterPontosRotacionados(out PointF pInicial, out PointF pFinal, out PointF? pCurva)
         {
-            if (Math.Abs(Rotacao) < 0.001f)
-            {
-                pInicial = PontoInicial;
-                pFinal = PontoFinal;
-                pCurva = PontoCurva;
-                return;
-            }
-
-            var centro = new PointF(
-                (PontoInicial.X + PontoFinal.X) / 2f,
-                (PontoInicial.Y + PontoFinal.Y) / 2f);
-
-            pInicial = RotacionarPonto(PontoInicial, centro, Rotacao);
-            pFinal = RotacionarPonto(PontoFinal, centro, Rotacao);
-            pCurva = PontoCurva.HasValue
-                ? RotacionarPonto(PontoCurva.Value, centro, Rotacao)
-                : null;
+            // A geometria da seta já é mantida em coordenadas de mundo
+            // pelos métodos de transformação (Mover/Escalar/RotacionarAoRedor).
+            // Portanto, não reaplicamos Rotacao aqui para evitar rotação dupla.
+            pInicial = PontoInicial;
+            pFinal = PontoFinal;
+            pCurva = PontoCurva;
         }
 
         private static PointF RotacionarPonto(PointF ponto, PointF centro, float anguloGraus)

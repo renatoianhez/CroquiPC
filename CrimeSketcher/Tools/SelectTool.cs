@@ -42,6 +42,10 @@ namespace CrimeSketcher.Tools
         private PointF _inicioSelecao;
         private readonly UndoRedoManager _undoRedo;
 
+        private bool _arrastandoVerticeArea = false;
+        private AreaObject? _areaEditandoVertice = null;
+        private int _indiceVerticeArea = -1;
+
         // Controle de arrasto de ponto de curva
         private bool _arrastandoPontoCurva = false;
         private BaseSketchObject? _objetoComCurva = null;
@@ -116,6 +120,18 @@ namespace CrimeSketcher.Tools
         public void OnMouseDown(MouseEventArgs e, PointF worldPos)
         {
             if (e.Button != MouseButtons.Left) return;
+
+            if (ObjetoSelecionado is AreaObject areaSelecionada && areaSelecionada.EditarVertices && !areaSelecionada.Bloqueado)
+            {
+                int indiceVertice = areaSelecionada.ObterIndiceVertice(worldPos, PixelsParaMundo(10f));
+                if (indiceVertice >= 0)
+                {
+                    _arrastandoVerticeArea = true;
+                    _areaEditandoVertice = areaSelecionada;
+                    _indiceVerticeArea = indiceVertice;
+                    return;
+                }
+            }
 
             // Verificar se está clicando no ponto de controle de curva
             if (ObjetoSelecionado is StreetObject street && street.TemCurva)
@@ -231,7 +247,11 @@ namespace CrimeSketcher.Tools
 
         public void OnMouseMove(MouseEventArgs e, PointF worldPos)
         {
-            if (_arrastandoPontoCurva && _objetoComCurva != null)
+            if (_arrastandoVerticeArea && _areaEditandoVertice != null)
+            {
+                _areaEditandoVertice.MoverVertice(_indiceVerticeArea, worldPos);
+            }
+            else if (_arrastandoPontoCurva && _objetoComCurva != null)
             {
                 bool shiftCircular = Control.ModifierKeys.HasFlag(Keys.Shift);
 
@@ -288,7 +308,13 @@ namespace CrimeSketcher.Tools
 
         public void OnMouseUp(MouseEventArgs e, PointF worldPos)
         {
-            if (_arrastandoPontoCurva && _objetoComCurva != null)
+            if (_arrastandoVerticeArea)
+            {
+                _arrastandoVerticeArea = false;
+                _areaEditandoVertice = null;
+                _indiceVerticeArea = -1;
+            }
+            else if (_arrastandoPontoCurva && _objetoComCurva != null)
             {
                 if (_objetoComCurva is StreetObject street && street.PontoCurva.HasValue)
                 {
@@ -634,6 +660,9 @@ namespace CrimeSketcher.Tools
                 default: return;
             }
 
+            float larguraAssinada = right - left;
+            float alturaAssinada = bottom - top;
+
             var novo = RectangleF.FromLTRB(
                 Math.Min(left, right),
                 Math.Min(top, bottom),
@@ -644,8 +673,8 @@ namespace CrimeSketcher.Tools
             if (novo.Width < minimoMundo || novo.Height < minimoMundo)
                 return;
 
-            float fatorX = novo.Width / bounds.Width;
-            float fatorY = novo.Height / bounds.Height;
+            float fatorX = (obj is StreetObject ? larguraAssinada : novo.Width) / bounds.Width;
+            float fatorY = (obj is StreetObject ? alturaAssinada : novo.Height) / bounds.Height;
 
             if (_alcaAtiva == 4 || _alcaAtiva == 5) fatorX = 1f;
             if (_alcaAtiva == 6 || _alcaAtiva == 7) fatorY = 1f;
@@ -664,7 +693,7 @@ namespace CrimeSketcher.Tools
             }
 
             var centroAntigo = new PointF(bounds.Left + bounds.Width / 2f, bounds.Top + bounds.Height / 2f);
-            var centroNovo = new PointF(novo.Left + novo.Width / 2f, novo.Top + novo.Height / 2f);
+            var centroNovo = new PointF((left + right) / 2f, (top + bottom) / 2f);
 
             obj.EscalarAoRedor(centroAntigo, fatorX, fatorY);
             obj.Mover(centroNovo.X - centroAntigo.X, centroNovo.Y - centroAntigo.Y);
@@ -765,6 +794,9 @@ namespace CrimeSketcher.Tools
             _alcaAtiva = -1;
             _objetoTransformando = null;
             _selecionandoArea = false;
+            _arrastandoVerticeArea = false;
+            _areaEditandoVertice = null;
+            _indiceVerticeArea = -1;
             _arrastandoPontoCurva = false;
             _objetoComCurva = null;
             _arrastandoArticulacaoCorpo = false;
