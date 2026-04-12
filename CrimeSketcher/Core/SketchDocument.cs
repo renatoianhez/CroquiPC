@@ -13,18 +13,29 @@ namespace CrimeSketcher.Core
     [Serializable]
     public class SketchDocument
     {
+        private static readonly JsonSerializerOptions SaveOptions = new JsonSerializerOptions
+        {
+            WriteIndented = true,
+            Converters = { new SketchObjectConverter() }
+        };
+
+        private static readonly JsonSerializerOptions LoadOptions = new JsonSerializerOptions
+        {
+            Converters = { new SketchObjectConverter() }
+        };
+
         public string Titulo { get; set; } = "Novo Croqui";
-        public string NumeroProcedimento { get; set; } = "";
-        public string Perito { get; set; } = "";
+        public string NumeroProcedimento { get; set; } = string.Empty;
+        public string Perito { get; set; } = string.Empty;
         public DateTime DataLevantamento { get; set; } = DateTime.Now;
-        public string Endereco { get; set; } = "";
-        public string Observacoes { get; set; } = "";
+        public string Endereco { get; set; } = string.Empty;
+        public string Observacoes { get; set; } = string.Empty;
 
         public float LarguraPapelCm { get; set; } = 42f;
         public float AlturaPapelCm { get; set; } = 29.7f;
         public float EscalaDenominador { get; set; } = 100f;
 
-        public List<BaseSketchObject> Objetos { get; set; } = new List<BaseSketchObject>();
+        public List<BaseSketchObject> Objetos { get; set; } = [];
 
         [JsonIgnore]
         private UndoRedoManager _undoRedo;
@@ -34,9 +45,7 @@ namespace CrimeSketcher.Core
         {
             get
             {
-                if (_undoRedo == null)
-                    _undoRedo = new UndoRedoManager();
-                return _undoRedo;
+                return _undoRedo ??= new UndoRedoManager();
             }
         }
 
@@ -44,22 +53,28 @@ namespace CrimeSketcher.Core
 
         public void AdicionarObjeto(BaseSketchObject obj, bool comUndo = true)
         {
+            ArgumentNullException.ThrowIfNull(obj);
+
             Objetos.Add(obj);
             if (comUndo)
             {
                 UndoRedo.RegistrarAcao(new AddObjectAction(this, obj));
             }
-            DocumentoAlterado?.Invoke(this, EventArgs.Empty);
+
+            NotificarAlteracao();
         }
 
         public void RemoverObjeto(BaseSketchObject obj, bool comUndo = true)
         {
+            ArgumentNullException.ThrowIfNull(obj);
+
             Objetos.Remove(obj);
             if (comUndo)
             {
                 UndoRedo.RegistrarAcao(new RemoveObjectAction(this, obj));
             }
-            DocumentoAlterado?.Invoke(this, EventArgs.Empty);
+
+            NotificarAlteracao();
         }
 
         public BaseSketchObject HitTest(PointF ponto, float tolerancia = 5f)
@@ -79,29 +94,19 @@ namespace CrimeSketcher.Core
 
         public void Salvar(string caminho)
         {
-            var options = new JsonSerializerOptions
-            {
-                WriteIndented = true,
-                Converters = { new SketchObjectConverter() }
-            };
-            var json = JsonSerializer.Serialize(this, options);
+            var json = JsonSerializer.Serialize(this, SaveOptions);
             File.WriteAllText(caminho, json);
         }
 
         public static SketchDocument Carregar(string caminho)
         {
             var json = File.ReadAllText(caminho);
-            var options = new JsonSerializerOptions
-            {
-                Converters = { new SketchObjectConverter() }
-            };
-            return JsonSerializer.Deserialize<SketchDocument>(json, options);
+
+            return JsonSerializer.Deserialize<SketchDocument>(json, LoadOptions)
+                ?? throw new InvalidDataException($"Não foi possível desserializar o arquivo '{caminho}'.");
         }
 
-        public void NotificarAlteracao()
-        {
-            DocumentoAlterado?.Invoke(this, EventArgs.Empty);
-        }
+        public void NotificarAlteracao() => DocumentoAlterado?.Invoke(this, EventArgs.Empty);
 
         /// <summary>
         /// Agrupa múltiplos objetos em um GroupObject
@@ -141,7 +146,7 @@ namespace CrimeSketcher.Core
                 UndoRedo.RegistrarAcao(new GroupAction(this, grupo, agrupar, indiceInsercao));
             }
 
-            DocumentoAlterado?.Invoke(this, EventArgs.Empty);
+            NotificarAlteracao();
             return grupo;
         }
 
@@ -151,7 +156,7 @@ namespace CrimeSketcher.Core
         public List<BaseSketchObject> DesagruparObjetos(GroupObject grupo, bool comUndo = true)
         {
             if (grupo == null || grupo.ObjetosMembro.Count == 0)
-                return new List<BaseSketchObject>();
+                return [];
 
             var membros = new List<BaseSketchObject>(grupo.ObjetosMembro);
             int indiceGrupo = Objetos.IndexOf(grupo);
@@ -173,7 +178,7 @@ namespace CrimeSketcher.Core
                 UndoRedo.RegistrarAcao(new UngroupAction(this, grupo, membros, indiceInsercao));
             }
 
-            DocumentoAlterado?.Invoke(this, EventArgs.Empty);
+            NotificarAlteracao();
             return membros;
         }
     }

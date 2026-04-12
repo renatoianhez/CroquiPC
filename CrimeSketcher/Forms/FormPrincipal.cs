@@ -1,4 +1,4 @@
-﻿﻿// Forms/FormPrincipal.cs
+﻿// Forms/FormPrincipal.cs
 using CrimeSketcher.Core;
 using CrimeSketcher.Library;
 using CrimeSketcher.Objects;
@@ -72,9 +72,10 @@ namespace CrimeSketcher.Forms
 
         // Clipboard para copiar/colar
         private string _objetosCopiados = null;
+        private ContextMenuStrip _menuContextoSelecao;
 
         // Constantes de fontes
-        private readonly Font FonteToolbar = new Font("Segoe UI Symbol", 13);
+        private readonly Font FonteToolbar = new Font("Segoe UI Symbol", 11);
         private readonly Font FonteDropdownToolbar = new Font("Segoe UI", 11);
         private readonly Font FontePainelFerramentas = new Font("Segoe UI", 11);
 
@@ -540,6 +541,7 @@ namespace CrimeSketcher.Forms
             };
             canvas.CursorMoved += Canvas_CursorMoved;
             canvas.ZoomChanged += Canvas_ZoomChanged;
+            canvas.MouseUp += Canvas_MouseUp;
 
             var borderCanvas = new Panel
             {
@@ -857,7 +859,7 @@ namespace CrimeSketcher.Forms
             {
                 menuStrip.BackColor = corFundoPainel;
                 menuStrip.ForeColor = corTexto;
-                menuStrip.Font = SystemFonts.MenuFont;
+                menuStrip.Font = new Font("Segoe UI", 11);
                 AplicarTemaToolStripItems(menuStrip.Items, corTexto, corFundoPainel);
             }
 
@@ -865,7 +867,7 @@ namespace CrimeSketcher.Forms
             {
                 toolStrip.BackColor = corFundoPainel;
                 toolStrip.ForeColor = corTexto;
-                toolStrip.Font = SystemFonts.MenuFont;
+                toolStrip.Font = new Font("Segoe UI", 11);
                 AplicarTemaToolStripItems(toolStrip.Items, corTexto, corFundoPainel);
             }
 
@@ -928,11 +930,11 @@ namespace CrimeSketcher.Forms
                 {
                     // Manter a fonte já definida no botão
                     if (item.Font == null || item.Font.Name == SystemFonts.MenuFont.Name)
-                        item.Font = SystemFonts.MenuFont;
+                        item.Font = new Font("Segoe UI", 11);
                 }
                 else if (!(item is ToolStripSeparator))
                 {
-                    item.Font = SystemFonts.MenuFont;
+                    item.Font = new Font("Segoe UI", 11);
                 }
 
                 if (item is ToolStripDropDownItem dropDown)
@@ -1596,15 +1598,13 @@ namespace CrimeSketcher.Forms
             }
 
             foreach (var obj in documento.Objetos)
-            {
-                obj.Selecionado = true;
-            }
+            obj.Selecionado = true;
 
-            var ultimo = documento.Objetos.Last();
-            selectTool.SelecionarObjeto(ultimo);
-            propGrid.SelectedObject = ultimo;
-            canvas.Invalidate();
-            statusLabel.Text = $"✓ {documento.Objetos.Count} objeto(s) selecionado(s)";
+        var ultimo = documento.Objetos.Last();
+        selectTool.SelecionarObjeto(ultimo);
+        propGrid.SelectedObject = ultimo;
+        canvas.Invalidate();
+        statusLabel.Text = $"✓ {documento.Objetos.Count} objeto(s) selecionado(s)";
         }
 
         private void Agrupar()
@@ -2220,7 +2220,7 @@ namespace CrimeSketcher.Forms
                 {
                     case Keys.S: SalvarComo(); e.Handled = true; break;
                     case Keys.G: Desagrupar(); e.Handled = true; break;
-                    case Keys.I: Imprimir(); e.Handled = true; break;
+                    case Keys I: Imprimir(); e.Handled = true; break;
                 }
             }
             else if (e.Control && e.Alt && !e.Shift)
@@ -2483,6 +2483,161 @@ namespace CrimeSketcher.Forms
             _formListaObjetos.BringToFront();
         }
 
+        private void MostrarPropriedadesSelecao()
+        {
+            var selecionados = selectTool?.ObjetosSelecionados?.Cast<object>().ToArray() ?? [];
+            if (selecionados.Length == 0)
+                return;
+
+            if (selecionados.Length == 1)
+                propGrid.SelectedObject = selecionados[0];
+            else
+                propGrid.SelectedObjects = selecionados;
+
+            AjustarColunaNomesPropriedades();
+            propGrid.Focus();
+            statusLabel.Text = selecionados.Length == 1
+                ? "Propriedades do objeto exibidas"
+                : $"Propriedades de {selecionados.Length} objetos exibidas";
+        }
+
+        private void DefinirBloqueioSelecionados(bool bloqueado)
+        {
+            var selecionados = selectTool?.ObjetosSelecionados?.ToList() ?? [];
+            if (selecionados.Count == 0)
+            {
+                statusLabel.Text = bloqueado
+                    ? "Nenhum objeto selecionado para bloquear"
+                    : "Nenhum objeto selecionado para desbloquear";
+                return;
+            }
+
+            int alterados = 0;
+            foreach (var obj in selecionados)
+            {
+                if (obj.Bloqueado == bloqueado)
+                    continue;
+
+                obj.Bloqueado = bloqueado;
+                alterados++;
+            }
+
+            if (alterados == 0)
+            {
+                statusLabel.Text = bloqueado
+                    ? "Todos os objetos selecionados já estão bloqueados"
+                    : "Todos os objetos selecionados já estão desbloqueados";
+                return;
+            }
+
+            propGrid.Refresh();
+            documento.NotificarAlteracao();
+            canvas.Invalidate();
+            statusLabel.Text = bloqueado
+                ? $"✓ {alterados} objeto(s) bloqueado(s)"
+                : $"✓ {alterados} objeto(s) desbloqueado(s)";
+        }
+
+        private ToolStripMenuItem CriarItemMenuContexto(string texto, Action acao, bool habilitado = true)
+        {
+            var item = new ToolStripMenuItem(texto)
+            {
+                Enabled = habilitado
+            };
+            item.Click += (s, e) => acao();
+            return item;
+        }
+
+        private void AplicarTemaMenuContexto(ToolStripItemCollection items)
+        {
+            foreach (ToolStripItem item in items)
+            {
+                item.ForeColor = SystemColors.ControlText;
+                if (item is not ToolStripSeparator)
+                    item.Font = new Font("Segoe UI", 11);
+            }
+        }
+
+        private ContextMenuStrip CriarMenuContextoSelecao(List<BaseSketchObject> selecionados)
+        {
+            var menu = new ContextMenuStrip
+            {
+                ShowImageMargin = false,
+                BackColor = SystemColors.Control,
+                ForeColor = SystemColors.ControlText,
+                Font = SystemFonts.MenuFont
+            };
+
+            bool selecaoUnica = selecionados.Count == 1;
+            bool podeAgrupar = selecionados.Count >= 2 && selecionados.All(o => o is not GroupObject);
+            bool contemGrupo = selecionados.Any(o => o is GroupObject);
+            bool algumBloqueado = selecionados.Any(o => o.Bloqueado);
+            bool algumDesbloqueado = selecionados.Any(o => !o.Bloqueado);
+
+            menu.Items.Add(CriarItemMenuContexto("Propriedades", MostrarPropriedadesSelecao));
+            menu.Items.Add(new ToolStripSeparator());
+            menu.Items.Add(CriarItemMenuContexto("Copiar", Copiar));
+            menu.Items.Add(CriarItemMenuContexto("Recortar", Recortar));
+            menu.Items.Add(CriarItemMenuContexto("Colar", Colar, !string.IsNullOrEmpty(_objetosCopiados)));
+            menu.Items.Add(new ToolStripSeparator());
+            menu.Items.Add(CriarItemMenuContexto("Agrupar", Agrupar, podeAgrupar));
+            menu.Items.Add(CriarItemMenuContexto("Desagrupar", Desagrupar, contemGrupo));
+
+            var menuOrdem = new ToolStripMenuItem("Ordem")
+            {
+                Enabled = selecaoUnica
+            };
+            menuOrdem.DropDownItems.Add(CriarItemMenuContexto("Trazer para Frente", TrazerParaFrente, selecaoUnica));
+            menuOrdem.DropDownItems.Add(CriarItemMenuContexto("Enviar para Trás", EnviarParaTras, selecaoUnica));
+            menuOrdem.DropDownItems.Add(new ToolStripSeparator());
+            menuOrdem.DropDownItems.Add(CriarItemMenuContexto("Avançar uma Camada", AvancarCamada, selecaoUnica));
+            menuOrdem.DropDownItems.Add(CriarItemMenuContexto("Recuar uma Camada", RecuarCamada, selecaoUnica));
+            menu.Items.Add(menuOrdem);
+
+            var menuTransformar = new ToolStripMenuItem("Transformar")
+            {
+                Enabled = algumDesbloqueado
+            };
+            menuTransformar.DropDownItems.Add(CriarItemMenuContexto("Inverter Horizontal", InverterHorizontalSelecionados, algumDesbloqueado));
+            menuTransformar.DropDownItems.Add(CriarItemMenuContexto("Inverter Vertical", InverterVerticalSelecionados, algumDesbloqueado));
+            menuTransformar.DropDownItems.Add(new ToolStripSeparator());
+            menuTransformar.DropDownItems.Add(CriarItemMenuContexto("Girar 90° para Direita", Girar90DireitaSelecionados, algumDesbloqueado));
+            menuTransformar.DropDownItems.Add(CriarItemMenuContexto("Girar 90° para Esquerda", Girar90EsquerdaSelecionados, algumDesbloqueado));
+            menu.Items.Add(menuTransformar);
+
+            if (selecionados.Count >= 2)
+            {
+                var menuAlinhar = new ToolStripMenuItem("Alinhar");
+                menuAlinhar.DropDownItems.Add(CriarItemMenuContexto("À Esquerda", () => Alinhar("esquerda")));
+                menuAlinhar.DropDownItems.Add(CriarItemMenuContexto("Centralizar Horizontal", () => Alinhar("centro_h")));
+                menuAlinhar.DropDownItems.Add(CriarItemMenuContexto("À Direita", () => Alinhar("direita")));
+                menuAlinhar.DropDownItems.Add(new ToolStripSeparator());
+                menuAlinhar.DropDownItems.Add(CriarItemMenuContexto("Ao Topo", () => Alinhar("topo")));
+                menuAlinhar.DropDownItems.Add(CriarItemMenuContexto("Centralizar Vertical", () => Alinhar("centro_v")));
+                menuAlinhar.DropDownItems.Add(CriarItemMenuContexto("À Base", () => Alinhar("base")));
+                menu.Items.Add(menuAlinhar);
+            }
+
+            if (selecionados.Count >= 3)
+            {
+                var menuDistribuir = new ToolStripMenuItem("Distribuir");
+                menuDistribuir.DropDownItems.Add(CriarItemMenuContexto("Horizontalmente", DistribuirHorizontalmenteSelecionados));
+                menuDistribuir.DropDownItems.Add(CriarItemMenuContexto("Verticalmente", DistribuirVerticalmenteSelecionados));
+                menu.Items.Add(menuDistribuir);
+            }
+
+            var menuBloqueio = new ToolStripMenuItem("Bloqueio");
+            menuBloqueio.DropDownItems.Add(CriarItemMenuContexto("Bloquear", () => DefinirBloqueioSelecionados(true), algumDesbloqueado));
+            menuBloqueio.DropDownItems.Add(CriarItemMenuContexto("Desbloquear", () => DefinirBloqueioSelecionados(false), algumBloqueado));
+            menu.Items.Add(menuBloqueio);
+
+            menu.Items.Add(new ToolStripSeparator());
+            menu.Items.Add(CriarItemMenuContexto("Excluir", ExcluirSelecao));
+
+            AplicarTemaMenuContexto(menu.Items);
+            return menu;
+        }
+
         private void SelecionarObjetoNaCena(BaseSketchObject obj)
         {
             if (obj == null) return;
@@ -2492,7 +2647,38 @@ namespace CrimeSketcher.Forms
             canvas.Invalidate();
             propGrid.SelectedObject = obj;
         }
-        #endregion
 
+        private void Canvas_MouseUp(object sender, MouseEventArgs e)
+        {
+            if (e.Button != MouseButtons.Right || ModifierKeys.HasFlag(Keys.Control))
+                return;
+
+            if (canvas.FerramentaAtual != selectTool)
+                return;
+
+            var worldPos = canvas.ScreenToWorld(e.Location);
+            float tolerancia = 6f / Math.Max(0.0001f, escala.ZoomLevel);
+            var hit = documento.HitTest(worldPos, tolerancia);
+
+            if (hit == null)
+                return;
+
+            if (!selectTool.ObjetosSelecionados.Contains(hit))
+            {
+                selectTool.SelecionarObjeto(hit);
+                propGrid.SelectedObject = hit;
+                canvas.Invalidate();
+            }
+
+            var selecionados = selectTool.ObjetosSelecionados.ToList();
+            if (selecionados.Count == 0)
+                return;
+
+            _menuContextoSelecao?.Dispose();
+            _menuContextoSelecao = CriarMenuContextoSelecao(selecionados);
+            _menuContextoSelecao.Show(canvas, e.Location);
+        }
+
+        #endregion
     }
 }
