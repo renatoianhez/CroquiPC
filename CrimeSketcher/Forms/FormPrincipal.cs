@@ -1,4 +1,4 @@
-﻿// Forms/FormPrincipal.cs
+﻿﻿// Forms/FormPrincipal.cs
 using CrimeSketcher.Core;
 using CrimeSketcher.Library;
 using CrimeSketcher.Objects;
@@ -72,6 +72,11 @@ namespace CrimeSketcher.Forms
 
         // Clipboard para copiar/colar
         private string _objetosCopiados = null;
+
+        // Constantes de fontes
+        private readonly Font FonteToolbar = new Font("Segoe UI Symbol", 13);
+        private readonly Font FonteDropdownToolbar = new Font("Segoe UI", 11);
+        private readonly Font FontePainelFerramentas = new Font("Segoe UI", 11);
 
         #endregion
 
@@ -155,7 +160,8 @@ namespace CrimeSketcher.Forms
             // 
             // FormPrincipal
             // 
-            BackColor = Color.FromArgb(45, 45, 48);
+            BackColor = SystemColors.Control;
+            Font = SystemFonts.MessageBoxFont;
             ClientSize = new Size(1384, 861);
             Icon = (Icon)resources.GetObject("$this.Icon");
             KeyPreview = true;
@@ -298,39 +304,39 @@ namespace CrimeSketcher.Forms
             toolStrip.ImageScalingSize = new Size(20, 20);
 
             // ===== ARQUIVO =====
-            toolStrip.Items.Add(CriarBotaoToolbar("📄", "Novo (Ctrl+N)", NovoDocumento));
-            toolStrip.Items.Add(CriarBotaoToolbar("📂", "Abrir (Ctrl+O)", AbrirDocumento));
-            toolStrip.Items.Add(CriarBotaoToolbar("💾", "Salvar (Ctrl+S)", SalvarDocumento));
+            toolStrip.Items.Add(CriarBotaoToolbar("\uE160", "Novo (Ctrl+N)", NovoDocumento));
+            toolStrip.Items.Add(CriarBotaoToolbar("\U0001F4C2", "Abrir (Ctrl+O)", AbrirDocumento));
+            toolStrip.Items.Add(CriarBotaoToolbar("\uE105", "Salvar (Ctrl+S)", SalvarDocumento));
 
             toolStrip.Items.Add(new ToolStripSeparator());
 
             // ===== EDIÇÃO =====
-            toolStrip.Items.Add(CriarBotaoToolbar("↩️", "Desfazer (Ctrl+Z)", () => undoRedo?.Desfazer()));
-            toolStrip.Items.Add(CriarBotaoToolbar("↪️", "Refazer (Ctrl+Y)", () => undoRedo?.Refazer()));
+            toolStrip.Items.Add(CriarBotaoToolbar("\uE10E", "Desfazer (Ctrl+Z)", () => undoRedo?.Desfazer()));
+            toolStrip.Items.Add(CriarBotaoToolbar("\uE10D", "Refazer (Ctrl+Y)", () => undoRedo?.Refazer()));
 
             toolStrip.Items.Add(new ToolStripSeparator());
 
-            toolStrip.Items.Add(CriarBotaoToolbar("📋", "Copiar (Ctrl+C)", Copiar));
-            toolStrip.Items.Add(CriarBotaoToolbar("📌", "Colar (Ctrl+V)", Colar));
-            toolStrip.Items.Add(CriarBotaoToolbar("✂️", "Recortar (Ctrl+X)", Recortar));
+            toolStrip.Items.Add(CriarBotaoToolbar("\uE16F", "Copiar (Ctrl+C)", Copiar));
+            toolStrip.Items.Add(CriarBotaoToolbar("\uE16D", "Colar (Ctrl+V)", Colar));
+            toolStrip.Items.Add(CriarBotaoToolbar("\uE16B", "Recortar (Ctrl+X)", Recortar));
 
             toolStrip.Items.Add(new ToolStripSeparator());
 
             // ===== AGRUPAR =====
-            toolStrip.Items.Add(CriarBotaoToolbar("🔗", "Agrupar (Ctrl+G)", Agrupar));
-            toolStrip.Items.Add(CriarBotaoToolbar("⛓️‍💥", "Desagrupar (Ctrl+Shift+G)", Desagrupar));
+            toolStrip.Items.Add(CriarBotaoToolbar("\uE14E", "Agrupar (Ctrl+G)", Agrupar));
+            toolStrip.Items.Add(CriarBotaoToolbar("\uE154", "Desagrupar (Ctrl+Shift+G)", Desagrupar));
 
             toolStrip.Items.Add(new ToolStripSeparator());
 
             // ===== ZOOM =====
-            var btnZoom = new ToolStripDropDownButton("🔍 Zoom");
+            var btnZoom = new ToolStripDropDownButton("\U0001F50E" + " Zoom");
             btnZoom.ToolTipText = "Ferramentas de Zoom";
-            btnZoom.Font = new Font("Segoe UI Emoji", 10);
+            btnZoom.Font = FonteDropdownToolbar;
             btnZoom.ForeColor = Color.White;
-            btnZoom.DropDownItems.Add(CriarMenuItemToolbar("🔍+ Ampliar", "Ctrl++", () => AlterarZoom(1.25f)));
-            btnZoom.DropDownItems.Add(CriarMenuItemToolbar("🔍- Reduzir", "Ctrl+-", () => AlterarZoom(1f / 1.25f)));
-            btnZoom.DropDownItems.Add(CriarMenuItemToolbar("🔍◻ Ajustar Tudo", "Ctrl+0", () => canvas.ZoomParaMostrarTudo()));
-            btnZoom.DropDownItems.Add(CriarMenuItemToolbar("🔍1 Zoom 100%", "Ctrl+1", () => DefinirZoom(1f)));
+            btnZoom.DropDownItems.Add(CriarMenuItemToolbar("\uE0C5" + "+ Ampliar", "Ctrl++", () => AlterarZoom(1.25f)));
+            btnZoom.DropDownItems.Add(CriarMenuItemToolbar("\uE0C6" + "- Reduzir", "Ctrl+-", () => AlterarZoom(1f / 1.25f)));
+            btnZoom.DropDownItems.Add(CriarMenuItemToolbar("\uE0DF" + "◻ Ajustar Tudo", "Ctrl+0", () => canvas.ZoomParaMostrarTudo()));
+            btnZoom.DropDownItems.Add(CriarMenuItemToolbar("🔎" + "1 Zoom 100%", "Ctrl+1", () => DefinirZoom(1f)));
             btnZoom.DropDownItems.Add(new ToolStripSeparator());
 
             var cmbZoom = new ToolStripComboBox("Nível:");
@@ -351,12 +357,12 @@ namespace CrimeSketcher.Forms
             toolStrip.Items.Add(new ToolStripSeparator());
 
             // ===== ORDENAÇÃO =====
-            var btnOrdem = new ToolStripDropDownButton("📑 Ordem");
+            var btnOrdem = new ToolStripDropDownButton("\uE17D" + " Ordem");
             btnOrdem.ToolTipText = "Ordenação de Camadas";
-            btnOrdem.Font = new Font("Segoe UI", 9);
+            btnOrdem.Font = FonteDropdownToolbar;
             btnOrdem.ForeColor = Color.White;
-            btnOrdem.DropDownItems.Add(CriarMenuItemToolbar("⬆️ Trazer para Frente", "", TrazerParaFrente));
-            btnOrdem.DropDownItems.Add(CriarMenuItemToolbar("⬇️ Enviar para Trás", "", EnviarParaTras));
+            btnOrdem.DropDownItems.Add(CriarMenuItemToolbar("\uE1FE Trazer para Frente", "", TrazerParaFrente));
+            btnOrdem.DropDownItems.Add(CriarMenuItemToolbar("\uE1FC Enviar para Trás", "", EnviarParaTras));
             btnOrdem.DropDownItems.Add(new ToolStripSeparator());
             btnOrdem.DropDownItems.Add(CriarMenuItemToolbar("🔼 Avançar Uma Camada", "", AvancarCamada));
             btnOrdem.DropDownItems.Add(CriarMenuItemToolbar("🔽 Recuar Uma Camada", "", RecuarCamada));
@@ -365,28 +371,34 @@ namespace CrimeSketcher.Forms
             toolStrip.Items.Add(new ToolStripSeparator());
 
             // ===== ALINHAMENTO =====
-            var btnAlinhar = new ToolStripDropDownButton("⬌ Alinhar");
+            var btnAlinhar = new ToolStripDropDownButton("\u2B64 Alinhar");
             btnAlinhar.ToolTipText = "Alinhamento de Objetos";
-            btnAlinhar.Font = new Font("Segoe UI", 9);
+            btnAlinhar.Font = FonteDropdownToolbar;
             btnAlinhar.ForeColor = Color.White;
-            btnAlinhar.DropDownItems.Add(CriarMenuItemToolbar("⬅ Alinhar à Esquerda", "", () => Alinhar("esquerda")));
-            btnAlinhar.DropDownItems.Add(CriarMenuItemToolbar("⬌ Centralizar Horizontal", "", () => Alinhar("centro_h")));
-            btnAlinhar.DropDownItems.Add(CriarMenuItemToolbar("➡ Alinhar à Direita", "", () => Alinhar("direita")));
+            btnAlinhar.DropDownItems.Add(CriarMenuItemToolbar("\u2B70 Alinhar à Esquerda", "", () => Alinhar("esquerda")));
+            btnAlinhar.DropDownItems.Add(CriarMenuItemToolbar("\u2B7E Centralizar Horizontal", "", () => Alinhar("centro_h")));
+            btnAlinhar.DropDownItems.Add(CriarMenuItemToolbar("\u2B72 Alinhar à Direita", "", () => Alinhar("direita")));
             btnAlinhar.DropDownItems.Add(new ToolStripSeparator());
-            btnAlinhar.DropDownItems.Add(CriarMenuItemToolbar("⬆ Alinhar ao Topo", "", () => Alinhar("topo")));
-            btnAlinhar.DropDownItems.Add(CriarMenuItemToolbar("⬍ Centralizar Vertical", "", () => Alinhar("centro_v")));
-            btnAlinhar.DropDownItems.Add(CriarMenuItemToolbar("⬇ Alinhar à Base", "", () => Alinhar("base")));
+            btnAlinhar.DropDownItems.Add(CriarMenuItemToolbar("\u2B71 Alinhar ao Topo", "", () => Alinhar("topo")));
+            btnAlinhar.DropDownItems.Add(CriarMenuItemToolbar("\u2B7F Centralizar Vertical", "", () => Alinhar("centro_v")));
+            btnAlinhar.DropDownItems.Add(CriarMenuItemToolbar("\u2B73 Alinhar à Base", "", () => Alinhar("base")));
+            btnAlinhar.DropDownItems.Add(new ToolStripSeparator());
+            btnAlinhar.DropDownItems.Add(CriarMenuItemToolbar("\u22EF Distribuir Horizontalmente", "", DistribuirHorizontalmenteSelecionados));
+            btnAlinhar.DropDownItems.Add(CriarMenuItemToolbar("\u22EE Distribuir Verticalmente", "", DistribuirVerticalmenteSelecionados));
             toolStrip.Items.Add(btnAlinhar);
 
             toolStrip.Items.Add(new ToolStripSeparator());
 
             // ===== INVERSÃO =====
-            var btnInverter = new ToolStripDropDownButton("↔ Inverter");
+            var btnInverter = new ToolStripDropDownButton("\U0001F503 Inverter");
             btnInverter.ToolTipText = "Inversão de Objetos";
-            btnInverter.Font = new Font("Segoe UI", 9);
+            btnInverter.Font = FonteDropdownToolbar;
             btnInverter.ForeColor = Color.White;
-            btnInverter.DropDownItems.Add(CriarMenuItemToolbar("↔ Inverter Horizontal", "", InverterHorizontalSelecionados));
-            btnInverter.DropDownItems.Add(CriarMenuItemToolbar("↕ Inverter Vertical", "", InverterVerticalSelecionados));
+            btnInverter.DropDownItems.Add(CriarMenuItemToolbar("\u21D4 Inverter Horizontal", "", InverterHorizontalSelecionados));
+            btnInverter.DropDownItems.Add(CriarMenuItemToolbar("\u21D5 Inverter Vertical", "", InverterVerticalSelecionados));
+            btnInverter.DropDownItems.Add(new ToolStripSeparator());
+            btnInverter.DropDownItems.Add(CriarMenuItemToolbar("\u2935 Girar 90° para Direita", "", Girar90DireitaSelecionados));
+            btnInverter.DropDownItems.Add(CriarMenuItemToolbar("\u2934 Girar 90° para Esquerda", "", Girar90EsquerdaSelecionados));
             toolStrip.Items.Add(btnInverter);
 
             toolStrip.Items.Add(new ToolStripSeparator());
@@ -432,7 +444,7 @@ namespace CrimeSketcher.Forms
 
             // ===== LISTA DE OBJETOS =====
             toolStrip.Items.Add(new ToolStripSeparator());
-            var btnListaObjetos = new ToolStripButton("🗂 Lista de Objetos");
+            var btnListaObjetos = new ToolStripButton("\uE0F5 Lista de Objetos");
             btnListaObjetos.ToolTipText = "Exibir lista de objetos na cena";
             btnListaObjetos.Click += (s, e) => AbrirFormListaObjetos();
             toolStrip.Items.Add(btnListaObjetos);
@@ -442,7 +454,7 @@ namespace CrimeSketcher.Forms
         {
             var btn = new ToolStripButton(emoji);
             btn.ToolTipText = tooltip;
-            btn.Font = new Font("Segoe UI Emoji", 10);
+            btn.Font = FonteToolbar;
             btn.ForeColor = Color.White;
             btn.Click += (s, e) => acao();
             return btn;
@@ -460,38 +472,38 @@ namespace CrimeSketcher.Forms
         private void CriarStatusBar()
         {
             statusStrip = new StatusStrip();
-            statusStrip.BackColor = Color.FromArgb(0, 122, 204);
+            statusStrip.BackColor = SystemColors.Control;
 
             statusLabel = new ToolStripStatusLabel("Pronto")
             {
                 Spring = true,
                 TextAlign = ContentAlignment.MiddleLeft,
-                ForeColor = Color.White
+                ForeColor = SystemColors.ControlText
             };
 
             statusCoord = new ToolStripStatusLabel("X: 0  Y: 0")
             {
                 BorderSides = ToolStripStatusLabelBorderSides.Left,
-                ForeColor = Color.White
+                ForeColor = SystemColors.ControlText
             };
 
             statusEscala = new ToolStripStatusLabel("Escala: 1:100")
             {
                 BorderSides = ToolStripStatusLabelBorderSides.Left,
-                ForeColor = Color.White
+                ForeColor = SystemColors.ControlText
             };
 
             statusZoom = new ToolStripStatusLabel("Zoom: 100%")
             {
                 BorderSides = ToolStripStatusLabelBorderSides.Left,
-                ForeColor = Color.White
+                ForeColor = SystemColors.ControlText
             };
 
             statusSnap = new ToolStripStatusLabel("SNAP: ON")
             {
                 BorderSides = ToolStripStatusLabelBorderSides.Left,
-                ForeColor = Color.LightGreen,
-                Font = new Font("Segoe UI", 9, FontStyle.Bold)
+                ForeColor = SystemColors.ControlText,
+                Font = SystemFonts.MessageBoxFont
             };
 
             statusStrip.Items.AddRange(new ToolStripItem[]
@@ -581,9 +593,9 @@ namespace CrimeSketcher.Forms
 
             var lblTitulo = new Label
             {
-                Text = "🔧 FERRAMENTAS",
+                Text = "\U0001F527 FERRAMENTAS",
                 Dock = DockStyle.Top,
-                Font = new Font("Segoe UI", 10, FontStyle.Bold),
+                Font = new Font("Segoe UI", 11, FontStyle.Bold),
                 ForeColor = Color.White,
                 BackColor = Color.FromArgb(0, 122, 204),
                 TextAlign = ContentAlignment.MiddleLeft,
@@ -603,7 +615,7 @@ namespace CrimeSketcher.Forms
 
             container.Controls.Add(CriarGrupoFerramentas("Seleção", new[]
             {
-                ("🖱️ Selecionar", "Selecionar", "Esc"),
+                ("⬚ Selecionar", "Selecionar", "Esc"),
             }));
 
             container.Controls.Add(CriarGrupoFerramentas("Construção", new[]
@@ -615,10 +627,10 @@ namespace CrimeSketcher.Forms
             {
                 var ferramentasTransito = new (string texto, string tool, string atalho)[]
                 {
-                    ("🛣️ Rua", "Rua", "Ctrl+Alt+S"),
-                    ("🛤️ Estrada", "Estrada", ""),
-                    ("⭕ Rotatória", "Rotatoria", "Ctrl+Alt+R"),
-                    ("🍀 Trevos DNIT", "Trevos", ""),
+                    ("\U0001F697 Rua", "Rua", "Ctrl+Alt+S"),
+                    ("\U0001F6E3 Estrada", "Estrada", ""),
+                    ("\u2B57 Rotatória", "Rotatoria", "Ctrl+Alt+R"),
+                    ("🍀 Trevos", "Trevos", ""),
                     ("🔴 Marca", "Marca", "Ctrl+M"),
                 };
                 var grpTransito = CriarGrupoFerramentas("Elementos de Trânsito", ferramentasTransito);
@@ -633,7 +645,7 @@ namespace CrimeSketcher.Forms
                     Size = new Size(204, 20),
                     ForeColor = Color.Black,
                     BackColor = Color.Transparent,
-                    Font = new Font("Segoe UI", 8f),
+                    Font = new Font("Segoe UI", 12f),
                     Checked = false
                 };
 
@@ -679,14 +691,14 @@ namespace CrimeSketcher.Forms
             container.Controls.Add(CriarGrupoFerramentas("Medições e Indicações", new[]
             {
                 ("📏 Cota/Medida", "Cota", "Ctrl+D"),
-                ("➡️ Seta", "Seta", "Ctrl+Alt+A"),
-                ("🏷️ Texto", "Texto", "Ctrl+Alt+T"),
+                ("\uE0AE Seta", "Seta", "Ctrl+Alt+A"),
+                ("\U0001D54B Texto", "Texto", "Ctrl+Alt+T"),
             }));
 
             container.Controls.Add(CriarGrupoFerramentas("Representação de Corpos", new[]
             {
-                ("🧍 Corpo Masculino", "CorpoMasculino", "Ctrl+H"),
-                ("👩 Corpo Feminino", "CorpoFeminino", "Ctrl+F"),
+                ("\U0001F6B9 Corpo Masculino", "CorpoMasculino", "Ctrl+H"),
+                ("\U0001F6BA Corpo Feminino", "CorpoFeminino", "Ctrl+F"),
             }));
 
             painelFerramentas.Controls.Add(container);
@@ -701,7 +713,7 @@ namespace CrimeSketcher.Forms
                 Width = 220,
                 Height = 25 + ferramentas.Length * 34,
                 ForeColor = Color.Silver,
-                Font = new Font("Segoe UI", 8.5f, FontStyle.Bold),
+                Font = new Font("Segoe UI", 12, FontStyle.Bold),
                 Margin = new Padding(0, 0, 0, 5)
             };
 
@@ -715,7 +727,7 @@ namespace CrimeSketcher.Forms
                     Size = new Size(200, 30),
                     TextAlign = ContentAlignment.MiddleLeft,
                     FlatStyle = FlatStyle.Flat,
-                    Font = new Font("Segoe UI", 9),
+                    Font = new Font("Segoe UI", 11),
                     ForeColor = Color.White,
                     BackColor = Color.FromArgb(55, 55, 58),
                     Cursor = Cursors.Hand,
@@ -769,14 +781,14 @@ namespace CrimeSketcher.Forms
             tabBiblioteca = new TabControl
             {
                 Dock = DockStyle.Fill,
-                Font = new Font("Segoe UI", 8.5f)
+                Font = new Font("Segoe UI", 12f)
             };
 
             var lblTitulo = new Label
             {
-                Text = "📚 BIBLIOTECA DE SÍMBOLOS",
+                Text = "\U0001F4DA BIBLIOTECA DE SÍMBOLOS",
                 Dock = DockStyle.Top,
-                Font = new Font("Segoe UI", 10, FontStyle.Bold),
+                Font = new Font("Segoe UI", 12, FontStyle.Bold),
                 ForeColor = Color.White,
                 BackColor = Color.FromArgb(104, 33, 122),
                 TextAlign = ContentAlignment.MiddleLeft,
@@ -801,7 +813,7 @@ namespace CrimeSketcher.Forms
             {
                 Text = "📋 PROPRIEDADES",
                 Dock = DockStyle.Top,
-                Font = new Font("Segoe UI", 10, FontStyle.Bold),
+                Font = new Font("Segoe UI", 12, FontStyle.Bold),
                 ForeColor = Color.White,
                 BackColor = Color.FromArgb(0, 122, 204),
                 TextAlign = ContentAlignment.MiddleLeft,
@@ -830,12 +842,8 @@ namespace CrimeSketcher.Forms
 
         private void AplicarTemaSistemaUI()
         {
-            bool temaEscuro = SystemColors.Window.GetBrightness() < 0.5f;
-
             Color corFundo = SystemColors.Control;
-            Color corFundoPainel = temaEscuro
-                ? ControlPaint.Dark(SystemColors.Control, 0.2f)
-                : ControlPaint.Light(SystemColors.Control, 0.1f);
+            Color corFundoPainel = SystemColors.Control;
             Color corTexto = SystemColors.ControlText;
             Color corDestaque = SystemColors.Highlight;
             Color corTextoDestaque = SystemColors.HighlightText;
@@ -843,11 +851,13 @@ namespace CrimeSketcher.Forms
 
             this.BackColor = corFundo;
             this.ForeColor = corTexto;
+            this.Font = SystemFonts.MessageBoxFont;
 
             if (menuStrip != null)
             {
                 menuStrip.BackColor = corFundoPainel;
                 menuStrip.ForeColor = corTexto;
+                menuStrip.Font = SystemFonts.MenuFont;
                 AplicarTemaToolStripItems(menuStrip.Items, corTexto, corFundoPainel);
             }
 
@@ -855,6 +865,7 @@ namespace CrimeSketcher.Forms
             {
                 toolStrip.BackColor = corFundoPainel;
                 toolStrip.ForeColor = corTexto;
+                toolStrip.Font = SystemFonts.MenuFont;
                 AplicarTemaToolStripItems(toolStrip.Items, corTexto, corFundoPainel);
             }
 
@@ -862,8 +873,12 @@ namespace CrimeSketcher.Forms
             {
                 statusStrip.BackColor = corFundoPainel;
                 statusStrip.ForeColor = corTexto;
+                statusStrip.Font = SystemFonts.MessageBoxFont;
                 foreach (ToolStripItem item in statusStrip.Items)
+                {
                     item.ForeColor = corTexto;
+                    item.Font = SystemFonts.MessageBoxFont;
+                }
             }
 
             if (splitPrincipal != null)
@@ -889,6 +904,7 @@ namespace CrimeSketcher.Forms
                 propGrid.HelpForeColor = corTexto;
                 propGrid.LineColor = corBorda;
                 propGrid.CategoryForeColor = corTexto;
+                propGrid.Font = SystemFonts.MessageBoxFont;
             }
 
             canvas?.AplicarTemaSistema();
@@ -906,9 +922,23 @@ namespace CrimeSketcher.Forms
             foreach (ToolStripItem item in items)
             {
                 item.ForeColor = corTexto;
+                
+                // Preservar fonte customizada se for um dropdown button ou menu item com fonte específica
+                if (item is ToolStripDropDownButton || item is ToolStripButton)
+                {
+                    // Manter a fonte já definida no botão
+                    if (item.Font == null || item.Font.Name == SystemFonts.MenuFont.Name)
+                        item.Font = SystemFonts.MenuFont;
+                }
+                else if (!(item is ToolStripSeparator))
+                {
+                    item.Font = SystemFonts.MenuFont;
+                }
+
                 if (item is ToolStripDropDownItem dropDown)
                 {
                     dropDown.DropDown.BackColor = corFundo;
+                    dropDown.DropDown.ForeColor = corTexto;
                     AplicarTemaToolStripItems(dropDown.DropDownItems, corTexto, corFundo);
                 }
             }
@@ -919,6 +949,11 @@ namespace CrimeSketcher.Forms
         {
             foreach (Control ctrl in controls)
             {
+                // Só aplicar fonte padrão se não for um componente com fonte customizada
+                if (!(ctrl is ToolStripButton) && !(ctrl is ToolStripDropDownButton) && 
+                    !(ctrl is GroupBox) && !(ctrl is Button))
+                    ctrl.Font = SystemFonts.MessageBoxFont;
+
                 switch (ctrl)
                 {
                     case FlowLayoutPanel flow:
@@ -941,23 +976,13 @@ namespace CrimeSketcher.Forms
                         group.BackColor = corFundo;
                         break;
                     case Label label:
-                        if (label.Dock == DockStyle.Top && label.Height <= 40)
-                        {
-                            label.BackColor = corDestaque;
-                            label.ForeColor = corTextoDestaque;
-                        }
-                        else
-                        {
-                            label.BackColor = corFundo;
-                            label.ForeColor = corTexto;
-                        }
+                        label.BackColor = corFundo;
+                        label.ForeColor = corTexto;
                         break;
                     case Button btn:
-                        btn.BackColor = corFundo;
+                        btn.FlatStyle = FlatStyle.Standard;
+                        btn.UseVisualStyleBackColor = true;
                         btn.ForeColor = corTexto;
-                        btn.FlatAppearance.BorderColor = corBorda;
-                        btn.FlatAppearance.MouseOverBackColor = ControlPaint.Light(corFundo, 0.15f);
-                        btn.FlatAppearance.MouseDownBackColor = corDestaque;
                         break;
                     case TabControl tab:
                         tab.BackColor = corFundo;
@@ -1779,6 +1804,68 @@ namespace CrimeSketcher.Forms
             statusLabel.Text = $"Objetos alinhados ({tipo})";
         }
 
+        private void DistribuirHorizontalmenteSelecionados()
+        {
+            DistribuirSelecionados(horizontal: true);
+        }
+
+        private void DistribuirVerticalmenteSelecionados()
+        {
+            DistribuirSelecionados(horizontal: false);
+        }
+
+        private void DistribuirSelecionados(bool horizontal)
+        {
+            var selecionados = documento.Objetos
+                .Where(o => o.Selecionado && !o.Bloqueado)
+                .ToList();
+
+            if (selecionados.Count < 3)
+            {
+                statusLabel.Text = "Selecione pelo menos 3 objetos desbloqueados para distribuir";
+                return;
+            }
+
+            var ordenados = horizontal
+                ? selecionados.OrderBy(o => o.GetBounds().Left + o.GetBounds().Width / 2f).ToList()
+                : selecionados.OrderBy(o => o.GetBounds().Top + o.GetBounds().Height / 2f).ToList();
+
+            float primeiroCentro = horizontal
+                ? ordenados.First().GetBounds().Left + ordenados.First().GetBounds().Width / 2f
+                : ordenados.First().GetBounds().Top + ordenados.First().GetBounds().Height / 2f;
+
+            float ultimoCentro = horizontal
+                ? ordenados.Last().GetBounds().Left + ordenados.Last().GetBounds().Width / 2f
+                : ordenados.Last().GetBounds().Top + ordenados.Last().GetBounds().Height / 2f;
+
+            float passo = (ultimoCentro - primeiroCentro) / (ordenados.Count - 1);
+
+            for (int i = 1; i < ordenados.Count - 1; i++)
+            {
+                var obj = ordenados[i];
+                var bounds = obj.GetBounds();
+                float centroAtual = horizontal
+                    ? bounds.Left + bounds.Width / 2f
+                    : bounds.Top + bounds.Height / 2f;
+
+                float alvo = primeiroCentro + passo * i;
+
+                if (horizontal)
+                    obj.Mover(alvo - centroAtual, 0f);
+                else
+                    obj.Mover(0f, alvo - centroAtual);
+            }
+
+            documento.NotificarAlteracao();
+            canvas.Invalidate();
+            statusLabel.Text = horizontal
+                ? $"✓ {ordenados.Count} objeto(s) distribuído(s) horizontalmente"
+                : $"✓ {ordenados.Count} objeto(s) distribuído(s) verticalmente";
+        }
+        #endregion
+
+        #region Métodos Adicionados
+
         private void ConfigurarEscala()
         {
             using (var dlg = new FormConfiguracaoEscala(escala, grid))
@@ -1916,7 +2003,7 @@ namespace CrimeSketcher.Forms
                     string textoLegenda =
                         $"══════════════════════════════\n" +
                         $"       CROQUI DE LOCAL DE CRIME\n" +
-                        $"══════════════════════════════\n" +
+                        $"══════════════════════════════\n\n" +
                         $"Procedimento: {textBoxes[0].Text}\n" +
                         $"Data/Hora: {textBoxes[2].Text}\n" +
                         $"Perito: {textBoxes[1].Text}\n" +
@@ -2076,7 +2163,7 @@ namespace CrimeSketcher.Forms
         private void AtualizarStatusSnap()
         {
             statusSnap.Text = grid.SnapAtivo ? "SNAP: ON" : "SNAP: OFF";
-            statusSnap.ForeColor = grid.SnapAtivo ? Color.LightGreen : Color.Gray;
+            statusSnap.ForeColor = SystemColors.ControlText;
         }
 
         protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
@@ -2261,6 +2348,54 @@ namespace CrimeSketcher.Forms
         private void InverterVerticalSelecionados()
         {
             InverterSelecionados(horizontal: false);
+        }
+
+        private void Girar90DireitaSelecionados()
+        {
+            GirarSelecionados(90f, "direita");
+        }
+
+        private void Girar90EsquerdaSelecionados()
+        {
+            GirarSelecionados(-90f, "esquerda");
+        }
+
+        private void GirarSelecionados(float deltaGraus, string sentido)
+        {
+            var selecionados = selectTool?.ObjetosSelecionados?.ToList()
+                ?? new List<BaseSketchObject>();
+
+            if (selecionados.Count == 0)
+            {
+                statusLabel.Text = "Nenhum objeto selecionado para girar";
+                return;
+            }
+
+            int girados = 0;
+
+            foreach (var obj in selecionados)
+            {
+                if (obj.Bloqueado)
+                    continue;
+
+                var bounds = obj.GetBounds();
+                var centro = new PointF(
+                    bounds.Left + bounds.Width / 2f,
+                    bounds.Top + bounds.Height / 2f);
+
+                obj.RotacionarAoRedor(centro, deltaGraus);
+                girados++;
+            }
+
+            if (girados == 0)
+            {
+                statusLabel.Text = "Nenhum objeto pôde ser girado (bloqueado)";
+                return;
+            }
+
+            documento.NotificarAlteracao();
+            canvas.Invalidate();
+            statusLabel.Text = $"✓ {girados} objeto(s) girado(s) 90° para {sentido}";
         }
 
         private void InverterSelecionados(bool horizontal)

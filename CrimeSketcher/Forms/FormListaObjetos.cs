@@ -27,7 +27,7 @@ namespace CrimeSketcher.Forms
         private void InitializeComponent()
         {
             Text = "Objetos na Cena";
-            Size = new Size(690, 420);
+            Size = new Size(750, 420);
 
             listViewObjetos = new ListView
             {
