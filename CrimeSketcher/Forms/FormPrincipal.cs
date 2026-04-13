@@ -2042,6 +2042,7 @@ namespace CrimeSketcher.Forms
                     {
                         Nome = Path.GetFileNameWithoutExtension(dlg.FileName),
                         CaminhoImagem = dlg.FileName,
+                        Categoria = "Imagem Externa",
                         LarguraPadrao = Math.Min(img.Width, 200),
                         AlturaPadrao = Math.Min(img.Height, 200),
                         Thumbnail = img
