@@ -1,4 +1,4 @@
-# CroquiPC 2.0.3
+# CroquiPC
 
 O CroquiPC nasceu da necessidade diária dos Peritos Criminais de apresentar um Laudo com croquis esquemáticos de locais de crimes e da inexistência de softwares dedicados que fossem de baixo ou nenhum custo às seções de Perícia.
 
