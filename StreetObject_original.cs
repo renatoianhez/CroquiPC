@@ -26,7 +26,6 @@ namespace CrimeSketcher.Objects
         private const float LARGURA_CICLOFAIXA = 15f;
         private const float LARGURA_ESTACIONAMENTO = 30f;
         private float _tamanhoFonteNomeRua = 9f;
-        private FaixasLateraisWrapper _faixasLateraisWrapper;
 
         [Browsable(false)]
         public PointF PontoInicial { get; set; }
@@ -469,15 +468,6 @@ namespace CrimeSketcher.Objects
         [Description("Espessura das linhas de sinalização em metros")]
         [TypeConverter(typeof(MetrosTransitoTypeConverter))]
         public float EspessuraFaixa { get; set; } = 2f;
-
-        [Browsable(false)]
-        public List<ConfigFaixaLateral> FaixasLateraisConfig { get; set; } = new List<ConfigFaixaLateral>();
-
-        [Category("Sinalização")]
-        [DisplayName("Configuração das Faixas Laterais")]
-        [Description("Permite definir tipo de linha e cor individualmente para cada divisória lateral (disponível quando há mais de 2 faixas)")]
-        [JsonIgnore]
-        public FaixasLateraisWrapper FaixasLaterais => _faixasLateraisWrapper ??= new FaixasLateraisWrapper(this);
 
         #endregion
 
@@ -1009,6 +999,7 @@ namespace CrimeSketcher.Objects
 
         private void DesenharFaixasLaterais(Graphics g, PointF dir, PointF perp, float comp)
         {
+            var corBranca = ObterCorSinalizacaoFaixas();
             float larguraFaixa = ObterLarguraFaixaAtual();
 
             if (!TemCanteiroCentral)
@@ -1018,12 +1009,29 @@ namespace CrimeSketcher.Objects
                 float inicioPista = -larguraPista / 2f;
                 int indiceDivisoria = faixasLadoNegativo;
 
-                int configIdx = 0;
                 for (int i = 1; i < NumeroFaixas; i++)
                 {
                     if (i == indiceDivisoria) continue;
                     float offset = inicioPista + i * larguraFaixa;
-                    DesenharDivisoriaLateral(g, offset, GetConfigFaixaLateral(configIdx++));
+                    if (!TemCurva || !PontoCurva.HasValue)
+                    {
+                        DesenharLinhaTracejada(g,
+                            new PointF(PontoInicial.X + perp.X * offset, PontoInicial.Y + perp.Y * offset),
+                            new PointF(PontoFinal.X + perp.X * offset, PontoFinal.Y + perp.Y * offset),
+                            corBranca, EspessuraFaixa, ComprimentoTracejado * 0.8f, EspacamentoTracejado * 1.2f);
+                    }
+                    else
+                    {
+                        var pts = new List<PointF>();
+                        for (int j = 0; j <= 30; j++)
+                        {
+                            float t = j / 30f;
+                            var p = GetPontoNaCurva(t);
+                            var pl = GetPerpendicularNaCurva(t);
+                            pts.Add(new PointF(p.X + pl.X * offset, p.Y + pl.Y * offset));
+                        }
+                        DesenharLinhaTracejadaCurva(g, pts, corBranca, EspessuraFaixa, ComprimentoTracejado * 0.8f, EspacamentoTracejado * 1.2f);
+                    }
                 }
                 return;
             }
@@ -1035,11 +1043,33 @@ namespace CrimeSketcher.Objects
             float inicioPistaLado = meiaCanteiro + cicloOffset;
             float larguraPistaLado = faixasPorLado * larguraFaixa;
 
-            int cfgIdx = 0;
+            Action<float> desenharOffset = (offset) =>
+            {
+                if (!TemCurva || !PontoCurva.HasValue)
+                {
+                    DesenharLinhaTracejada(g,
+                        new PointF(PontoInicial.X + perp.X * offset, PontoInicial.Y + perp.Y * offset),
+                        new PointF(PontoFinal.X + perp.X * offset, PontoFinal.Y + perp.Y * offset),
+                        corBranca, EspessuraFaixa, ComprimentoTracejado * 0.8f, EspacamentoTracejado * 1.2f);
+                }
+                else
+                {
+                    var pts = new List<PointF>();
+                    for (int j = 0; j <= 30; j++)
+                    {
+                        float t = j / 30f;
+                        var p = GetPontoNaCurva(t);
+                        var pl = GetPerpendicularNaCurva(t);
+                        pts.Add(new PointF(p.X + pl.X * offset, p.Y + pl.Y * offset));
+                    }
+                    DesenharLinhaTracejadaCurva(g, pts, corBranca, EspessuraFaixa, ComprimentoTracejado * 0.8f, EspacamentoTracejado * 1.2f);
+                }
+            };
+
             for (int i = 1; i < faixasPorLado; i++)
             {
-                DesenharDivisoriaLateral(g, -(inicioPistaLado + larguraPistaLado) + i * larguraFaixa, GetConfigFaixaLateral(cfgIdx++));
-                DesenharDivisoriaLateral(g, inicioPistaLado + i * larguraFaixa, GetConfigFaixaLateral(cfgIdx++));
+                desenharOffset(-(inicioPistaLado + larguraPistaLado) + i * larguraFaixa);
+                desenharOffset(inicioPistaLado + i * larguraFaixa);
             }
         }
 
@@ -1127,72 +1157,6 @@ namespace CrimeSketcher.Objects
                 pen.DashStyle = DashStyle.Custom;
                 pen.DashPattern = new float[] { comprimento / espessura, espacamento / espessura };
                 g.DrawLines(pen, pontos.ToArray());
-            }
-        }
-
-        private ConfigFaixaLateral GetConfigFaixaLateral(int index)
-        {
-            while (FaixasLateraisConfig.Count <= index)
-                FaixasLateraisConfig.Add(new ConfigFaixaLateral());
-            return FaixasLateraisConfig[index];
-        }
-
-        private Color ObterCorDaConfig(ConfigFaixaLateral cfg)
-        {
-            return cfg.Cor == CorSinalizacaoViaria.Branca
-                ? Color.FromArgb(CorFaixaBrancaArgb)
-                : Color.FromArgb(CorFaixaAmarelaArgb);
-        }
-
-        private void DesenharDivisoriaLateral(Graphics g, float offset, ConfigFaixaLateral cfg)
-        {
-            if (cfg.TipoLinha == TipoFaixaCentral.Nenhuma) return;
-
-            var cor = ObterCorDaConfig(cfg);
-            float espessura = EspessuraFaixa;
-
-            if (!TemCurva || !PontoCurva.HasValue)
-            {
-                var perp2 = Perpendicular;
-                var p1 = new PointF(PontoInicial.X + perp2.X * offset, PontoInicial.Y + perp2.Y * offset);
-                var p2 = new PointF(PontoFinal.X + perp2.X * offset, PontoFinal.Y + perp2.Y * offset);
-                switch (cfg.TipoLinha)
-                {
-                    case TipoFaixaCentral.TracejadaSimples:
-                        DesenharLinhaTracejada(g, p1, p2, cor, espessura, ComprimentoTracejado * 0.8f, EspacamentoTracejado * 1.2f); break;
-                    case TipoFaixaCentral.ContinuaSimples:
-                        using (var pen = new Pen(cor, espessura)) g.DrawLine(pen, p1, p2); break;
-                    case TipoFaixaCentral.ContinuaDupla:
-                        DesenharLinhaDupla(g, Direcao, cor, espessura, false, false, offset); break;
-                    case TipoFaixaCentral.ContinuaEsquerdaTracejadaDireita:
-                        DesenharLinhaDupla(g, Direcao, cor, espessura, false, true, offset); break;
-                    case TipoFaixaCentral.TracejadaEsquerdaContinuaDireita:
-                        DesenharLinhaDupla(g, Direcao, cor, espessura, true, false, offset); break;
-                }
-            }
-            else
-            {
-                var pts = new List<PointF>();
-                for (int j = 0; j <= 30; j++)
-                {
-                    float t = j / 30f;
-                    var p = GetPontoNaCurva(t);
-                    var pl = GetPerpendicularNaCurva(t);
-                    pts.Add(new PointF(p.X + pl.X * offset, p.Y + pl.Y * offset));
-                }
-                switch (cfg.TipoLinha)
-                {
-                    case TipoFaixaCentral.TracejadaSimples:
-                        DesenharLinhaTracejadaCurva(g, pts, cor, espessura, ComprimentoTracejado * 0.8f, EspacamentoTracejado * 1.2f); break;
-                    case TipoFaixaCentral.ContinuaSimples:
-                        using (var pen = new Pen(cor, espessura)) g.DrawLines(pen, pts.ToArray()); break;
-                    case TipoFaixaCentral.ContinuaDupla:
-                        DesenharLinhaDuplaCurva(g, cor, espessura, false, false, offset); break;
-                    case TipoFaixaCentral.ContinuaEsquerdaTracejadaDireita:
-                        DesenharLinhaDuplaCurva(g, cor, espessura, false, true, offset); break;
-                    case TipoFaixaCentral.TracejadaEsquerdaContinuaDireita:
-                        DesenharLinhaDuplaCurva(g, cor, espessura, true, false, offset); break;
-                }
             }
         }
 
@@ -1425,6 +1389,7 @@ namespace CrimeSketcher.Objects
 
         public override void EscalarAoRedor(PointF centro, float fatorX, float fatorY)
         {
+            // Captura a direção perpendicular ANTES de mover os pontos
             var perp = Perpendicular;
 
             PontoInicial = EscalarPonto(PontoInicial, centro, fatorX, fatorY);
@@ -1432,6 +1397,7 @@ namespace CrimeSketcher.Objects
             Posicao = EscalarPonto(Posicao, centro, fatorX, fatorY);
             if (PontoCurva.HasValue) PontoCurva = EscalarPonto(PontoCurva.Value, centro, fatorX, fatorY);
 
+            // Escala a largura apenas pela componente perpendicular ao eixo da rua
             float fatorLargura = (float)Math.Sqrt(
                 (perp.X * fatorX) * (perp.X * fatorX) +
                 (perp.Y * fatorY) * (perp.Y * fatorY));
@@ -1442,6 +1408,7 @@ namespace CrimeSketcher.Objects
                 LarguraCalcada = Math.Max(2f, LarguraCalcada * fatorLargura);
             }
 
+            // Propriedades visuais escalam pela média geral
             float media = (Math.Abs(fatorX) + Math.Abs(fatorY)) / 2f;
             ComprimentoTracejado = Math.Max(4f, ComprimentoTracejado * media);
             EspacamentoTracejado = Math.Max(2f, EspacamentoTracejado * media);
