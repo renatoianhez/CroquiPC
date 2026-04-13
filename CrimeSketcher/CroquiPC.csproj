@@ -19,6 +19,16 @@
 	</ItemGroup>
 
 	<ItemGroup>
+	  <None Remove="CHANGELOG_CURVAS.md" />
+	  <None Remove="CORRECAO_CURVATURA_MARCA.md" />
+	  <None Remove="CORRECAO_SINALIZACAO_CURVAS.md" />
+	  <None Remove="CURVAS_RUAS.md" />
+	  <None Remove="FERRAMENTA_MARCA.md" />
+	  <None Remove="MULTISELECAO_AGRUPAMENTO.md" />
+	  <None Remove="TROUBLESHOOTING_CURVATURA.md" />
+	</ItemGroup>
+
+	<ItemGroup>
 		<PackageReference Include="System.Text.Json" Version="10.0.5" />
 	</ItemGroup>
 

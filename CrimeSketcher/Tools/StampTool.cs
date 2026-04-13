@@ -46,6 +46,11 @@ namespace CrimeSketcher.Tools
                 stamp.CategoriaOrigem = SimboloAtual.Categoria;
                 stamp.Descricao = SimboloAtual.Nome;
 
+                if (string.Equals(SimboloAtual.Categoria, "Imagem Externa", System.StringComparison.OrdinalIgnoreCase))
+                {
+                    stamp.Tipo = "Imagem";
+                }
+
                 _doc.AdicionarObjeto(stamp);
             }
         }

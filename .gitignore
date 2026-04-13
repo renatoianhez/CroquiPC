@@ -368,3 +368,4 @@ CroquiPC*/
 **/publish/
 **/*.exe
 **/*.zip
+/README.md

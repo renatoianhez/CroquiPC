@@ -208,7 +208,7 @@ namespace CrimeSketcher.Core
                     "Rotatória" => JsonSerializer.Deserialize<RoundaboutObject>(json, options),
                     "Cota" => JsonSerializer.Deserialize<DimensionLine>(json, options),
                     "Corpo" => JsonSerializer.Deserialize<StickFigure>(json, options),
-                    "Símbolo" => JsonSerializer.Deserialize<StampObject>(json, options),
+                    "Símbolo" or "Imagem" => JsonSerializer.Deserialize<StampObject>(json, options),
                     "Texto" => JsonSerializer.Deserialize<TextLabel>(json, options),
                     "Seta" => JsonSerializer.Deserialize<ArrowObject>(json, options),
                     "Marca" => JsonSerializer.Deserialize<MarkObject>(json, options),
