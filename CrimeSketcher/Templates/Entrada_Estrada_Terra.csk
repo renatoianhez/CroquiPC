@@ -1,0 +1,277 @@
+{
+  "Titulo": "Novo Croqui",
+  "NumeroProcedimento": "",
+  "Perito": "",
+  "DataLevantamento": "2026-04-13T08:30:27.397932-03:00",
+  "Endereco": "",
+  "Observacoes": "",
+  "LarguraPapelCm": 42,
+  "AlturaPapelCm": 29.7,
+  "EscalaDenominador": 100,
+  "Objetos": [
+    {
+      "ObjetosMembro": [
+        {
+          "Vertices": [
+            {
+              "IsEmpty": false,
+              "X": 347.9597,
+              "Y": 244.5
+            },
+            {
+              "IsEmpty": false,
+              "X": 956.3096,
+              "Y": 244.5
+            },
+            {
+              "IsEmpty": false,
+              "X": 956.3096,
+              "Y": 514.5
+            },
+            {
+              "IsEmpty": false,
+              "X": 347.9597,
+              "Y": 514.5
+            }
+          ],
+          "CorTexturaArgb": 1512581160,
+          "Textura": 1,
+          "EditarVertices": false,
+          "Id": "befb9ace-d8d5-457d-b9c8-e05fff6a0ce6",
+          "Nome": "",
+          "Tipo": "\u00C1rea",
+          "Posicao": {
+            "IsEmpty": false,
+            "X": 652.1345,
+            "Y": 379.5
+          },
+          "Rotacao": 0,
+          "EscalaX": 2.1726797,
+          "EscalaY": 1,
+          "Visivel": true,
+          "Bloqueado": false,
+          "Selecionado": false,
+          "Camada": 0,
+          "Opacidade": 1,
+          "CorPreenchimentoArgb": 1851435640,
+          "CorContornoArgb": 760901210,
+          "EspessuraContorno": 2
+        },
+        {
+          "PontoInicial": {
+            "IsEmpty": false,
+            "X": 343.95972,
+            "Y": 584.5
+          },
+          "PontoFinal": {
+            "IsEmpty": false,
+            "X": 964.04034,
+            "Y": 584.5
+          },
+          "PontoCurva": null,
+          "CurvaCircular": false,
+          "TemCurva": false,
+          "Largura": 140,
+          "TemCanteiroCentral": false,
+          "LarguraCanteiroCentral": 12,
+          "TemCiclofaixa": false,
+          "TemFaixaEstacionamento": true,
+          "NomeRua": "",
+          "FonteNomeRua": "Segoe UI",
+          "TamanhoFonteNomeRua": 9,
+          "DeslocamentoNomeRuaX": 0,
+          "DeslocamentoNomeRuaY": 0,
+          "NumeroFaixas": 2,
+          "MaoUnica": false,
+          "TemCalcada": false,
+          "LarguraCalcada": 15,
+          "TemMeioFio": true,
+          "CorCalcadaArgb": -2960696,
+          "CorMeioFioArgb": -6908276,
+          "CorCanteiroArgb": -8871846,
+          "TipoLinhaEstacionamento": 1,
+          "CorEstacionamentoArgb": -3947581,
+          "CorLinhaEstacionamentoArgb": -1,
+          "CorFaixaAmarelaArgb": -14336,
+          "CorFaixaBrancaArgb": -1,
+          "CorSinalizacao": 0,
+          "TipoFaixaCentral": 1,
+          "MostrarFaixasLaterais": true,
+          "EspacamentoTracejado": 15,
+          "ComprimentoTracejado": 25,
+          "EspessuraFaixa": 2,
+          "FaixasLateraisConfig": [],
+          "ExtremidadeInicial": 0,
+          "ExtremidadeFinal": 0,
+          "IdConexaoInicial": null,
+          "IdConexaoFinal": null,
+          "Id": "2472c97e-64b5-4981-8612-09eb336567bd",
+          "Nome": "",
+          "Tipo": "Estrada",
+          "Posicao": {
+            "IsEmpty": false,
+            "X": 3.9597168,
+            "Y": 74.5
+          },
+          "Rotacao": 0,
+          "EscalaX": 1,
+          "EscalaY": 1,
+          "Visivel": true,
+          "Bloqueado": false,
+          "Selecionado": false,
+          "Camada": 0,
+          "Opacidade": 1,
+          "CorPreenchimentoArgb": -4934476,
+          "CorContornoArgb": -10197916,
+          "EspessuraContorno": 2
+        },
+        {
+          "Vertices": [
+            {
+              "IsEmpty": false,
+              "X": 566.20844,
+              "Y": 493.5
+            },
+            {
+              "IsEmpty": false,
+              "X": 575.40393,
+              "Y": 493.5
+            },
+            {
+              "IsEmpty": false,
+              "X": 580.0012,
+              "Y": 483.5
+            },
+            {
+              "IsEmpty": false,
+              "X": 584.59906,
+              "Y": 463.5
+            },
+            {
+              "IsEmpty": false,
+              "X": 589.1971,
+              "Y": 443.5
+            },
+            {
+              "IsEmpty": false,
+              "X": 598.3926,
+              "Y": 393.5
+            },
+            {
+              "IsEmpty": false,
+              "X": 598.3926,
+              "Y": 353.5
+            },
+            {
+              "IsEmpty": false,
+              "X": 602.99036,
+              "Y": 273.5
+            },
+            {
+              "IsEmpty": false,
+              "X": 602.99036,
+              "Y": 243.5
+            },
+            {
+              "IsEmpty": false,
+              "X": 653.56525,
+              "Y": 243.5
+            },
+            {
+              "IsEmpty": false,
+              "X": 653.56525,
+              "Y": 273.5
+            },
+            {
+              "IsEmpty": false,
+              "X": 653.56525,
+              "Y": 363.5
+            },
+            {
+              "IsEmpty": false,
+              "X": 649.7451,
+              "Y": 401.5
+            },
+            {
+              "IsEmpty": false,
+              "X": 650.4513,
+              "Y": 430.5
+            },
+            {
+              "IsEmpty": false,
+              "X": 653.56525,
+              "Y": 453.5
+            },
+            {
+              "IsEmpty": false,
+              "X": 662.7613,
+              "Y": 473.5
+            },
+            {
+              "IsEmpty": false,
+              "X": 671.9564,
+              "Y": 493.5
+            },
+            {
+              "IsEmpty": false,
+              "X": 681.1519,
+              "Y": 493.5
+            },
+            {
+              "IsEmpty": false,
+              "X": 694.94556,
+              "Y": 513.5
+            },
+            {
+              "IsEmpty": false,
+              "X": 552.4148,
+              "Y": 513.5
+            }
+          ],
+          "CorTexturaArgb": -32640,
+          "Textura": 9,
+          "EditarVertices": false,
+          "Id": "0a4793f7-c18b-46fc-abb7-91d85bc2de50",
+          "Nome": "",
+          "Tipo": "\u00C1rea",
+          "Posicao": {
+            "IsEmpty": false,
+            "X": 623.79285,
+            "Y": 414.75
+          },
+          "Rotacao": 0,
+          "EscalaX": 0.45977527,
+          "EscalaY": 1,
+          "Visivel": true,
+          "Bloqueado": false,
+          "Selecionado": false,
+          "Camada": 0,
+          "Opacidade": 1,
+          "CorPreenchimentoArgb": -4145152,
+          "CorContornoArgb": 760901210,
+          "EspessuraContorno": 2
+        }
+      ],
+      "TipoGrupo": "Grupo",
+      "Id": "e05320e9-498f-412e-8d95-1df0ea97c5f7",
+      "Nome": "Grupo",
+      "Tipo": "Grupo",
+      "Posicao": {
+        "IsEmpty": false,
+        "X": 273.95972,
+        "Y": 241.5
+      },
+      "Rotacao": 0,
+      "EscalaX": 1,
+      "EscalaY": 1,
+      "Visivel": true,
+      "Bloqueado": false,
+      "Selecionado": true,
+      "Camada": 0,
+      "Opacidade": 1,
+      "CorPreenchimentoArgb": 16777215,
+      "CorContornoArgb": -16777216,
+      "EspessuraContorno": 2
+    }
+  ]
+}
