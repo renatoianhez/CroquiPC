@@ -1,0 +1,585 @@
+{
+  "Titulo": "Novo Croqui",
+  "NumeroProcedimento": "",
+  "Perito": "",
+  "DataLevantamento": "2026-04-13T08:33:09.8899135-03:00",
+  "Endereco": "",
+  "Observacoes": "",
+  "LarguraPapelCm": 42,
+  "AlturaPapelCm": 29.7,
+  "EscalaDenominador": 100,
+  "Objetos": [
+    {
+      "ObjetosMembro": [
+        {
+          "PontoInicial": {
+            "IsEmpty": false,
+            "X": 400,
+            "Y": 430
+          },
+          "PontoFinal": {
+            "IsEmpty": false,
+            "X": 1040,
+            "Y": 430
+          },
+          "PontoCurva": null,
+          "CurvaCircular": false,
+          "TemCurva": false,
+          "Largura": 140,
+          "TemCanteiroCentral": false,
+          "LarguraCanteiroCentral": 12,
+          "TemCiclofaixa": false,
+          "TemFaixaEstacionamento": true,
+          "NomeRua": "",
+          "FonteNomeRua": "Segoe UI",
+          "TamanhoFonteNomeRua": 9,
+          "DeslocamentoNomeRuaX": 0,
+          "DeslocamentoNomeRuaY": 0,
+          "NumeroFaixas": 2,
+          "MaoUnica": false,
+          "TemCalcada": false,
+          "LarguraCalcada": 15,
+          "TemMeioFio": true,
+          "CorCalcadaArgb": -2960696,
+          "CorMeioFioArgb": -6908276,
+          "CorCanteiroArgb": -8871846,
+          "TipoLinhaEstacionamento": 1,
+          "CorEstacionamentoArgb": -3947581,
+          "CorLinhaEstacionamentoArgb": -1,
+          "CorFaixaAmarelaArgb": -14336,
+          "CorFaixaBrancaArgb": -1,
+          "CorSinalizacao": 0,
+          "TipoFaixaCentral": 3,
+          "MostrarFaixasLaterais": true,
+          "EspacamentoTracejado": 15,
+          "ComprimentoTracejado": 25,
+          "EspessuraFaixa": 2,
+          "FaixasLateraisConfig": [],
+          "ExtremidadeInicial": 0,
+          "ExtremidadeFinal": 0,
+          "IdConexaoInicial": null,
+          "IdConexaoFinal": null,
+          "Id": "a1d87613-6348-493f-b910-0e215a65f53a",
+          "Nome": "",
+          "Tipo": "Estrada",
+          "Posicao": {
+            "IsEmpty": true,
+            "X": 0,
+            "Y": 0
+          },
+          "Rotacao": 0,
+          "EscalaX": 1,
+          "EscalaY": 1,
+          "Visivel": true,
+          "Bloqueado": false,
+          "Selecionado": false,
+          "Camada": 0,
+          "Opacidade": 1,
+          "CorPreenchimentoArgb": -4934476,
+          "CorContornoArgb": -10197916,
+          "EspessuraContorno": 2
+        },
+        {
+          "Vertices": [
+            {
+              "IsEmpty": false,
+              "X": 576,
+              "Y": 356
+            },
+            {
+              "IsEmpty": false,
+              "X": 866,
+              "Y": 356
+            },
+            {
+              "IsEmpty": false,
+              "X": 866,
+              "Y": 366
+            },
+            {
+              "IsEmpty": false,
+              "X": 576,
+              "Y": 366
+            }
+          ],
+          "CorTexturaArgb": 1512581160,
+          "Textura": 2,
+          "EditarVertices": false,
+          "Id": "e2921ca6-82d6-41b2-acae-e8b8b539062c",
+          "Nome": "",
+          "Tipo": "\u00C1rea",
+          "Posicao": {
+            "IsEmpty": false,
+            "X": 721,
+            "Y": 361
+          },
+          "Rotacao": 0,
+          "EscalaX": 1,
+          "EscalaY": 1,
+          "Visivel": true,
+          "Bloqueado": false,
+          "Selecionado": false,
+          "Camada": 0,
+          "Opacidade": 1,
+          "CorPreenchimentoArgb": -1,
+          "CorContornoArgb": -16777216,
+          "EspessuraContorno": 2
+        },
+        {
+          "Vertices": [
+            {
+              "IsEmpty": false,
+              "X": 576,
+              "Y": 494
+            },
+            {
+              "IsEmpty": false,
+              "X": 866,
+              "Y": 494
+            },
+            {
+              "IsEmpty": false,
+              "X": 866,
+              "Y": 504
+            },
+            {
+              "IsEmpty": false,
+              "X": 576,
+              "Y": 504
+            }
+          ],
+          "CorTexturaArgb": 1512581160,
+          "Textura": 2,
+          "EditarVertices": false,
+          "Id": "538fa366-53f9-4852-8a58-8180fe55c9d6",
+          "Nome": "",
+          "Tipo": "\u00C1rea",
+          "Posicao": {
+            "IsEmpty": false,
+            "X": 741,
+            "Y": 519
+          },
+          "Rotacao": 0,
+          "EscalaX": 1,
+          "EscalaY": 1,
+          "Visivel": true,
+          "Bloqueado": false,
+          "Selecionado": false,
+          "Camada": 0,
+          "Opacidade": 1,
+          "CorPreenchimentoArgb": -1,
+          "CorContornoArgb": -16777216,
+          "EspessuraContorno": 2
+        },
+        {
+          "Vertices": [
+            {
+              "IsEmpty": false,
+              "X": 643.98834,
+              "Y": 354
+            },
+            {
+              "IsEmpty": false,
+              "X": 652.00964,
+              "Y": 284
+            },
+            {
+              "IsEmpty": false,
+              "X": 643.98834,
+              "Y": 214
+            },
+            {
+              "IsEmpty": false,
+              "X": 652.00964,
+              "Y": 194
+            },
+            {
+              "IsEmpty": false,
+              "X": 812.4395,
+              "Y": 194
+            },
+            {
+              "IsEmpty": false,
+              "X": 804.4182,
+              "Y": 214
+            },
+            {
+              "IsEmpty": false,
+              "X": 812.4395,
+              "Y": 284
+            },
+            {
+              "IsEmpty": false,
+              "X": 804.4182,
+              "Y": 354
+            }
+          ],
+          "CorTexturaArgb": 1512581160,
+          "Textura": 1,
+          "EditarVertices": false,
+          "Id": "676c6687-31fa-4d04-8e2d-5ec991ca9f61",
+          "Nome": "",
+          "Tipo": "\u00C1rea",
+          "Posicao": {
+            "IsEmpty": false,
+            "X": 728.2139,
+            "Y": 261.5
+          },
+          "Rotacao": 0,
+          "EscalaX": 0.8021488,
+          "EscalaY": 1,
+          "Visivel": true,
+          "Bloqueado": false,
+          "Selecionado": false,
+          "Camada": 0,
+          "Opacidade": 1,
+          "CorPreenchimentoArgb": 1690370047,
+          "CorContornoArgb": 760901210,
+          "EspessuraContorno": 2
+        },
+        {
+          "Vertices": [
+            {
+              "IsEmpty": false,
+              "X": 638.98834,
+              "Y": 507
+            },
+            {
+              "IsEmpty": false,
+              "X": 647.00964,
+              "Y": 577
+            },
+            {
+              "IsEmpty": false,
+              "X": 638.98834,
+              "Y": 647
+            },
+            {
+              "IsEmpty": false,
+              "X": 647.00964,
+              "Y": 667
+            },
+            {
+              "IsEmpty": false,
+              "X": 807.4395,
+              "Y": 667
+            },
+            {
+              "IsEmpty": false,
+              "X": 799.4182,
+              "Y": 647
+            },
+            {
+              "IsEmpty": false,
+              "X": 807.4395,
+              "Y": 577
+            },
+            {
+              "IsEmpty": false,
+              "X": 799.4182,
+              "Y": 507
+            }
+          ],
+          "CorTexturaArgb": 1512581160,
+          "Textura": 1,
+          "EditarVertices": false,
+          "Id": "4d73d52c-d43d-4abd-a7a5-1dfee8ce0fbb",
+          "Nome": "",
+          "Tipo": "\u00C1rea",
+          "Posicao": {
+            "IsEmpty": false,
+            "X": 743.2139,
+            "Y": 579.5
+          },
+          "Rotacao": 0,
+          "EscalaX": 0.8021488,
+          "EscalaY": -1,
+          "Visivel": true,
+          "Bloqueado": false,
+          "Selecionado": false,
+          "Camada": 0,
+          "Opacidade": 1,
+          "CorPreenchimentoArgb": 1690370047,
+          "CorContornoArgb": 760901210,
+          "EspessuraContorno": 2
+        },
+        {
+          "Vertices": [
+            {
+              "IsEmpty": false,
+              "X": 576,
+              "Y": 367
+            },
+            {
+              "IsEmpty": false,
+              "X": 576,
+              "Y": 387
+            },
+            {
+              "IsEmpty": false,
+              "X": 866,
+              "Y": 387
+            },
+            {
+              "IsEmpty": false,
+              "X": 866,
+              "Y": 367
+            }
+          ],
+          "CorTexturaArgb": 1512581160,
+          "Textura": 0,
+          "EditarVertices": false,
+          "Id": "307d09c3-22dd-4090-9f71-9a0471211bd7",
+          "Nome": "",
+          "Tipo": "\u00C1rea",
+          "Posicao": {
+            "IsEmpty": false,
+            "X": 721,
+            "Y": 377
+          },
+          "Rotacao": 0,
+          "EscalaX": 1,
+          "EscalaY": 1,
+          "Visivel": true,
+          "Bloqueado": false,
+          "Selecionado": false,
+          "Camada": 0,
+          "Opacidade": 1,
+          "CorPreenchimentoArgb": -657931,
+          "CorContornoArgb": -16777216,
+          "EspessuraContorno": 2
+        },
+        {
+          "Vertices": [
+            {
+              "IsEmpty": false,
+              "X": 576,
+              "Y": 472
+            },
+            {
+              "IsEmpty": false,
+              "X": 576,
+              "Y": 492
+            },
+            {
+              "IsEmpty": false,
+              "X": 866,
+              "Y": 492
+            },
+            {
+              "IsEmpty": false,
+              "X": 866,
+              "Y": 472
+            }
+          ],
+          "CorTexturaArgb": 1512581160,
+          "Textura": 0,
+          "EditarVertices": false,
+          "Id": "93200710-fe64-439c-b669-6529b9dda59f",
+          "Nome": "",
+          "Tipo": "\u00C1rea",
+          "Posicao": {
+            "IsEmpty": false,
+            "X": 741,
+            "Y": 502
+          },
+          "Rotacao": 0,
+          "EscalaX": 1,
+          "EscalaY": 1,
+          "Visivel": true,
+          "Bloqueado": false,
+          "Selecionado": false,
+          "Camada": 0,
+          "Opacidade": 1,
+          "CorPreenchimentoArgb": -657931,
+          "CorContornoArgb": -16777216,
+          "EspessuraContorno": 2
+        },
+        {
+          "Vertices": [
+            {
+              "IsEmpty": false,
+              "X": 866.8091,
+              "Y": 362.36993
+            },
+            {
+              "IsEmpty": false,
+              "X": 866.8091,
+              "Y": 388.6706
+            },
+            {
+              "IsEmpty": false,
+              "X": 1033.8182,
+              "Y": 361.71243
+            }
+          ],
+          "CorTexturaArgb": -1,
+          "Textura": 1,
+          "EditarVertices": false,
+          "Id": "0853bdfa-5591-4784-9353-742fd7f8ad8c",
+          "Nome": "",
+          "Tipo": "\u00C1rea",
+          "Posicao": {
+            "IsEmpty": false,
+            "X": 922.4788,
+            "Y": 370.91766
+          },
+          "Rotacao": 0,
+          "EscalaX": 1,
+          "EscalaY": 1,
+          "Visivel": true,
+          "Bloqueado": false,
+          "Selecionado": false,
+          "Camada": 0,
+          "Opacidade": 1,
+          "CorPreenchimentoArgb": 16777215,
+          "CorContornoArgb": -1,
+          "EspessuraContorno": 0.945
+        },
+        {
+          "Vertices": [
+            {
+              "IsEmpty": false,
+              "X": 574.81824,
+              "Y": 362.36993
+            },
+            {
+              "IsEmpty": false,
+              "X": 574.81824,
+              "Y": 388.6706
+            },
+            {
+              "IsEmpty": false,
+              "X": 407.80908,
+              "Y": 361.71243
+            }
+          ],
+          "CorTexturaArgb": -1,
+          "Textura": 1,
+          "EditarVertices": false,
+          "Id": "bb9c9217-8cb7-43d8-9b92-d3d8abd8e816",
+          "Nome": "",
+          "Tipo": "\u00C1rea",
+          "Posicao": {
+            "IsEmpty": false,
+            "X": 499.1485,
+            "Y": 390.91766
+          },
+          "Rotacao": 0,
+          "EscalaX": -1,
+          "EscalaY": 1,
+          "Visivel": true,
+          "Bloqueado": false,
+          "Selecionado": false,
+          "Camada": 0,
+          "Opacidade": 1,
+          "CorPreenchimentoArgb": 16777215,
+          "CorContornoArgb": -1,
+          "EspessuraContorno": 0.945
+        },
+        {
+          "Vertices": [
+            {
+              "IsEmpty": false,
+              "X": 867.8091,
+              "Y": 497.01312
+            },
+            {
+              "IsEmpty": false,
+              "X": 867.8091,
+              "Y": 470.71246
+            },
+            {
+              "IsEmpty": false,
+              "X": 1034.8182,
+              "Y": 497.67062
+            }
+          ],
+          "CorTexturaArgb": -1,
+          "Textura": 1,
+          "EditarVertices": false,
+          "Id": "fd3af768-f7c3-4f9e-a062-409aa51dbd93",
+          "Nome": "",
+          "Tipo": "\u00C1rea",
+          "Posicao": {
+            "IsEmpty": false,
+            "X": 943.4788,
+            "Y": 468.4654
+          },
+          "Rotacao": 0,
+          "EscalaX": 1,
+          "EscalaY": -1,
+          "Visivel": true,
+          "Bloqueado": false,
+          "Selecionado": false,
+          "Camada": 0,
+          "Opacidade": 1,
+          "CorPreenchimentoArgb": 16777215,
+          "CorContornoArgb": -1,
+          "EspessuraContorno": 0.945
+        },
+        {
+          "Vertices": [
+            {
+              "IsEmpty": false,
+              "X": 574.81824,
+              "Y": 497.01312
+            },
+            {
+              "IsEmpty": false,
+              "X": 574.81824,
+              "Y": 470.71246
+            },
+            {
+              "IsEmpty": false,
+              "X": 407.80908,
+              "Y": 497.67062
+            }
+          ],
+          "CorTexturaArgb": -1,
+          "Textura": 1,
+          "EditarVertices": false,
+          "Id": "ec5737dc-4b45-4cfc-8fe2-28c3468d9e61",
+          "Nome": "",
+          "Tipo": "\u00C1rea",
+          "Posicao": {
+            "IsEmpty": false,
+            "X": 479.1485,
+            "Y": 488.4654
+          },
+          "Rotacao": 0,
+          "EscalaX": -1,
+          "EscalaY": -1,
+          "Visivel": true,
+          "Bloqueado": false,
+          "Selecionado": false,
+          "Camada": 0,
+          "Opacidade": 1,
+          "CorPreenchimentoArgb": 16777215,
+          "CorContornoArgb": -1,
+          "EspessuraContorno": 0.945
+        }
+      ],
+      "TipoGrupo": "Grupo",
+      "Id": "d7199ace-c4c6-4f1a-86c2-bc03c1ad66a4",
+      "Nome": "Grupo",
+      "Tipo": "Grupo",
+      "Posicao": {
+        "IsEmpty": false,
+        "X": 330,
+        "Y": 192
+      },
+      "Rotacao": 0,
+      "EscalaX": 1,
+      "EscalaY": 1,
+      "Visivel": true,
+      "Bloqueado": false,
+      "Selecionado": true,
+      "Camada": 0,
+      "Opacidade": 1,
+      "CorPreenchimentoArgb": 16777215,
+      "CorContornoArgb": -16777216,
+      "EspessuraContorno": 2
+    }
+  ]
+}
