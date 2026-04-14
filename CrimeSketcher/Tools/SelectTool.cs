@@ -32,6 +32,9 @@ namespace CrimeSketcher.Tools
         private readonly SketchDocument _doc;
         private BaseSketchObject? _objetoArrastando;
         private bool _arrastando = false;
+        private bool _arrastoPendente = false;
+        private PointF _pontoInicioArrasto;
+        private const float LimiteInicioArrastoPixels = 4f;
         private bool _redimensionando = false;
         private bool _rotacionando = false;
         private int _alcaAtiva = -1;
@@ -216,6 +219,7 @@ namespace CrimeSketcher.Tools
 
                 _objetoArrastando = hit;
                 _ultimoPontoMouse = worldPos;
+                _pontoInicioArrasto = worldPos;
 
                 _posicoesAnterioresGrupo.Clear();
                 foreach (var obj in _objetosSelecionados)
@@ -223,7 +227,8 @@ namespace CrimeSketcher.Tools
                     _posicoesAnterioresGrupo[obj] = obj.Posicao;
                 }
 
-                _arrastando = true;
+                _arrastoPendente = true;
+                _arrastando = false;
 
                 SelectionChanged?.Invoke(this, hit);
                 var lista = _objetosSelecionados.ToList();
@@ -294,6 +299,20 @@ namespace CrimeSketcher.Tools
                     {
                         obj.Mover(dx, dy);
                     }
+                }
+            }
+            else if (_arrastoPendente && _objetoArrastando != null && !_objetoArrastando.Bloqueado)
+            {
+                float limiteMundo = PixelsParaMundo(LimiteInicioArrastoPixels);
+                float dx = worldPos.X - _pontoInicioArrasto.X;
+                float dy = worldPos.Y - _pontoInicioArrasto.Y;
+                float distancia = (float)Math.Sqrt(dx * dx + dy * dy);
+
+                if (distancia >= limiteMundo)
+                {
+                    _arrastando = true;
+                    _arrastoPendente = false;
+                    _ultimoPontoMouse = worldPos;
                 }
             }
             else if (_selecionandoArea)
@@ -394,6 +413,7 @@ namespace CrimeSketcher.Tools
             _objetoArrastando = null;
             _objetoTransformando = null;
             _selecionandoArea = false;
+            _arrastoPendente = false;
             _posicoesAnterioresGrupo.Clear();
         }
 
