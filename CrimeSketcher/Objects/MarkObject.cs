@@ -155,7 +155,7 @@ namespace CrimeSketcher.Objects
                 {
                     // Aproximar comprimento da curva
                     float comprimento = 0;
-                    int segmentos = 30;
+                    int segmentos = SEGMENTOS_CURVA;
                     for (int i = 0; i < segmentos; i++)
                     {
                         float t1 = i / (float)segmentos;
@@ -379,7 +379,7 @@ namespace CrimeSketcher.Objects
             List<PointF> pontosSuperiores = new List<PointF>();
             List<PointF> pontosInferiores = new List<PointF>();
 
-            int segmentos = 30;
+            int segmentos = SEGMENTOS_CURVA;
             for (int i = 0; i <= segmentos; i++)
             {
                 float t = i / (float)segmentos;
@@ -451,7 +451,7 @@ namespace CrimeSketcher.Objects
             using (var pen = new Pen(Color.FromArgb((int)(128 * opacidade), CorMarca), 0.5f))
             {
                 Random rnd = new Random(PontoInicial.GetHashCode());
-                int segmentos = 20;
+                int segmentos = SEGMENTOS_BOUNDS;
                 for (int i = 0; i < segmentos; i++)
                 {
                     if (rnd.Next(100) < 40) // 40% de chance
@@ -477,7 +477,7 @@ namespace CrimeSketcher.Objects
             List<PointF> pontosSuperiores = new List<PointF>();
             List<PointF> pontosInferiores = new List<PointF>();
 
-            int segmentos = 30;
+            int segmentos = SEGMENTOS_CURVA;
             for (int i = 0; i <= segmentos; i++)
             {
                 float t = i / (float)segmentos;
@@ -552,7 +552,7 @@ namespace CrimeSketcher.Objects
             else
             {
                 List<PointF> pontos = new List<PointF>();
-                int segmentos = 30;
+                int segmentos = SEGMENTOS_CURVA;
                 for (int i = 0; i <= segmentos; i++)
                 {
                     float t = i / (float)segmentos;
@@ -580,7 +580,7 @@ namespace CrimeSketcher.Objects
                 else
                 {
                     List<PointF> pontos = new List<PointF>();
-                    int segmentos = 30;
+                    int segmentos = SEGMENTOS_CURVA;
                     for (int i = 0; i <= segmentos; i++)
                     {
                         float t = i / (float)segmentos;

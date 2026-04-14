@@ -6,6 +6,13 @@ namespace CrimeSketcher.Utils
 {
     public static class GeometryHelper
     {
+        private const float EPSILON = 0.0001f;
+        private const float EPSILON_DISTANCIA = 0.001f;
+        private const float MIN_PASSO_ANGULAR = 0.1f;
+        private const float DELTA_RAIO_MINIMO = 0.01f;
+        private const float GRAUS_PARA_RAD = (float)(Math.PI / 180.0);
+        private const float RAD_PARA_GRAUS = (float)(180.0 / Math.PI);
+
         /// <summary>
         /// Calcula a distância de um ponto a um segmento de reta
         /// </summary>
@@ -16,12 +23,11 @@ namespace CrimeSketcher.Utils
             float dy = segB.Y - segA.Y;
             float comprimento2 = dx * dx + dy * dy;
 
-            if (comprimento2 == 0)
+            if (comprimento2 <= EPSILON)
                 return Distancia(ponto, segA);
 
-            float t = Math.Max(0, Math.Min(1,
-                ((ponto.X - segA.X) * dx + (ponto.Y - segA.Y) * dy)
-                / comprimento2));
+            float projecao = ((ponto.X - segA.X) * dx + (ponto.Y - segA.Y) * dy) / comprimento2;
+            float t = Clamp01(projecao);
 
             var proj = new PointF(segA.X + t * dx, segA.Y + t * dy);
             return Distancia(ponto, proj);
@@ -38,7 +44,7 @@ namespace CrimeSketcher.Utils
         {
             return (float)(Math.Atan2(
                 destino.Y - origem.Y,
-                destino.X - origem.X) * 180 / Math.PI);
+                destino.X - origem.X) * RAD_PARA_GRAUS);
         }
 
         public static PointF PontoMedio(PointF a, PointF b)
@@ -49,7 +55,7 @@ namespace CrimeSketcher.Utils
         public static PointF RotacionarPonto(PointF ponto,
             PointF centro, float anguloGraus)
         {
-            float rad = anguloGraus * (float)Math.PI / 180f;
+            float rad = anguloGraus * GRAUS_PARA_RAD;
             float cos = (float)Math.Cos(rad);
             float sin = (float)Math.Sin(rad);
 
@@ -69,7 +75,7 @@ namespace CrimeSketcher.Utils
             out float raio)
         {
             float d = 2f * (a.X * (b.Y - c.Y) + b.X * (c.Y - a.Y) + c.X * (a.Y - b.Y));
-            if (Math.Abs(d) < 0.0001f)
+            if (Math.Abs(d) < EPSILON)
             {
                 centro = PointF.Empty;
                 raio = 0f;
@@ -85,7 +91,7 @@ namespace CrimeSketcher.Utils
 
             centro = new PointF(ux, uy);
             raio = Distancia(centro, a);
-            return raio > 0.0001f;
+            return raio > EPSILON;
         }
 
         public static bool TryGetArcoCircular(
@@ -111,7 +117,7 @@ namespace CrimeSketcher.Utils
             float sweepCcw = DeltaAnguloCcw(angInicio, angFim);
             float sweepCcwPassagem = DeltaAnguloCcw(angInicio, angPassagem);
 
-            if (sweepCcw > 0.0001f && sweepCcwPassagem > 0.0001f && sweepCcwPassagem < sweepCcw)
+            if (sweepCcw > EPSILON && sweepCcwPassagem > EPSILON && sweepCcwPassagem < sweepCcw)
             {
                 anguloInicialGraus = angInicio;
                 varreduraGraus = sweepCcw;
@@ -120,7 +126,7 @@ namespace CrimeSketcher.Utils
 
             float sweepCw = DeltaAnguloCw(angInicio, angFim);
             float sweepCwPassagem = DeltaAnguloCw(angInicio, angPassagem);
-            if (sweepCw < -0.0001f && sweepCwPassagem < -0.0001f && sweepCwPassagem > sweepCw)
+            if (sweepCw < -EPSILON && sweepCwPassagem < -EPSILON && sweepCwPassagem > sweepCw)
             {
                 anguloInicialGraus = angInicio;
                 varreduraGraus = sweepCw;
@@ -140,7 +146,7 @@ namespace CrimeSketcher.Utils
             float t)
         {
             float angulo = anguloInicialGraus + varreduraGraus * t;
-            float rad = angulo * (float)Math.PI / 180f;
+            float rad = angulo * GRAUS_PARA_RAD;
             return new PointF(
                 centro.X + raio * (float)Math.Cos(rad),
                 centro.Y + raio * (float)Math.Sin(rad));
@@ -148,7 +154,7 @@ namespace CrimeSketcher.Utils
 
         public static PointF ObterTangenteArcoCircular(float anguloGraus, bool sentidoAntiHorario)
         {
-            float rad = anguloGraus * (float)Math.PI / 180f;
+            float rad = anguloGraus * GRAUS_PARA_RAD;
             float tx = -(float)Math.Sin(rad);
             float ty = (float)Math.Cos(rad);
 
@@ -159,7 +165,7 @@ namespace CrimeSketcher.Utils
             }
 
             float len = (float)Math.Sqrt(tx * tx + ty * ty);
-            if (len <= 0.0001f)
+            if (len <= EPSILON)
                 return new PointF(1f, 0f);
 
             return new PointF(tx / len, ty / len);
@@ -177,11 +183,11 @@ namespace CrimeSketcher.Utils
             float dx = fim.X - inicio.X;
             float dy = fim.Y - inicio.Y;
             float comprimento = (float)Math.Sqrt(dx * dx + dy * dy);
-            if (comprimento <= 0.0001f)
+            if (comprimento <= EPSILON)
                 return false;
 
             float meiaCorda = comprimento / 2f;
-            float raio = Math.Max(Math.Abs(raioDesejado), meiaCorda + 0.01f);
+            float raio = Math.Max(Math.Abs(raioDesejado), meiaCorda + DELTA_RAIO_MINIMO);
             float h = (float)Math.Sqrt(Math.Max(0f, raio * raio - meiaCorda * meiaCorda));
 
             var meio = PontoMedio(inicio, fim);
@@ -202,12 +208,12 @@ namespace CrimeSketcher.Utils
             float dx = ponto.X - origem.X;
             float dy = ponto.Y - origem.Y;
             float distancia = (float)Math.Sqrt(dx * dx + dy * dy);
-            if (distancia < 0.001f) return ponto;
+            if (distancia < EPSILON_DISTANCIA) return ponto;
 
-            float passo = Math.Max(0.1f, incrementoGraus);
-            float angulo = (float)(Math.Atan2(dy, dx) * 180.0 / Math.PI);
+            float passo = Math.Max(MIN_PASSO_ANGULAR, incrementoGraus);
+            float angulo = (float)(Math.Atan2(dy, dx) * RAD_PARA_GRAUS);
             float anguloSnapped = (float)(Math.Round(angulo / passo) * passo);
-            float rad = anguloSnapped * (float)Math.PI / 180f;
+            float rad = anguloSnapped * GRAUS_PARA_RAD;
 
             return new PointF(
                 origem.X + distancia * (float)Math.Cos(rad),
@@ -225,11 +231,14 @@ namespace CrimeSketcher.Utils
             if (normalizado < 0f)
                 normalizado += 360f;
 
-            if (Math.Abs(normalizado) < 0.0001f || Math.Abs(normalizado - 360f) < 0.0001f)
+            if (Math.Abs(normalizado) < EPSILON || Math.Abs(normalizado - 360f) < EPSILON)
                 return 0f;
 
             return normalizado;
         }
+
+        private static float Clamp01(float valor)
+            => Math.Max(0f, Math.Min(1f, valor));
 
         private static float DeltaAnguloCcw(float anguloInicial, float anguloFinal)
         {
