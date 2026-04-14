@@ -360,7 +360,7 @@ namespace CrimeSketcher.Objects
             pCurva = PontoCurva;
         }
 
-        private static PointF RotacionarPonto(PointF ponto, PointF centro, float anguloGraus)
+        private new static PointF RotacionarPonto(PointF ponto, PointF centro, float anguloGraus)
         {
             double rad = anguloGraus * Math.PI / 180.0;
             double cos = Math.Cos(rad);

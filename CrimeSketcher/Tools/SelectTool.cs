@@ -30,7 +30,7 @@ namespace CrimeSketcher.Tools
         public Cursor Cursor => Cursors.Default;
 
         private readonly SketchDocument _doc;
-        private BaseSketchObject? _objetoArrastando;
+        private BaseSketchObject _objetoArrastando;
         private bool _arrastando = false;
         private bool _arrastoPendente = false;
         private PointF _pontoInicioArrasto;
@@ -38,7 +38,7 @@ namespace CrimeSketcher.Tools
         private bool _redimensionando = false;
         private bool _rotacionando = false;
         private int _alcaAtiva = -1;
-        private BaseSketchObject? _objetoTransformando;
+        private BaseSketchObject _objetoTransformando;
         private PointF _ultimoPontoMouse;
         private RectangleF _selecaoRetangular;
         private bool _selecionandoArea = false;
@@ -46,28 +46,28 @@ namespace CrimeSketcher.Tools
         private readonly UndoRedoManager _undoRedo;
 
         private bool _arrastandoVerticeArea = false;
-        private AreaObject? _areaEditandoVertice = null;
+        private AreaObject _areaEditandoVertice = null;
         private int _indiceVerticeArea = -1;
 
         // Controle de arrasto de ponto de curva
         private bool _arrastandoPontoCurva = false;
-        private BaseSketchObject? _objetoComCurva = null;
+        private BaseSketchObject _objetoComCurva = null;
         private PointF _pontoCurvaAnterior;
 
         // Controle de arraste de articulações do corpo
         private bool _arrastandoArticulacaoCorpo = false;
-        private StickFigure? _corpoArticulando = null;
+        private StickFigure _corpoArticulando = null;
         private ArticulacaoCorpoHandle _articulacaoCorpoAtiva = ArticulacaoCorpoHandle.Nenhuma;
 
         // Múltipla seleção
         private readonly HashSet<BaseSketchObject> _objetosSelecionados = new HashSet<BaseSketchObject>();
         private readonly Dictionary<BaseSketchObject, PointF> _posicoesAnterioresGrupo = new Dictionary<BaseSketchObject, PointF>();
 
-        public BaseSketchObject? ObjetoSelecionado { get; private set; }
+        public BaseSketchObject ObjetoSelecionado { get; private set; }
         public IReadOnlyCollection<BaseSketchObject> ObjetosSelecionados => _objetosSelecionados;
 
-        public event EventHandler<BaseSketchObject?>? SelectionChanged;
-        public event EventHandler<IReadOnlyCollection<BaseSketchObject>>? MultiSelectionChanged;
+        public event EventHandler<BaseSketchObject> SelectionChanged;
+        public event EventHandler<IReadOnlyCollection<BaseSketchObject>> MultiSelectionChanged;
 
         public float ZoomLevel { get; set; } = 1f;
 
@@ -458,7 +458,6 @@ namespace CrimeSketcher.Tools
             float yQuadril = corpo.AlturaTronco / 2f;
 
             float compBracoSuperior = 18f;
-            float compAntebraco = 17f;
             float compCoxa = corpo.AlturaPerna * 0.55f;
 
             var pescoco = new PointF(0f, yTroncoTop - 2f);

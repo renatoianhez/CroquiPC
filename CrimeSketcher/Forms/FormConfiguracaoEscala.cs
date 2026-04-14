@@ -7,7 +7,6 @@ namespace CrimeSketcher.Forms
 {
     public class FormConfiguracaoEscala : Form
     {
-        private NumericUpDown nudNumerador;
         private NumericUpDown nudDenominador;
         private ComboBox cmbUnidade;
         private NumericUpDown nudGridSpacing;

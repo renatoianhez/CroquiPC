@@ -106,7 +106,7 @@ namespace CrimeSketcher.Objects
         // Visualização
         public bool MostrarContorno { get; set; } = true;
         public bool Preenchido { get; set; } = true;
-        public float EspessuraContorno { get; set; } = 1.5f;
+        public new float EspessuraContorno { get; set; } = 1.5f;
 
         [Category("Camadas")]
         [DisplayName("Antebraço Direito à Frente da Cabeça")]
