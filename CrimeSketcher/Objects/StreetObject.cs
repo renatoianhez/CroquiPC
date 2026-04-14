@@ -1391,10 +1391,20 @@ namespace CrimeSketcher.Objects
             float halfW = totalW / 2f;
             if (!TemCurva || !PontoCurva.HasValue)
             {
-                float minX = Math.Min(PontoInicial.X, PontoFinal.X) - halfW;
-                float minY = Math.Min(PontoInicial.Y, PontoFinal.Y) - halfW;
-                float maxX = Math.Max(PontoInicial.X, PontoFinal.X) + halfW;
-                float maxY = Math.Max(PontoInicial.Y, PontoFinal.Y) + halfW;
+                var perp = Perpendicular;
+                var pontos = GetPoligono(totalW, perp);
+
+                float minX = float.MaxValue, minY = float.MaxValue;
+                float maxX = float.MinValue, maxY = float.MinValue;
+
+                foreach (var p in pontos)
+                {
+                    minX = Math.Min(minX, p.X);
+                    minY = Math.Min(minY, p.Y);
+                    maxX = Math.Max(maxX, p.X);
+                    maxY = Math.Max(maxY, p.Y);
+                }
+
                 return new RectangleF(minX, minY, maxX - minX, maxY - minY);
             }
             else

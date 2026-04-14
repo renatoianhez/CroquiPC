@@ -36,7 +36,7 @@ namespace CrimeSketcher.Forms
             }
             else
             {
-                lblDescricao.Text = "Nenhum template .csk foi encontrado na pasta Templates.";
+                lblDescricao.Text = "Nenhum template .csk foi selecionado ainda.";
             }
         }
 
@@ -81,7 +81,7 @@ namespace CrimeSketcher.Forms
                 Location = new Point(20, 68),
                 AutoSize = true
             });
-            nudCentroX = CriarNumero(new Point(120, 64), -50000, 50000, 2, 0.5m, 0);
+            nudCentroX = CriarNumero(new Point(150, 64), -50000, 50000, 2, 0.5m, 0);
             Controls.Add(nudCentroX);
 
             Controls.Add(new Label
@@ -90,7 +90,7 @@ namespace CrimeSketcher.Forms
                 Location = new Point(20, 108),
                 AutoSize = true
             });
-            nudCentroY = CriarNumero(new Point(120, 104), -50000, 50000, 2, 0.5m, 0);
+            nudCentroY = CriarNumero(new Point(150, 104), -50000, 50000, 2, 0.5m, 0);
             Controls.Add(nudCentroY);
 
             Controls.Add(new Label
@@ -99,7 +99,7 @@ namespace CrimeSketcher.Forms
                 Location = new Point(20, 148),
                 AutoSize = true
             });
-            nudEscala = CriarNumero(new Point(120, 144), 0.25m, 4m, 2, 0.05m, 1m);
+            nudEscala = CriarNumero(new Point(150, 144), 0.25m, 4m, 2, 0.05m, 1m);
             nudEscala.ValueChanged += (_, _) => painelPreview.Invalidate();
             Controls.Add(nudEscala);
 

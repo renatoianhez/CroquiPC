@@ -490,10 +490,12 @@ namespace CrimeSketcher.Tools
                     float angulo1 = CalcularAngulo(rua1.PontoInicial, rua1.PontoFinal);
                     float angulo2 = CalcularAngulo(rua2.PontoInicial, rua2.PontoFinal);
 
-                    var autoInterseccao = new AutoIntersectionObject
+                    var autoInterseccaoRua1 = new AutoIntersectionObject
                     {
+                        Nome = "Cruzamento Automático (Rua 1)",
                         Posicao = ponto,
                         TipoCruzamento = tipo,
+                        Parte = AutoIntersectionParte.Rua1,
                         LarguraRua1 = rua1.Largura,
                         LarguraRua2 = rua2.Largura,
                         AnguloRua1 = angulo1,
@@ -512,7 +514,32 @@ namespace CrimeSketcher.Tools
                         TemEstacionamentoRua2 = rua2.TemFaixaEstacionamento
                     };
 
-                    _doc.AdicionarObjeto(autoInterseccao);
+                    var autoInterseccaoRua2 = new AutoIntersectionObject
+                    {
+                        Nome = "Cruzamento Automático (Rua 2)",
+                        Posicao = ponto,
+                        TipoCruzamento = tipo,
+                        Parte = AutoIntersectionParte.Rua2,
+                        LarguraRua1 = rua1.Largura,
+                        LarguraRua2 = rua2.Largura,
+                        AnguloRua1 = angulo1,
+                        AnguloRua2 = angulo2,
+                        IdRua1 = rua1.Id,
+                        IdRua2 = rua2.Id,
+                        TemCanteiroCentral = rua1.TemCanteiroCentral || rua2.TemCanteiroCentral,
+                        LarguraCanteiroCentral = Math.Max(rua1.LarguraCanteiroCentral, rua2.LarguraCanteiroCentral),
+                        TemCalcadaRua1 = rua1.TemCalcada,
+                        TemCalcadaRua2 = rua2.TemCalcada,
+                        LarguraCalcadaRua1 = rua1.LarguraCalcada,
+                        LarguraCalcadaRua2 = rua2.LarguraCalcada,
+                        TemCiclofaixaRua1 = rua1.TemCiclofaixa,
+                        TemCiclofaixaRua2 = rua2.TemCiclofaixa,
+                        TemEstacionamentoRua1 = rua1.TemFaixaEstacionamento,
+                        TemEstacionamentoRua2 = rua2.TemFaixaEstacionamento
+                    };
+
+                    _doc.AdicionarObjeto(autoInterseccaoRua1);
+                    _doc.AdicionarObjeto(autoInterseccaoRua2);
                 }
             }
         }

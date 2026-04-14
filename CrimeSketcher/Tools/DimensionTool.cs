@@ -19,7 +19,7 @@ namespace CrimeSketcher.Tools
         private bool _desenhando = false;
 
         public Color CorTexto { get; set; } = Color.FromArgb(200, 0, 0);
-        public Color CorFundoTexto { get; set; } = Color.FromArgb(220, 255, 255, 255);
+        public Color CorFundoTexto { get; set; } = Color.FromArgb(60, 255, 255, 255);
 
         public DimensionTool(SketchDocument doc, GridManager grid,
             ScaleManager scale)

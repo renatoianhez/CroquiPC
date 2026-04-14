@@ -759,9 +759,89 @@ namespace CrimeSketcher.Objects
 
         public override RectangleF GetBounds()
         {
-            float tamanho = LarguraRua + (TemCalcada ? LarguraCalcada * 2 : 0) + ExtensaoVias * 2;
-            if (TemFaixaEstacionamentoEfetiva()) tamanho += LarguraFaixaEstacionamento * 2;
-            return new RectangleF(Posicao.X - tamanho / 2, Posicao.Y - tamanho / 2, tamanho, tamanho);
+            bool temCima = TipoCruzamento != TipoCruzamento.TParaBaixo;
+            bool temBaixo = TipoCruzamento != TipoCruzamento.TParaCima;
+            bool temEsquerda = TipoCruzamento != TipoCruzamento.TParaDireita;
+            bool temDireita = TipoCruzamento != TipoCruzamento.TParaEsquerda;
+
+            float meiaRua = LarguraRua / 2f;
+            float meiaTamanho = (LarguraRua + (TemCalcada ? LarguraCalcada * 2f : 0f)) / 2f;
+            float ext = Math.Max(0f, ExtensaoVias);
+
+            float localMinX = -meiaTamanho;
+            float localMaxX = meiaTamanho;
+            float localMinY = -meiaTamanho;
+            float localMaxY = meiaTamanho;
+
+            if (temEsquerda) localMinX = Math.Min(localMinX, -meiaTamanho - ext);
+            if (temDireita) localMaxX = Math.Max(localMaxX, meiaTamanho + ext);
+            if (temCima) localMinY = Math.Min(localMinY, -meiaTamanho - ext);
+            if (temBaixo) localMaxY = Math.Max(localMaxY, meiaTamanho + ext);
+
+            if (TemFaixaEstacionamentoEfetiva())
+            {
+                float le = Math.Max(0f, LarguraFaixaEstacionamento);
+
+                if (temCima && EstacionamentoRuaNorte)
+                {
+                    localMinY = Math.Min(localMinY, -meiaTamanho - ext);
+                    localMinX = Math.Min(localMinX, -meiaRua - le);
+                    localMaxX = Math.Max(localMaxX, meiaRua + le);
+                }
+
+                if (temBaixo && EstacionamentoRuaSul)
+                {
+                    localMaxY = Math.Max(localMaxY, meiaTamanho + ext);
+                    localMinX = Math.Min(localMinX, -meiaRua - le);
+                    localMaxX = Math.Max(localMaxX, meiaRua + le);
+                }
+
+                if (temEsquerda && EstacionamentoRuaOeste)
+                {
+                    localMinX = Math.Min(localMinX, -meiaTamanho - ext);
+                    localMinY = Math.Min(localMinY, -meiaRua - le);
+                    localMaxY = Math.Max(localMaxY, meiaRua + le);
+                }
+
+                if (temDireita && EstacionamentoRuaLeste)
+                {
+                    localMaxX = Math.Max(localMaxX, meiaTamanho + ext);
+                    localMinY = Math.Min(localMinY, -meiaRua - le);
+                    localMaxY = Math.Max(localMaxY, meiaRua + le);
+                }
+            }
+
+            if (TemFaixaPedestre)
+            {
+                float distancia = meiaTamanho + 5f;
+                float meioComprimentoFaixa = LarguraFaixaPedestre / 2f;
+
+                if (temCima) localMinY = Math.Min(localMinY, -distancia - meioComprimentoFaixa);
+                if (temBaixo) localMaxY = Math.Max(localMaxY, distancia + meioComprimentoFaixa);
+                if (temEsquerda) localMinX = Math.Min(localMinX, -distancia - meioComprimentoFaixa);
+                if (temDireita) localMaxX = Math.Max(localMaxX, distancia + meioComprimentoFaixa);
+            }
+
+            float rad = Rotacao * (float)Math.PI / 180f;
+            float cos = (float)Math.Cos(rad);
+            float sin = (float)Math.Sin(rad);
+
+            PointF Transformar(float x, float y) => new PointF(
+                Posicao.X + x * cos - y * sin,
+                Posicao.Y + x * sin + y * cos);
+
+            var p1 = Transformar(localMinX, localMinY);
+            var p2 = Transformar(localMaxX, localMinY);
+            var p3 = Transformar(localMaxX, localMaxY);
+            var p4 = Transformar(localMinX, localMaxY);
+
+            float minX = Math.Min(Math.Min(p1.X, p2.X), Math.Min(p3.X, p4.X));
+            float minY = Math.Min(Math.Min(p1.Y, p2.Y), Math.Min(p3.Y, p4.Y));
+            float maxX = Math.Max(Math.Max(p1.X, p2.X), Math.Max(p3.X, p4.X));
+            float maxY = Math.Max(Math.Max(p1.Y, p2.Y), Math.Max(p3.Y, p4.Y));
+
+            const float margem = 2f;
+            return new RectangleF(minX - margem, minY - margem, (maxX - minX) + margem * 2f, (maxY - minY) + margem * 2f);
         }
 
         public PointF[] GetPontosConexao()
