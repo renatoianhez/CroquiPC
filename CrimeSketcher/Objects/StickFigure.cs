@@ -36,8 +36,14 @@ namespace CrimeSketcher.Objects
         [Description("Quando ativo, representa o corpo visto de costas")]
         public bool DeCostas { get; set; } = false;
 
+        private float _escalaCorpo = 1f;
+
         // Proporções (em pixels)
-        public float EscalaCorpo { get; set; } = 1f;
+        public float EscalaCorpo
+        {
+            get => _escalaCorpo;
+            set => _escalaCorpo = Math.Max(0.05f, value);
+        }
 
         // Dimensões base (serão escaladas)
         public float LarguraCabeca { get; set; } = 20f;
@@ -106,7 +112,6 @@ namespace CrimeSketcher.Objects
         // Visualização
         public bool MostrarContorno { get; set; } = true;
         public bool Preenchido { get; set; } = true;
-        public float EspessuraContorno { get; set; } = 1.5f;
 
         [Category("Camadas")]
         [DisplayName("Antebraço Direito à Frente da Cabeça")]
@@ -236,6 +241,7 @@ namespace CrimeSketcher.Objects
         public StickFigure()
         {
             Tipo = "Corpo";
+            EspessuraContorno = 1.5f;
             AplicarProporcoesGenero();
         }
 
@@ -313,6 +319,8 @@ namespace CrimeSketcher.Objects
         public override void Desenhar(Graphics g)
         {
             if (!Visivel) return;
+
+            GarantirParametrosValidos();
 
             var state = g.Save();
 
@@ -1076,6 +1084,8 @@ namespace CrimeSketcher.Objects
 
         public override bool ContemPonto(PointF ponto, float tolerancia)
         {
+            GarantirParametrosValidos();
+
             float baseLargura = LarguraTotal / Math.Max(0.0001f, EscalaCorpo);
             float baseAltura = AlturaTotal / Math.Max(0.0001f, EscalaCorpo);
 
@@ -1106,6 +1116,8 @@ namespace CrimeSketcher.Objects
 
         public override RectangleF GetBounds()
         {
+            GarantirParametrosValidos();
+
             float baseLargura = LarguraTotal / Math.Max(0.0001f, EscalaCorpo);
             float baseAltura = AlturaTotal / Math.Max(0.0001f, EscalaCorpo);
 
@@ -1143,6 +1155,22 @@ namespace CrimeSketcher.Objects
             }
 
             return RectangleF.FromLTRB(minX, minY, maxX, maxY);
+        }
+
+        private void GarantirParametrosValidos()
+        {
+            LarguraCabeca = Math.Max(4f, LarguraCabeca);
+            AlturaCabeca = Math.Max(4f, AlturaCabeca);
+            LarguraOmbros = Math.Max(4f, LarguraOmbros);
+            LarguraCintura = Math.Max(4f, LarguraCintura);
+            LarguraQuadril = Math.Max(4f, LarguraQuadril);
+            AlturaTronco = Math.Max(4f, AlturaTronco);
+            LarguraPerna = Math.Max(2f, LarguraPerna);
+            AlturaPerna = Math.Max(2f, AlturaPerna);
+            LarguraPe = Math.Max(2f, LarguraPe);
+            AlturaPe = Math.Max(2f, AlturaPe);
+            EscalaCorpo = Math.Max(0.05f, EscalaCorpo);
+            EspessuraContorno = Math.Max(0.2f, EspessuraContorno);
         }
 
         #endregion

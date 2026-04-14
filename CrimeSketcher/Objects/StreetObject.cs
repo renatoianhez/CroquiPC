@@ -66,10 +66,12 @@ namespace CrimeSketcher.Objects
                 if (!TemCurva)
                     TemCurva = true;
 
-                CurvaCircular = true;
                 var referencia = PontoCurva ?? ObterReferenciaCurvaCircular();
                 if (GeometryHelper.TryGetPontoCurvaArcoPorRaio(PontoInicial, PontoFinal, value, referencia, out var pontoCurva))
+                {
                     PontoCurva = pontoCurva;
+                    CurvaCircular = true;
+                }
             }
         }
 
@@ -614,6 +616,10 @@ namespace CrimeSketcher.Objects
         public void OnDeserialized()
         {
             _desserializandoJson = false;
+            _numeroFaixas = NormalizarNumeroFaixas(_numeroFaixas, _temCanteiroCentral);
+            if (_temCanteiroCentral)
+                _larguraCanteiroCentral = Math.Max(2f, _larguraCanteiroCentral);
+            _largura = Math.Max(10f, _largura);
             _rotacaoAplicada = Rotacao;
         }
 
@@ -694,7 +700,7 @@ namespace CrimeSketcher.Objects
             using (var pen = new Pen(Color.FromArgb(40, 100, 100, 100), 0.5f))
             {
                 float spacing = 8f;
-                int numLinhas = (int)(Comprimento / spacing);
+                int numLinhas = Math.Max(1, (int)(Comprimento / spacing));
                 for (int i = 0; i <= numLinhas; i++)
                 {
                     float t = i / (float)numLinhas;
@@ -1101,6 +1107,7 @@ namespace CrimeSketcher.Objects
                 }
                 return;
             }
+
             var pontos = new List<PointF>();
             for (int i = 0; i <= 30; i++)
             {
@@ -1109,6 +1116,7 @@ namespace CrimeSketcher.Objects
                 var perpLocal = GetPerpendicularNaCurva(t);
                 pontos.Add(new PointF(ponto.X + perpLocal.X * offset, ponto.Y + perpLocal.Y * offset));
             }
+
             using (var pen = new Pen(cor, espessura))
             {
                 if (tipoLinha == TipoLinhaEstacionamento.Tracejada)
@@ -1258,10 +1266,6 @@ namespace CrimeSketcher.Objects
             };
         }
 
-        #endregion
-
-        #region Métodos de Curva Bézier
-
         private void AplicarRotacaoPendente()
         {
             float delta = Rotacao - _rotacaoAplicada;
@@ -1291,7 +1295,7 @@ namespace CrimeSketcher.Objects
             if (!TemCurva || !PontoCurva.HasValue)
                 return new PointF(PontoInicial.X + (PontoFinal.X - PontoInicial.X) * t, PontoInicial.Y + (PontoFinal.Y - PontoInicial.Y) * t);
 
-            if (CurvaCircular && Utils.GeometryHelper.TryGetArcoCircular(
+            if (CurvaCircular && GeometryHelper.TryGetArcoCircular(
                 PontoInicial,
                 PontoCurva.Value,
                 PontoFinal,
@@ -1300,7 +1304,7 @@ namespace CrimeSketcher.Objects
                 out var anguloInicial,
                 out var varredura))
             {
-                return Utils.GeometryHelper.ObterPontoArcoCircular(centro, raio, anguloInicial, varredura, t);
+                return GeometryHelper.ObterPontoArcoCircular(centro, raio, anguloInicial, varredura, t);
             }
 
             float u = 1 - t; float tt = t * t; float uu = u * u; float ut2 = 2 * u * t;
@@ -1318,7 +1322,7 @@ namespace CrimeSketcher.Objects
                 return len > 0.0001f ? new PointF(dx / len, dy / len) : new PointF(1, 0);
             }
 
-            if (CurvaCircular && Utils.GeometryHelper.TryGetArcoCircular(
+            if (CurvaCircular && GeometryHelper.TryGetArcoCircular(
                 PontoInicial,
                 PontoCurva.Value,
                 PontoFinal,
@@ -1328,7 +1332,7 @@ namespace CrimeSketcher.Objects
                 out var varredura))
             {
                 float angulo = anguloInicial + varredura * t;
-                return Utils.GeometryHelper.ObterTangenteArcoCircular(angulo, varredura >= 0f);
+                return GeometryHelper.ObterTangenteArcoCircular(angulo, varredura >= 0f);
             }
 
             float u = 1 - t;
@@ -1370,14 +1374,14 @@ namespace CrimeSketcher.Objects
             float totalW = Largura + (TemCalcada ? LarguraCalcada * 2 : 0);
 
             if (!TemCurva || !PontoCurva.HasValue)
-                return Utils.GeometryHelper.DistanciaPontoSegmento(ponto, PontoInicial, PontoFinal) <= totalW / 2 + tolerancia;
+                return GeometryHelper.DistanciaPontoSegmento(ponto, PontoInicial, PontoFinal) <= totalW / 2 + tolerancia;
 
             const int segmentos = 30;
             for (int i = 0; i < segmentos; i++)
             {
                 var p1 = GetPontoNaCurva(i / (float)segmentos);
                 var p2 = GetPontoNaCurva((i + 1) / (float)segmentos);
-                if (Utils.GeometryHelper.DistanciaPontoSegmento(ponto, p1, p2) <= totalW / 2 + tolerancia)
+                if (GeometryHelper.DistanciaPontoSegmento(ponto, p1, p2) <= totalW / 2 + tolerancia)
                     return true;
             }
 
@@ -1391,10 +1395,20 @@ namespace CrimeSketcher.Objects
             float halfW = totalW / 2f;
             if (!TemCurva || !PontoCurva.HasValue)
             {
-                float minX = Math.Min(PontoInicial.X, PontoFinal.X) - halfW;
-                float minY = Math.Min(PontoInicial.Y, PontoFinal.Y) - halfW;
-                float maxX = Math.Max(PontoInicial.X, PontoFinal.X) + halfW;
-                float maxY = Math.Max(PontoInicial.Y, PontoFinal.Y) + halfW;
+                var perp = Perpendicular;
+                var pontos = GetPoligono(totalW, perp);
+
+                float minX = float.MaxValue, minY = float.MaxValue;
+                float maxX = float.MinValue, maxY = float.MinValue;
+
+                foreach (var p in pontos)
+                {
+                    minX = Math.Min(minX, p.X);
+                    minY = Math.Min(minY, p.Y);
+                    maxX = Math.Max(maxX, p.X);
+                    maxY = Math.Max(maxY, p.Y);
+                }
+
                 return new RectangleF(minX, minY, maxX - minX, maxY - minY);
             }
             else
@@ -1480,8 +1494,8 @@ namespace CrimeSketcher.Objects
 
         public int GetExtremidadeProxima(PointF ponto, float tolerancia = 15f)
         {
-            float distInicial = Utils.GeometryHelper.Distancia(ponto, PontoInicial);
-            float distFinal = Utils.GeometryHelper.Distancia(ponto, PontoFinal);
+            float distInicial = GeometryHelper.Distancia(ponto, PontoInicial);
+            float distFinal = GeometryHelper.Distancia(ponto, PontoFinal);
             if (distInicial <= tolerancia && distInicial < distFinal) return 0;
             if (distFinal <= tolerancia) return 1;
             return -1;

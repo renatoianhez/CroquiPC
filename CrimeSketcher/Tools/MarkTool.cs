@@ -12,10 +12,12 @@ namespace CrimeSketcher.Tools
         public string Nome => "Marca";
         public Cursor Cursor => Cursors.Cross;
 
-        private SketchDocument _doc;
-        private UndoRedoManager _undoRedo;
+        private readonly SketchDocument _doc;
+        private readonly UndoRedoManager _undoRedo;
         private PointF? _pontoInicial;
+        private PointF _pontoAtual;
         private MarkObject _marcaPreview;
+        private bool _desenhando;
 
         // Configurações padrão
         public TipoMarca TipoMarcaPadrao { get; set; } = TipoMarca.Frenagem;
@@ -25,72 +27,69 @@ namespace CrimeSketcher.Tools
 
         public MarkTool(SketchDocument doc, UndoRedoManager undoRedo)
         {
-            _doc = doc;
-            _undoRedo = undoRedo;
+            _doc = doc ?? throw new ArgumentNullException(nameof(doc));
+            _undoRedo = undoRedo ?? throw new ArgumentNullException(nameof(undoRedo));
         }
 
         public void OnMouseDown(MouseEventArgs e, PointF worldPos)
         {
-            if (e.Button == MouseButtons.Left)
+            if (e.Button == MouseButtons.Right)
             {
-                // Iniciar desenho da marca
+                Cancelar();
+                return;
+            }
+
+            if (e.Button != MouseButtons.Left)
+                return;
+
+            if (!_desenhando)
+            {
                 _pontoInicial = worldPos;
+                _pontoAtual = worldPos;
                 _marcaPreview = new MarkObject
                 {
                     PontoInicial = worldPos,
                     PontoFinal = worldPos,
-                    Posicao = worldPos, // Define posição para hit test e seleção
+                    Posicao = worldPos,
                     TipoMarca = TipoMarcaPadrao,
                     Largura = LarguraPadrao,
                     Intensidade = IntensidadePadrao,
                     CorMarca = CorPadrao
                 };
+                _desenhando = true;
+                return;
             }
-            else if (e.Button == MouseButtons.Right)
+
+            if (!_pontoInicial.HasValue || _marcaPreview == null)
+                return;
+
+            var ponto = AplicarSnapAngularSeNecessario(worldPos);
+            _marcaPreview.PontoFinal = ponto;
+
+            float dx = _marcaPreview.PontoFinal.X - _marcaPreview.PontoInicial.X;
+            float dy = _marcaPreview.PontoFinal.Y - _marcaPreview.PontoInicial.Y;
+            float comprimento = (float)Math.Sqrt(dx * dx + dy * dy);
+
+            if (comprimento > 5f)
             {
-                // Cancelar
-                _pontoInicial = null;
-                _marcaPreview = null;
+                _doc.AdicionarObjeto(_marcaPreview);
+                _undoRedo.RegistrarAcao(new AddObjectAction(_doc, _marcaPreview));
             }
+
+            Cancelar();
         }
 
         public void OnMouseMove(MouseEventArgs e, PointF worldPos)
         {
-            if (_pontoInicial.HasValue && _marcaPreview != null)
-            {
-                float passo = (Control.ModifierKeys & Keys.Shift) != 0 ? 15f : 5f;
-                var ponto = Utils.GeometryHelper.SnapAngulo(_pontoInicial.Value, worldPos, passo);
-                _marcaPreview.PontoFinal = ponto;
-            }
+            _pontoAtual = worldPos;
+
+            if (!_desenhando || !_pontoInicial.HasValue || _marcaPreview == null)
+                return;
+
+            _marcaPreview.PontoFinal = AplicarSnapAngularSeNecessario(worldPos);
         }
 
-        public void OnMouseUp(MouseEventArgs e, PointF worldPos)
-        {
-            if (e.Button == MouseButtons.Left && _pontoInicial.HasValue && _marcaPreview != null)
-            {
-                float passo = (Control.ModifierKeys & Keys.Shift) != 0 ? 15f : 5f;
-                var ponto = Utils.GeometryHelper.SnapAngulo(_pontoInicial.Value, worldPos, passo);
-
-                // Finalizar marca
-                _marcaPreview.PontoFinal = ponto;
-
-                // Verificar se tem tamanho mínimo
-                float dx = _marcaPreview.PontoFinal.X - _marcaPreview.PontoInicial.X;
-                float dy = _marcaPreview.PontoFinal.Y - _marcaPreview.PontoInicial.Y;
-                float comprimento = (float)Math.Sqrt(dx * dx + dy * dy);
-
-                if (comprimento > 5)
-                {
-                    // Adicionar ao documento
-                    _doc.AdicionarObjeto(_marcaPreview);
-                    _undoRedo.RegistrarAcao(new AddObjectAction(_doc, _marcaPreview));
-                }
-
-                // Resetar
-                _pontoInicial = null;
-                _marcaPreview = null;
-            }
-        }
+        public void OnMouseUp(MouseEventArgs e, PointF worldPos) { }
 
         public void OnKeyDown(KeyEventArgs e)
         {
@@ -104,10 +103,8 @@ namespace CrimeSketcher.Tools
         {
             if (_marcaPreview != null && _pontoInicial.HasValue)
             {
-                // Desenhar preview da marca
                 _marcaPreview.Desenhar(g);
 
-                // Desenhar linha guia
                 using (var pen = new Pen(Color.FromArgb(150, 0, 122, 204), 1f))
                 {
                     pen.DashStyle = System.Drawing.Drawing2D.DashStyle.Dash;
@@ -118,8 +115,19 @@ namespace CrimeSketcher.Tools
 
         public void Cancelar()
         {
+            _desenhando = false;
             _pontoInicial = null;
+            _pontoAtual = PointF.Empty;
             _marcaPreview = null;
+        }
+
+        private PointF AplicarSnapAngularSeNecessario(PointF ponto)
+        {
+            if (!_pontoInicial.HasValue)
+                return ponto;
+
+            float passo = (Control.ModifierKeys & Keys.Shift) != 0 ? 15f : 5f;
+            return Utils.GeometryHelper.SnapAngulo(_pontoInicial.Value, ponto, passo);
         }
     }
 }

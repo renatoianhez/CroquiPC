@@ -307,8 +307,8 @@ namespace CrimeSketcher.Objects
             bool temDireita  = TipoCruzamento != TipoCruzamento.TParaEsquerda;
             float ext = Math.Max(0f, ExtensaoVias);
 
-            float extraX = ObterExtraEstacionamentoEixoX(meiaRua);
-            float extraY = ObterExtraEstacionamentoEixoY(meiaRua);
+            float extraX = ObterExtraEstacionamentoEixoX();
+            float extraY = ObterExtraEstacionamentoEixoY();
             float meiaRuaCalcX = meiaRua + extraX;
             float meiaRuaCalcY = meiaRua + extraY;
             float meiaTamanhoX = meiaTamanho + extraX;
@@ -428,8 +428,8 @@ namespace CrimeSketcher.Objects
 
         private void ReforcarCalcadaLadoFechadoT(Graphics g, float meiaRua, float meiaTamanho, bool temCima, bool temBaixo, bool temEsquerda, bool temDireita)
         {
-            float extraX = ObterExtraEstacionamentoEixoX(meiaRua);
-            float extraY = ObterExtraEstacionamentoEixoY(meiaRua);
+            float extraX = ObterExtraEstacionamentoEixoX();
+            float extraY = ObterExtraEstacionamentoEixoY();
             float meiaRuaCalcX = meiaRua + extraX;
             float meiaRuaCalcY = meiaRua + extraY;
             float meiaTamanhoX = meiaTamanho + extraX;
@@ -461,100 +461,6 @@ namespace CrimeSketcher.Objects
             {
                 g.FillRectangle(brush, meiaRuaCalcX, -meiaTamanhoY, calc, meiaTamanhoY * 2);
                 g.DrawLine(penMeioFio, meiaRuaCalcX, -meiaRuaCalcY, meiaRuaCalcX, meiaRuaCalcY);
-            }
-        }
-
-        private void DesenharT(Graphics g, float meiaRua, float meiaTamanho)
-        {
-            bool temCima     = TipoCruzamento != TipoCruzamento.TParaBaixo;
-            bool temBaixo    = TipoCruzamento != TipoCruzamento.TParaCima;
-            bool temEsquerda = TipoCruzamento != TipoCruzamento.TParaDireita;
-            bool temDireita  = TipoCruzamento != TipoCruzamento.TParaEsquerda;
-            float ext = Math.Max(0f, ExtensaoVias);
-
-            float extraX = ObterExtraEstacionamentoEixoX(meiaRua);
-            float extraY = ObterExtraEstacionamentoEixoY(meiaRua);
-            float meiaRuaCalcX = meiaRua + extraX;
-            float meiaRuaCalcY = meiaRua + extraY;
-            float meiaTamanhoX = meiaTamanho + extraX;
-            float meiaTamanhoY = meiaTamanho + extraY;
-
-            if (TemCalcada)
-            {
-                using (var brush = new SolidBrush(Color.FromArgb(CorCalcadaArgb)))
-                {
-                    float calc = LarguraCalcada;
-                    if (!temCima) g.FillRectangle(brush, -meiaTamanhoX, -meiaTamanhoY, meiaTamanhoX * 2, calc);
-                    else { g.FillRectangle(brush, -meiaTamanhoX, -meiaTamanhoY, calc, calc); g.FillRectangle(brush, meiaRuaCalcX, -meiaTamanhoY, calc, calc); }
-                    if (!temBaixo) g.FillRectangle(brush, -meiaTamanhoX, meiaRuaCalcY, meiaTamanhoX * 2, calc);
-                    else { g.FillRectangle(brush, -meiaTamanhoX, meiaRuaCalcY, calc, calc); g.FillRectangle(brush, meiaRuaCalcX, meiaRuaCalcY, calc, calc); }
-                    if (!temEsquerda) g.FillRectangle(brush, -meiaTamanhoX, -meiaTamanhoY, calc, meiaTamanhoY * 2);
-                    if (!temDireita) g.FillRectangle(brush, meiaRuaCalcX, -meiaTamanhoY, calc, meiaTamanhoY * 2);
-                    if (temEsquerda) { g.FillRectangle(brush, -meiaTamanhoX - ext, -meiaRuaCalcY - calc, ext, calc); g.FillRectangle(brush, -meiaTamanhoX - ext, meiaRuaCalcY, ext, calc); }
-                    if (temDireita) { g.FillRectangle(brush, meiaTamanhoX, -meiaRuaCalcY - calc, ext, calc); g.FillRectangle(brush, meiaTamanhoX, meiaRuaCalcY, ext, calc); }
-                    if (temCima) { g.FillRectangle(brush, -meiaRuaCalcX - calc, -meiaTamanhoY - ext, calc, ext); g.FillRectangle(brush, meiaRuaCalcX, -meiaTamanhoY - ext, calc, ext); }
-                    if (temBaixo) { g.FillRectangle(brush, -meiaRuaCalcX - calc, meiaTamanhoY, calc, ext); g.FillRectangle(brush, meiaRuaCalcX, meiaTamanhoY, calc, ext); }
-                }
-            }
-
-            using (var brush = new SolidBrush(Color.FromArgb(CorAsfaltoArgb)))
-            {
-                g.FillRectangle(brush, -meiaTamanho, -meiaRua, meiaTamanho * 2, LarguraRua);
-                if (temEsquerda) g.FillRectangle(brush, -meiaTamanho - ext, -meiaRua, ext, LarguraRua);
-                if (temDireita)  g.FillRectangle(brush, meiaTamanho, -meiaRua, ext, LarguraRua);
-                if (temCima)     g.FillRectangle(brush, -meiaRua, -meiaTamanho - ext, LarguraRua, ext + meiaTamanho);
-                if (temBaixo)    g.FillRectangle(brush, -meiaRua, 0, LarguraRua, meiaTamanho + ext);
-            }
-
-            using (var brush = new HatchBrush(HatchStyle.Percent10, Color.FromArgb(20, 0, 0, 0), Color.Transparent))
-            {
-                g.FillRectangle(brush, -meiaTamanho, -meiaRua, meiaTamanho * 2, LarguraRua);
-                if (temEsquerda) g.FillRectangle(brush, -meiaTamanho - ext, -meiaRua, ext, LarguraRua);
-                if (temDireita)  g.FillRectangle(brush, meiaTamanho, -meiaRua, ext, LarguraRua);
-                if (temCima)     g.FillRectangle(brush, -meiaRua, -meiaTamanho - ext, LarguraRua, ext + meiaTamanho);
-                if (temBaixo)    g.FillRectangle(brush, -meiaRua, 0, LarguraRua, meiaTamanho + ext);
-            }
-
-            AjustarBracosSemCanteiro(g, meiaRua, meiaTamanho, ext,
-                temCima, temBaixo, temEsquerda, temDireita,
-                usarNorte: CanteiroRuaNorte, usarSul: CanteiroRuaSul,
-                usarOeste: CanteiroRuaOeste, usarLeste: CanteiroRuaLeste);
-
-            if (TemFaixaEstacionamento)
-            {
-                DesenharFaixasEstacionamento(g, meiaRua, meiaTamanho, ext,
-                    cima: temCima && EstacionamentoRuaNorte,
-                    baixo: temBaixo && EstacionamentoRuaSul,
-                    esquerda: temEsquerda && EstacionamentoRuaOeste,
-                    direita: temDireita && EstacionamentoRuaLeste);
-            }
-
-            DesenharPoligonoCentralCruz(g, meiaRua);
-
-            if (TemCalcada && TipoCruzamento != TipoCruzamento.Cruz)
-                ReforcarCalcadaLadoFechadoT(g, meiaRua, meiaTamanho, temCima, temBaixo, temEsquerda, temDireita);
-
-            if (TemFaixaPedestre)
-                DesenharFaixasPedestreT(g, meiaRua, meiaTamanho, temCima, temBaixo, temEsquerda, temDireita);
-
-            DesenharMeioFioBracos(g, meiaRua, meiaTamanho, ext, temCima, temBaixo, temEsquerda, temDireita);
-
-            if (TemSinalPare)
-            {
-                DesenharSinalPare(g, meiaRua, meiaTamanho,
-                    temCima && PareRuaNorte,
-                    temBaixo && PareRuaSul,
-                    temEsquerda && PareRuaOeste,
-                    temDireita && PareRuaLeste);
-            }
-
-            if (TemCanteiroCentral)
-            {
-                DesenharCanteiroCentral(g, meiaRua, meiaTamanho, ext,
-                    cima: temCima && CanteiroRuaNorte,
-                    baixo: temBaixo && CanteiroRuaSul,
-                    esquerda: temEsquerda && CanteiroRuaOeste,
-                    direita: temDireita && CanteiroRuaLeste);
             }
         }
 
@@ -636,18 +542,6 @@ namespace CrimeSketcher.Objects
             if (direita) { g.DrawLine(penMeio, 0f, -meiaRua, meiaTamanho, -meiaRua); g.DrawLine(penMeio, 0f, meiaRua, meiaTamanho, meiaRua); }
         }
 
-        private void DesenharFaixasPedestre(Graphics g, float meiaRua, float meiaTamanho)
-        {
-            using var brush = new SolidBrush(Color.FromArgb(CorFaixaArgb));
-            float larguraLista = 4f;
-            float espacamento = 3f;
-            float distancia = meiaTamanho + 5f;
-            DesenharFaixaUnica(g, brush, 0, -distancia, LarguraFaixaPedestre, true, larguraLista, espacamento);
-            DesenharFaixaUnica(g, brush, 0, distancia, LarguraFaixaPedestre, true, larguraLista, espacamento);
-            DesenharFaixaUnica(g, brush, distancia, 0, LarguraFaixaPedestre, false, larguraLista, espacamento);
-            DesenharFaixaUnica(g, brush, -distancia, 0, LarguraFaixaPedestre, false, larguraLista, espacamento);
-        }
-
         private void DesenharFaixasPedestreT(Graphics g, float meiaRua, float meiaTamanho, bool cima, bool baixo, bool esquerda, bool direita)
         {
             using var brush = new SolidBrush(Color.FromArgb(CorFaixaArgb));
@@ -719,12 +613,6 @@ namespace CrimeSketcher.Objects
             }
         }
 
-        private void DesenharTextoCentralizado(Graphics g, string texto, Font fonte, Brush brush, float x, float y)
-        {
-            var tamanho = g.MeasureString(texto, fonte);
-            g.DrawString(texto, fonte, brush, x - tamanho.Width / 2f, y - tamanho.Height / 2f);
-        }
-
         private void DesenharTextoCentralizadoRotacionado(Graphics g, string texto, Font fonte, Brush brush, float x, float y, float angulo)
         {
             var state = g.Save();
@@ -759,9 +647,89 @@ namespace CrimeSketcher.Objects
 
         public override RectangleF GetBounds()
         {
-            float tamanho = LarguraRua + (TemCalcada ? LarguraCalcada * 2 : 0) + ExtensaoVias * 2;
-            if (TemFaixaEstacionamentoEfetiva()) tamanho += LarguraFaixaEstacionamento * 2;
-            return new RectangleF(Posicao.X - tamanho / 2, Posicao.Y - tamanho / 2, tamanho, tamanho);
+            bool temCima = TipoCruzamento != TipoCruzamento.TParaBaixo;
+            bool temBaixo = TipoCruzamento != TipoCruzamento.TParaCima;
+            bool temEsquerda = TipoCruzamento != TipoCruzamento.TParaDireita;
+            bool temDireita = TipoCruzamento != TipoCruzamento.TParaEsquerda;
+
+            float meiaRua = LarguraRua / 2f;
+            float meiaTamanho = (LarguraRua + (TemCalcada ? LarguraCalcada * 2f : 0f)) / 2f;
+            float ext = Math.Max(0f, ExtensaoVias);
+
+            float localMinX = -meiaTamanho;
+            float localMaxX = meiaTamanho;
+            float localMinY = -meiaTamanho;
+            float localMaxY = meiaTamanho;
+
+            if (temEsquerda) localMinX = Math.Min(localMinX, -meiaTamanho - ext);
+            if (temDireita) localMaxX = Math.Max(localMaxX, meiaTamanho + ext);
+            if (temCima) localMinY = Math.Min(localMinY, -meiaTamanho - ext);
+            if (temBaixo) localMaxY = Math.Max(localMaxY, meiaTamanho + ext);
+
+            if (TemFaixaEstacionamentoEfetiva())
+            {
+                float le = Math.Max(0f, LarguraFaixaEstacionamento);
+
+                if (temCima && EstacionamentoRuaNorte)
+                {
+                    localMinY = Math.Min(localMinY, -meiaTamanho - ext);
+                    localMinX = Math.Min(localMinX, -meiaRua - le);
+                    localMaxX = Math.Max(localMaxX, meiaRua + le);
+                }
+
+                if (temBaixo && EstacionamentoRuaSul)
+                {
+                    localMaxY = Math.Max(localMaxY, meiaTamanho + ext);
+                    localMinX = Math.Min(localMinX, -meiaRua - le);
+                    localMaxX = Math.Max(localMaxX, meiaRua + le);
+                }
+
+                if (temEsquerda && EstacionamentoRuaOeste)
+                {
+                    localMinX = Math.Min(localMinX, -meiaTamanho - ext);
+                    localMinY = Math.Min(localMinY, -meiaRua - le);
+                    localMaxY = Math.Max(localMaxY, meiaRua + le);
+                }
+
+                if (temDireita && EstacionamentoRuaLeste)
+                {
+                    localMaxX = Math.Max(localMaxX, meiaTamanho + ext);
+                    localMinY = Math.Min(localMinY, -meiaRua - le);
+                    localMaxY = Math.Max(localMaxY, meiaRua + le);
+                }
+            }
+
+            if (TemFaixaPedestre)
+            {
+                float distancia = meiaTamanho + 5f;
+                float meioComprimentoFaixa = LarguraFaixaPedestre / 2f;
+
+                if (temCima) localMinY = Math.Min(localMinY, -distancia - meioComprimentoFaixa);
+                if (temBaixo) localMaxY = Math.Max(localMaxY, distancia + meioComprimentoFaixa);
+                if (temEsquerda) localMinX = Math.Min(localMinX, -distancia - meioComprimentoFaixa);
+                if (temDireita) localMaxX = Math.Max(localMaxX, distancia + meioComprimentoFaixa);
+            }
+
+            float rad = Rotacao * (float)Math.PI / 180f;
+            float cos = (float)Math.Cos(rad);
+            float sin = (float)Math.Sin(rad);
+
+            PointF Transformar(float x, float y) => new PointF(
+                Posicao.X + x * cos - y * sin,
+                Posicao.Y + x * sin + y * cos);
+
+            var p1 = Transformar(localMinX, localMinY);
+            var p2 = Transformar(localMaxX, localMinY);
+            var p3 = Transformar(localMaxX, localMaxY);
+            var p4 = Transformar(localMinX, localMaxY);
+
+            float minX = Math.Min(Math.Min(p1.X, p2.X), Math.Min(p3.X, p4.X));
+            float minY = Math.Min(Math.Min(p1.Y, p2.Y), Math.Min(p3.Y, p4.Y));
+            float maxX = Math.Max(Math.Max(p1.X, p2.X), Math.Max(p3.X, p4.X));
+            float maxY = Math.Max(Math.Max(p1.Y, p2.Y), Math.Max(p3.Y, p4.Y));
+
+            const float margem = 2f;
+            return new RectangleF(minX - margem, minY - margem, (maxX - minX) + margem * 2f, (maxY - minY) + margem * 2f);
         }
 
         public PointF[] GetPontosConexao()
@@ -857,6 +825,18 @@ namespace CrimeSketcher.Objects
             return len <= 0.0001f ? new PointF(1f, 0f) : new PointF(x / len, y / len);
         }
 
+        private float ObterExtraEstacionamentoEixoX()
+        {
+            if (!_temFaixaEstacionamento || !(_estacionamentoRuaNorte || _estacionamentoRuaSul)) return 0f;
+            return _larguraFaixaEstacionamento;
+        }
+
+        private float ObterExtraEstacionamentoEixoY()
+        {
+            if (!_temFaixaEstacionamento || !(_estacionamentoRuaLeste || _estacionamentoRuaOeste)) return 0f;
+            return _larguraFaixaEstacionamento;
+        }
+
         private float ObterLarguraUtilPista()
         {
             float canteiroAtual = _temCanteiroCentral ? _larguraCanteiroCentral : 0f;
@@ -864,18 +844,6 @@ namespace CrimeSketcher.Objects
         }
 
         private bool TemFaixaEstacionamentoEfetiva() => _temFaixaEstacionamento && (_estacionamentoRuaNorte || _estacionamentoRuaSul || _estacionamentoRuaLeste || _estacionamentoRuaOeste);
-
-        private float ObterExtraEstacionamentoEixoX(float meiaRua)
-        {
-            if (!_temFaixaEstacionamento || !(_estacionamentoRuaNorte || _estacionamentoRuaSul)) return 0f;
-            return _larguraFaixaEstacionamento;
-        }
-
-        private float ObterExtraEstacionamentoEixoY(float meiaRua)
-        {
-            if (!_temFaixaEstacionamento || !(_estacionamentoRuaLeste || _estacionamentoRuaOeste)) return 0f;
-            return _larguraFaixaEstacionamento;
-        }
 
         private void AjustarBracosSemCanteiro(Graphics g, float meiaRua, float meiaTamanho, float ext, bool cima, bool baixo, bool esquerda, bool direita, bool usarNorte, bool usarSul, bool usarOeste, bool usarLeste)
         {
@@ -894,24 +862,63 @@ namespace CrimeSketcher.Objects
         private void DesenharMeioFioBracos(Graphics g, float meiaRua, float meiaTamanho, float ext, bool cima, bool baixo, bool esquerda, bool direita)
         {
             using var pen = new Pen(Color.FromArgb(150, 150, 140), 2f);
-            if (cima) { g.DrawLine(pen, -meiaRua, -meiaTamanho - ext, -meiaRua, -meiaTamanho); g.DrawLine(pen, meiaRua, -meiaTamanho - ext, meiaRua, -meiaTamanho); }
-            if (baixo) { g.DrawLine(pen, -meiaRua, meiaTamanho, -meiaRua, meiaTamanho + ext); g.DrawLine(pen, meiaRua, meiaTamanho, meiaRua, meiaTamanho + ext); }
-            if (esquerda) { g.DrawLine(pen, -meiaTamanho - ext, -meiaRua, -meiaTamanho, -meiaRua); g.DrawLine(pen, -meiaTamanho - ext, meiaRua, -meiaTamanho, meiaRua); }
-            if (direita) { g.DrawLine(pen, meiaTamanho, -meiaRua, meiaTamanho + ext, -meiaRua); g.DrawLine(pen, meiaTamanho, meiaRua, meiaTamanho + ext, meiaRua); }
+            if (cima)
+            {
+                g.DrawLine(pen, -meiaRua, -meiaTamanho - ext, -meiaRua, -meiaTamanho);
+                g.DrawLine(pen, meiaRua, -meiaTamanho - ext, meiaRua, -meiaTamanho);
+            }
+            if (baixo)
+            {
+                g.DrawLine(pen, -meiaRua, meiaTamanho, -meiaRua, meiaTamanho + ext);
+                g.DrawLine(pen, meiaRua, meiaTamanho, meiaRua, meiaTamanho + ext);
+            }
+            if (esquerda)
+            {
+                g.DrawLine(pen, -meiaTamanho - ext, -meiaRua, -meiaTamanho, -meiaRua);
+                g.DrawLine(pen, -meiaTamanho - ext, meiaRua, -meiaTamanho, meiaRua);
+            }
+            if (direita)
+            {
+                g.DrawLine(pen, meiaTamanho, -meiaRua, meiaTamanho + ext, -meiaRua);
+                g.DrawLine(pen, meiaTamanho, meiaRua, meiaTamanho + ext, meiaRua);
+            }
         }
 
         private void DesenharCanteiroCentral(Graphics g, float meiaRua, float meiaTamanho, float ext, bool cima, bool baixo, bool esquerda, bool direita)
         {
             if (!TemCanteiroCentral) return;
+
             float largura = Math.Min(LarguraCanteiroCentral, Math.Max(2f, LarguraRua - 4f));
             if (largura <= 0.1f) return;
+
             float metade = largura / 2f;
             using var brush = new SolidBrush(Color.FromArgb(CorCanteiroArgb));
             using var pen = new Pen(Color.FromArgb(90, 120, 70), 1.2f);
-            if (cima) { var r = new RectangleF(-metade, -(meiaTamanho + ext), largura, ext + meiaTamanho); g.FillRectangle(brush, r); g.DrawRectangle(pen, r.X, r.Y, r.Width, r.Height); }
-            if (baixo) { var r = new RectangleF(-metade, 0f, largura, meiaTamanho + ext); g.FillRectangle(brush, r); g.DrawRectangle(pen, r.X, r.Y, r.Width, r.Height); }
-            if (esquerda) { var r = new RectangleF(-(meiaTamanho + ext), -metade, ext + meiaTamanho, largura); g.FillRectangle(brush, r); g.DrawRectangle(pen, r.X, r.Y, r.Width, r.Height); }
-            if (direita) { var r = new RectangleF(0f, -metade, meiaTamanho + ext, largura); g.FillRectangle(brush, r); g.DrawRectangle(pen, r.X, r.Y, r.Width, r.Height); }
+
+            if (cima)
+            {
+                var r = new RectangleF(-metade, -(meiaTamanho + ext), largura, ext + meiaTamanho);
+                g.FillRectangle(brush, r);
+                g.DrawRectangle(pen, r.X, r.Y, r.Width, r.Height);
+            }
+            if (baixo)
+            {
+                var r = new RectangleF(-metade, 0f, largura, meiaTamanho + ext);
+                g.FillRectangle(brush, r);
+                g.DrawRectangle(pen, r.X, r.Y, r.Width, r.Height);
+            }
+            if (esquerda)
+            {
+                var r = new RectangleF(-(meiaTamanho + ext), -metade, ext + meiaTamanho, largura);
+                g.FillRectangle(brush, r);
+                g.DrawRectangle(pen, r.X, r.Y, r.Width, r.Height);
+            }
+            if (direita)
+            {
+                var r = new RectangleF(0f, -metade, meiaTamanho + ext, largura);
+                g.FillRectangle(brush, r);
+                g.DrawRectangle(pen, r.X, r.Y, r.Width, r.Height);
+            }
         }
     }
 }

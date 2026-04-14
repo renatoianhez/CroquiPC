@@ -1,6 +1,7 @@
 ﻿// Tools/DimensionTool.cs
 using CrimeSketcher.Core;
 using CrimeSketcher.Objects;
+using System;
 using System.Drawing;
 using System.Windows.Forms;
 
@@ -11,22 +12,22 @@ namespace CrimeSketcher.Tools
         public string Nome => "Cota";
         public Cursor Cursor => Cursors.Cross;
 
-        private SketchDocument _doc;
-        private GridManager _grid;
-        private ScaleManager _scale;
+        private readonly SketchDocument _doc;
+        private readonly GridManager _grid;
+        private readonly ScaleManager _scale;
         private PointF? _pontoInicial;
         private PointF _pontoAtual;
         private bool _desenhando = false;
 
         public Color CorTexto { get; set; } = Color.FromArgb(200, 0, 0);
-        public Color CorFundoTexto { get; set; } = Color.FromArgb(220, 255, 255, 255);
+        public Color CorFundoTexto { get; set; } = Color.FromArgb(60, 255, 255, 255);
 
         public DimensionTool(SketchDocument doc, GridManager grid,
             ScaleManager scale)
         {
-            _doc = doc;
-            _grid = grid;
-            _scale = scale;
+            _doc = doc ?? throw new ArgumentNullException(nameof(doc));
+            _grid = grid ?? throw new ArgumentNullException(nameof(grid));
+            _scale = scale ?? throw new ArgumentNullException(nameof(scale));
         }
 
         public void OnMouseDown(MouseEventArgs e, PointF worldPos)
@@ -37,12 +38,12 @@ namespace CrimeSketcher.Tools
                 if (!_desenhando)
                 {
                     _pontoInicial = snapped;
+                    _pontoAtual = snapped;
                     _desenhando = true;
                 }
                 else
                 {
-                    float passo = (Control.ModifierKeys & Keys.Shift) != 0 ? 15f : 5f;
-                    snapped = Utils.GeometryHelper.SnapAngulo(_pontoInicial.Value, snapped, passo);
+                    snapped = AplicarSnapAngularSeNecessario(snapped);
 
                     var dim = new DimensionLine
                     {
@@ -64,8 +65,7 @@ namespace CrimeSketcher.Tools
             var snapped = _grid.Snap(worldPos);
             if (_desenhando && _pontoInicial.HasValue)
             {
-                float passo = (Control.ModifierKeys & Keys.Shift) != 0 ? 15f : 5f;
-                snapped = Utils.GeometryHelper.SnapAngulo(_pontoInicial.Value, snapped, passo);
+                snapped = AplicarSnapAngularSeNecessario(snapped);
             }
             _pontoAtual = snapped;
         }
@@ -96,6 +96,16 @@ namespace CrimeSketcher.Tools
         {
             _desenhando = false;
             _pontoInicial = null;
+            _pontoAtual = PointF.Empty;
+        }
+
+        private PointF AplicarSnapAngularSeNecessario(PointF ponto)
+        {
+            if (!_pontoInicial.HasValue)
+                return ponto;
+
+            float passo = (Control.ModifierKeys & Keys.Shift) != 0 ? 15f : 5f;
+            return Utils.GeometryHelper.SnapAngulo(_pontoInicial.Value, ponto, passo);
         }
     }
 }

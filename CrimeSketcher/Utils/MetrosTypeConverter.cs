@@ -107,9 +107,9 @@ namespace CrimeSketcher.Utils
                 {
                     float xm = esc.PixelsParaReal(p.X);
                     float ym = esc.PixelsParaReal(p.Y);
-                    return $"{xm:F2} {esc.UnidadeReal}, {ym:F2} {esc.UnidadeReal}";
+                    return $"{xm:F2} {esc.UnidadeReal}; {ym:F2} {esc.UnidadeReal}";
                 }
-                return $"{p.X:F1}, {p.Y:F1}";
+                return $"{p.X:F1}; {p.Y:F1}";
             }
             return base.ConvertTo(context, culture, value, destinationType);
         }
@@ -134,7 +134,7 @@ namespace CrimeSketcher.Utils
                 }
                 s = s.Trim();
 
-                var partes = s.Split(new[] { ',', ';' },
+                var partes = s.Split(new[] { ';' },
                     StringSplitOptions.RemoveEmptyEntries);
                 if (partes.Length == 2)
                 {

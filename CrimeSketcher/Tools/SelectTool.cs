@@ -30,12 +30,15 @@ namespace CrimeSketcher.Tools
         public Cursor Cursor => Cursors.Default;
 
         private readonly SketchDocument _doc;
-        private BaseSketchObject? _objetoArrastando;
+        private BaseSketchObject _objetoArrastando;
         private bool _arrastando = false;
+        private bool _arrastoPendente = false;
+        private PointF _pontoInicioArrasto;
+        private const float LimiteInicioArrastoPixels = 4f;
         private bool _redimensionando = false;
         private bool _rotacionando = false;
         private int _alcaAtiva = -1;
-        private BaseSketchObject? _objetoTransformando;
+        private BaseSketchObject _objetoTransformando;
         private PointF _ultimoPontoMouse;
         private RectangleF _selecaoRetangular;
         private bool _selecionandoArea = false;
@@ -43,28 +46,28 @@ namespace CrimeSketcher.Tools
         private readonly UndoRedoManager _undoRedo;
 
         private bool _arrastandoVerticeArea = false;
-        private AreaObject? _areaEditandoVertice = null;
+        private AreaObject _areaEditandoVertice = null;
         private int _indiceVerticeArea = -1;
 
         // Controle de arrasto de ponto de curva
         private bool _arrastandoPontoCurva = false;
-        private BaseSketchObject? _objetoComCurva = null;
+        private BaseSketchObject _objetoComCurva = null;
         private PointF _pontoCurvaAnterior;
 
         // Controle de arraste de articulações do corpo
         private bool _arrastandoArticulacaoCorpo = false;
-        private StickFigure? _corpoArticulando = null;
+        private StickFigure _corpoArticulando = null;
         private ArticulacaoCorpoHandle _articulacaoCorpoAtiva = ArticulacaoCorpoHandle.Nenhuma;
 
         // Múltipla seleção
         private readonly HashSet<BaseSketchObject> _objetosSelecionados = new HashSet<BaseSketchObject>();
         private readonly Dictionary<BaseSketchObject, PointF> _posicoesAnterioresGrupo = new Dictionary<BaseSketchObject, PointF>();
 
-        public BaseSketchObject? ObjetoSelecionado { get; private set; }
+        public BaseSketchObject ObjetoSelecionado { get; private set; }
         public IReadOnlyCollection<BaseSketchObject> ObjetosSelecionados => _objetosSelecionados;
 
-        public event EventHandler<BaseSketchObject?>? SelectionChanged;
-        public event EventHandler<IReadOnlyCollection<BaseSketchObject>>? MultiSelectionChanged;
+        public event EventHandler<BaseSketchObject> SelectionChanged;
+        public event EventHandler<IReadOnlyCollection<BaseSketchObject>> MultiSelectionChanged;
 
         public float ZoomLevel { get; set; } = 1f;
 
@@ -74,7 +77,7 @@ namespace CrimeSketcher.Tools
             _undoRedo = undoRedo;
         }
 
-        private void DesselcionarTodos()
+        private void DesselecionarTodos()
         {
             foreach (var obj in _objetosSelecionados)
             {
@@ -200,7 +203,9 @@ namespace CrimeSketcher.Tools
                 if (ctrlPressed)
                 {
                     ToggleSelecionado(hit);
-                    ObjetoSelecionado = hit;
+                    ObjetoSelecionado = _objetosSelecionados.Contains(hit)
+                        ? hit
+                        : _objetosSelecionados.FirstOrDefault();
                 }
                 else if (shiftPressed && _objetosSelecionados.Count > 0)
                 {
@@ -209,13 +214,14 @@ namespace CrimeSketcher.Tools
                 }
                 else
                 {
-                    DesselcionarTodos();
+                    DesselecionarTodos();
                     AdicionarSelecionado(hit);
                     ObjetoSelecionado = hit;
                 }
 
                 _objetoArrastando = hit;
                 _ultimoPontoMouse = worldPos;
+                _pontoInicioArrasto = worldPos;
 
                 _posicoesAnterioresGrupo.Clear();
                 foreach (var obj in _objetosSelecionados)
@@ -223,9 +229,10 @@ namespace CrimeSketcher.Tools
                     _posicoesAnterioresGrupo[obj] = obj.Posicao;
                 }
 
-                _arrastando = true;
+                _arrastoPendente = true;
+                _arrastando = false;
 
-                SelectionChanged?.Invoke(this, hit);
+                SelectionChanged?.Invoke(this, ObjetoSelecionado);
                 var lista = _objetosSelecionados.ToList();
                 MultiSelectionChanged?.Invoke(this, lista);
             }
@@ -233,7 +240,7 @@ namespace CrimeSketcher.Tools
             {
                 if (!ctrlPressed && !shiftPressed)
                 {
-                    DesselcionarTodos();
+                    DesselecionarTodos();
                     SelectionChanged?.Invoke(this, null);
                     var lista = _objetosSelecionados.ToList();
                     MultiSelectionChanged?.Invoke(this, lista);
@@ -294,6 +301,20 @@ namespace CrimeSketcher.Tools
                     {
                         obj.Mover(dx, dy);
                     }
+                }
+            }
+            else if (_arrastoPendente && _objetoArrastando != null && !_objetoArrastando.Bloqueado)
+            {
+                float limiteMundo = PixelsParaMundo(LimiteInicioArrastoPixels);
+                float dx = worldPos.X - _pontoInicioArrasto.X;
+                float dy = worldPos.Y - _pontoInicioArrasto.Y;
+                float distancia = (float)Math.Sqrt(dx * dx + dy * dy);
+
+                if (distancia >= limiteMundo)
+                {
+                    _arrastando = true;
+                    _arrastoPendente = false;
+                    _ultimoPontoMouse = worldPos;
                 }
             }
             else if (_selecionandoArea)
@@ -371,7 +392,7 @@ namespace CrimeSketcher.Tools
 
                 if (!ctrlPressed)
                 {
-                    DesselcionarTodos();
+                    DesselecionarTodos();
                 }
 
                 foreach (var obj in objetosNaArea)
@@ -379,12 +400,10 @@ namespace CrimeSketcher.Tools
                     AdicionarSelecionado(obj);
                 }
 
-                if (objetosNaArea.Count > 0)
-                {
-                    ObjetoSelecionado = objetosNaArea.Last();
-                    var lista = _objetosSelecionados.ToList();
-                    MultiSelectionChanged?.Invoke(this, lista);
-                }
+                ObjetoSelecionado = _objetosSelecionados.LastOrDefault();
+                SelectionChanged?.Invoke(this, ObjetoSelecionado);
+                var lista = _objetosSelecionados.ToList();
+                MultiSelectionChanged?.Invoke(this, lista);
             }
 
             _arrastando = false;
@@ -394,6 +413,7 @@ namespace CrimeSketcher.Tools
             _objetoArrastando = null;
             _objetoTransformando = null;
             _selecionandoArea = false;
+            _arrastoPendente = false;
             _posicoesAnterioresGrupo.Clear();
         }
 
@@ -438,7 +458,6 @@ namespace CrimeSketcher.Tools
             float yQuadril = corpo.AlturaTronco / 2f;
 
             float compBracoSuperior = 18f;
-            float compAntebraco = 17f;
             float compCoxa = corpo.AlturaPerna * 0.55f;
 
             var pescoco = new PointF(0f, yTroncoTop - 2f);
@@ -713,7 +732,7 @@ namespace CrimeSketcher.Tools
                     {
                         _doc.RemoverObjeto(obj);
                     }
-                    DesselcionarTodos();
+                    DesselecionarTodos();
                     SelectionChanged?.Invoke(this, null);
                     var lista = _objetosSelecionados.ToList();
                     MultiSelectionChanged?.Invoke(this, lista);
@@ -789,11 +808,14 @@ namespace CrimeSketcher.Tools
         public void Cancelar()
         {
             _arrastando = false;
+            _arrastoPendente = false;
             _redimensionando = false;
             _rotacionando = false;
             _alcaAtiva = -1;
+            _objetoArrastando = null;
             _objetoTransformando = null;
             _selecionandoArea = false;
+            _selecaoRetangular = RectangleF.Empty;
             _arrastandoVerticeArea = false;
             _areaEditandoVertice = null;
             _indiceVerticeArea = -1;
@@ -802,7 +824,8 @@ namespace CrimeSketcher.Tools
             _arrastandoArticulacaoCorpo = false;
             _corpoArticulando = null;
             _articulacaoCorpoAtiva = ArticulacaoCorpoHandle.Nenhuma;
-            DesselcionarTodos();
+            _posicoesAnterioresGrupo.Clear();
+            DesselecionarTodos();
         }
 
         /// <summary>
@@ -810,7 +833,7 @@ namespace CrimeSketcher.Tools
         /// </summary>
         public void SelecionarObjeto(BaseSketchObject obj)
         {
-            DesselcionarTodos();
+            DesselecionarTodos();
             if (obj != null)
             {
                 AdicionarSelecionado(obj);
@@ -826,7 +849,7 @@ namespace CrimeSketcher.Tools
         /// </summary>
         public void LimparSelecao()
         {
-            DesselcionarTodos();
+            DesselecionarTodos();
             SelectionChanged?.Invoke(this, null);
             var lista = _objetosSelecionados.ToList();
             MultiSelectionChanged?.Invoke(this, lista);

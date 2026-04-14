@@ -24,9 +24,6 @@ namespace CrimeSketcher.Forms
         private CheckBox chkCanteiroCentral;
         private NumericUpDown nudLarguraCanteiroCentral;
         private CheckBox chkFaixaEstacionamento;
-        private ComboBox cmbTipoLinhaEstacionamento;
-        private Button btnCorEstacionamento;
-        private Button btnCorLinhaEstacionamento;
         private CheckBox chkCiclofaixa;
         private Panel painelPreview;
         private Color _corEstacionamento = Color.Transparent;
@@ -53,7 +50,6 @@ namespace CrimeSketcher.Forms
             this.ForeColor = Color.White;
 
             int y = 20;
-            int labelWidth = 150;
             int controlX = 165;
 
             // Nome da rua

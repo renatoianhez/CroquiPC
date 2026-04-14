@@ -10,7 +10,8 @@ namespace CrimeSketcher.Objects
     [Serializable]
     public class TextLabel : BaseSketchObject
     {
-        private float _Fontetamanho = 12f;
+        private float _fonteTamanho = 12f;
+        private string _fonteNome = "Segoe UI";
         [Category("Conteúdo")]
         [DisplayName("Texto")]
         [Description("Conteúdo do texto a ser exibido")]
@@ -20,15 +21,20 @@ namespace CrimeSketcher.Objects
         [Category("Fonte")]
         [DisplayName("Nome da Fonte")]
         [Description("Nome da família da fonte (ex: Segoe UI, Arial)")]
-        public string FonteNome { get; set; } = "Segoe UI";
+        [TypeConverter(typeof(FontConverter.FontNameConverter))]
+        public string FonteNome
+        {
+            get => _fonteNome;
+            set => _fonteNome = string.IsNullOrWhiteSpace(value) ? "Segoe UI" : value.Trim();
+        }
 
         [Category("Fonte")]
         [DisplayName("Tamanho da Fonte")]
         [Description("Tamanho da fonte em pontos")]
         public float FonteTamanho
         {
-            get => _Fontetamanho;
-            set => _Fontetamanho = Math.Max(6f, value);
+            get => _fonteTamanho;
+            set => _fonteTamanho = Math.Max(6f, value);
         }
 
         [Category("Fonte")]
@@ -69,11 +75,10 @@ namespace CrimeSketcher.Objects
         {
             if (!Visivel) return;
 
-            FontStyle style = FontStyle.Regular;
-            if (Negrito) style |= FontStyle.Bold;
-            if (Italico) style |= FontStyle.Italic;
+            FontStyle style = ObterEstiloFonte();
 
-            using (var font = new Font(FonteNome, FonteTamanho, style))
+            using (var font = CriarFonteSegura(style))
+            using (var brushTexto = new SolidBrush(CorContorno))
             {
                 var size = g.MeasureString(Texto, font);
 
@@ -93,8 +98,7 @@ namespace CrimeSketcher.Objects
                         }
                     }
 
-                    g.DrawString(Texto, font,
-                        new SolidBrush(CorContorno), 0, 0);
+                    g.DrawString(Texto, font, brushTexto, 0, 0);
                     g.Restore(state);
                 }
                 else
@@ -110,8 +114,7 @@ namespace CrimeSketcher.Objects
                         }
                     }
 
-                    g.DrawString(Texto, font,
-                        new SolidBrush(CorContorno), Posicao);
+                    g.DrawString(Texto, font, brushTexto, Posicao);
                 }
             }
 
@@ -120,13 +123,11 @@ namespace CrimeSketcher.Objects
 
         public override bool ContemPonto(PointF ponto, float tolerancia)
         {
-            FontStyle style = FontStyle.Regular;
-            if (Negrito) style |= FontStyle.Bold;
-            if (Italico) style |= FontStyle.Italic;
+            FontStyle style = ObterEstiloFonte();
 
             using (var bmp = new Bitmap(1, 1))
             using (var g = Graphics.FromImage(bmp))
-            using (var font = new Font(FonteNome, FonteTamanho, style))
+            using (var font = CriarFonteSegura(style))
             {
                 var size = g.MeasureString(Texto, font);
 
@@ -156,13 +157,11 @@ namespace CrimeSketcher.Objects
 
         public override RectangleF GetBounds()
         {
-            FontStyle style = FontStyle.Regular;
-            if (Negrito) style |= FontStyle.Bold;
-            if (Italico) style |= FontStyle.Italic;
+            FontStyle style = ObterEstiloFonte();
 
             using (var bmp = new Bitmap(1, 1))
             using (var g = Graphics.FromImage(bmp))
-            using (var font = new Font(FonteNome, FonteTamanho, style))
+            using (var font = CriarFonteSegura(style))
             {
                 var size = g.MeasureString(Texto, font);
 
@@ -214,6 +213,26 @@ namespace CrimeSketcher.Objects
         {
             Posicao = RotacionarPonto(Posicao, centro, deltaGraus);
             Rotacao += deltaGraus;
+        }
+
+        private FontStyle ObterEstiloFonte()
+        {
+            FontStyle style = FontStyle.Regular;
+            if (Negrito) style |= FontStyle.Bold;
+            if (Italico) style |= FontStyle.Italic;
+            return style;
+        }
+
+        private Font CriarFonteSegura(FontStyle style)
+        {
+            try
+            {
+                return new Font(FonteNome, FonteTamanho, style);
+            }
+            catch
+            {
+                return new Font("Segoe UI", FonteTamanho, style);
+            }
         }
     }
 }

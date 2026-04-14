@@ -12,6 +12,10 @@ namespace CrimeSketcher.Objects
     [Serializable]
     public class MarkObject : BaseSketchObject
     {
+        private const int SEGMENTOS_CURVA = 30;
+        private const int SEGMENTOS_BOUNDS = 20;
+        private float _largura = 15f;
+
         #region Propriedades Básicas
 
         [Browsable(false)]
@@ -51,10 +55,12 @@ namespace CrimeSketcher.Objects
                 if (!TemCurva)
                     TemCurva = true;
 
-                CurvaCircular = true;
                 var referencia = PontoCurva ?? ObterReferenciaCurvaCircular();
                 if (GeometryHelper.TryGetPontoCurvaArcoPorRaio(PontoInicial, PontoFinal, value, referencia, out var pontoCurva))
+                {
                     PontoCurva = pontoCurva;
+                    CurvaCircular = true;
+                }
             }
         }
 
@@ -68,9 +74,7 @@ namespace CrimeSketcher.Objects
             {
                 if (value && !PontoCurva.HasValue)
                 {
-                    PontoCurva = new PointF(
-                        (PontoInicial.X + PontoFinal.X) / 2,
-                        (PontoInicial.Y + PontoFinal.Y) / 2);
+                    PontoCurva = ObterReferenciaCurvaCircular();
                 }
                 else if (!value)
                 {
@@ -93,7 +97,11 @@ namespace CrimeSketcher.Objects
         [DisplayName("Largura (m)")]
         [Description("Largura da marca em metros")]
         [TypeConverter(typeof(MetrosTransitoTypeConverter))]
-        public float Largura { get; set; } = 15f;
+        public float Largura
+        {
+            get => _largura;
+            set => _largura = Math.Max(2f, value);
+        }
 
         [Category("Aparência")]
         [DisplayName("Intensidade")]
@@ -147,7 +155,7 @@ namespace CrimeSketcher.Objects
                 {
                     // Aproximar comprimento da curva
                     float comprimento = 0;
-                    int segmentos = 30;
+                    int segmentos = SEGMENTOS_CURVA;
                     for (int i = 0; i < segmentos; i++)
                     {
                         float t1 = i / (float)segmentos;
@@ -182,7 +190,7 @@ namespace CrimeSketcher.Objects
                     PontoInicial.Y + (PontoFinal.Y - PontoInicial.Y) * t);
             }
 
-            if (CurvaCircular && Utils.GeometryHelper.TryGetArcoCircular(
+            if (CurvaCircular && GeometryHelper.TryGetArcoCircular(
                 PontoInicial,
                 PontoCurva.Value,
                 PontoFinal,
@@ -191,7 +199,7 @@ namespace CrimeSketcher.Objects
                 out var anguloInicial,
                 out var varredura))
             {
-                return Utils.GeometryHelper.ObterPontoArcoCircular(centro, raio, anguloInicial, varredura, t);
+                return GeometryHelper.ObterPontoArcoCircular(centro, raio, anguloInicial, varredura, t);
             }
 
             float u = 1 - t;
@@ -216,7 +224,7 @@ namespace CrimeSketcher.Objects
                 return length > 0.0001f ? new PointF(deltaX / length, deltaY / length) : new PointF(1, 0);
             }
 
-            if (CurvaCircular && Utils.GeometryHelper.TryGetArcoCircular(
+            if (CurvaCircular && GeometryHelper.TryGetArcoCircular(
                 PontoInicial,
                 PontoCurva.Value,
                 PontoFinal,
@@ -226,7 +234,7 @@ namespace CrimeSketcher.Objects
                 out var varredura))
             {
                 float angulo = anguloInicial + varredura * t;
-                return Utils.GeometryHelper.ObterTangenteArcoCircular(angulo, varredura >= 0f);
+                return GeometryHelper.ObterTangenteArcoCircular(angulo, varredura >= 0f);
             }
 
             float u = 1 - t;
@@ -371,7 +379,7 @@ namespace CrimeSketcher.Objects
             List<PointF> pontosSuperiores = new List<PointF>();
             List<PointF> pontosInferiores = new List<PointF>();
 
-            int segmentos = 30;
+            int segmentos = SEGMENTOS_CURVA;
             for (int i = 0; i <= segmentos; i++)
             {
                 float t = i / (float)segmentos;
@@ -443,7 +451,7 @@ namespace CrimeSketcher.Objects
             using (var pen = new Pen(Color.FromArgb((int)(128 * opacidade), CorMarca), 0.5f))
             {
                 Random rnd = new Random(PontoInicial.GetHashCode());
-                int segmentos = 20;
+                int segmentos = SEGMENTOS_BOUNDS;
                 for (int i = 0; i < segmentos; i++)
                 {
                     if (rnd.Next(100) < 40) // 40% de chance
@@ -469,7 +477,7 @@ namespace CrimeSketcher.Objects
             List<PointF> pontosSuperiores = new List<PointF>();
             List<PointF> pontosInferiores = new List<PointF>();
 
-            int segmentos = 30;
+            int segmentos = SEGMENTOS_CURVA;
             for (int i = 0; i <= segmentos; i++)
             {
                 float t = i / (float)segmentos;
@@ -544,7 +552,7 @@ namespace CrimeSketcher.Objects
             else
             {
                 List<PointF> pontos = new List<PointF>();
-                int segmentos = 30;
+                int segmentos = SEGMENTOS_CURVA;
                 for (int i = 0; i <= segmentos; i++)
                 {
                     float t = i / (float)segmentos;
@@ -572,7 +580,7 @@ namespace CrimeSketcher.Objects
                 else
                 {
                     List<PointF> pontos = new List<PointF>();
-                    int segmentos = 30;
+                    int segmentos = SEGMENTOS_CURVA;
                     for (int i = 0; i <= segmentos; i++)
                     {
                         float t = i / (float)segmentos;
@@ -688,18 +696,18 @@ namespace CrimeSketcher.Objects
 
         public override bool ContemPonto(PointF ponto, float tolerancia)
         {
-            // Verificar distância ao longo da curva
-            int segmentos = 20;
+            int segmentos = SEGMENTOS_CURVA;
             for (int i = 0; i < segmentos; i++)
             {
-                float t = i / (float)segmentos;
-                var pontoCurva = GetPontoNaCurva(t);
-                float dx = ponto.X - pontoCurva.X;
-                float dy = ponto.Y - pontoCurva.Y;
-                float dist = (float)Math.Sqrt(dx * dx + dy * dy);
-                if (dist <= Largura / 2 + tolerancia)
+                float t1 = i / (float)segmentos;
+                float t2 = (i + 1) / (float)segmentos;
+                var p1 = GetPontoNaCurva(t1);
+                var p2 = GetPontoNaCurva(t2);
+
+                if (GeometryHelper.DistanciaPontoSegmento(ponto, p1, p2) <= Largura / 2 + tolerancia)
                     return true;
             }
+
             return false;
         }
 
@@ -720,7 +728,7 @@ namespace CrimeSketcher.Objects
                 float minX = float.MaxValue, minY = float.MaxValue;
                 float maxX = float.MinValue, maxY = float.MinValue;
 
-                int segmentos = 20;
+                int segmentos = SEGMENTOS_BOUNDS;
                 for (int i = 0; i <= segmentos; i++)
                 {
                     float t = i / (float)segmentos;

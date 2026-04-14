@@ -952,8 +952,7 @@ namespace CrimeSketcher.Forms
             foreach (Control ctrl in controls)
             {
                 // Só aplicar fonte padrão se não for um componente com fonte customizada
-                if (!(ctrl is ToolStripButton) && !(ctrl is ToolStripDropDownButton) && 
-                    !(ctrl is GroupBox) && !(ctrl is Button))
+                if (!(ctrl is GroupBox) && !(ctrl is Button))
                     ctrl.Font = SystemFonts.MessageBoxFont;
 
                 switch (ctrl)
@@ -1638,7 +1637,7 @@ namespace CrimeSketcher.Forms
                 return;
             }
 
-            BaseSketchObject? ultimoMembro = null;
+            BaseSketchObject ultimoMembro = null;
             int totalMembros = 0;
 
             foreach (var grupo in grupos)
