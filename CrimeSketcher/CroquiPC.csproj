@@ -12,7 +12,9 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-	  <Content Include="Icone1.ico" />
+	  <Content Include="Icone1.ico">
+	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+	  </Content>
 	  <Content Include="Templates\**\*.csk">
 		<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 	  </Content>

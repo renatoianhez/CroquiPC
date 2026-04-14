@@ -77,7 +77,7 @@ namespace CrimeSketcher.Tools
             _undoRedo = undoRedo;
         }
 
-        private void DesselcionarTodos()
+        private void DesselecionarTodos()
         {
             foreach (var obj in _objetosSelecionados)
             {
@@ -203,7 +203,9 @@ namespace CrimeSketcher.Tools
                 if (ctrlPressed)
                 {
                     ToggleSelecionado(hit);
-                    ObjetoSelecionado = hit;
+                    ObjetoSelecionado = _objetosSelecionados.Contains(hit)
+                        ? hit
+                        : _objetosSelecionados.FirstOrDefault();
                 }
                 else if (shiftPressed && _objetosSelecionados.Count > 0)
                 {
@@ -212,7 +214,7 @@ namespace CrimeSketcher.Tools
                 }
                 else
                 {
-                    DesselcionarTodos();
+                    DesselecionarTodos();
                     AdicionarSelecionado(hit);
                     ObjetoSelecionado = hit;
                 }
@@ -230,7 +232,7 @@ namespace CrimeSketcher.Tools
                 _arrastoPendente = true;
                 _arrastando = false;
 
-                SelectionChanged?.Invoke(this, hit);
+                SelectionChanged?.Invoke(this, ObjetoSelecionado);
                 var lista = _objetosSelecionados.ToList();
                 MultiSelectionChanged?.Invoke(this, lista);
             }
@@ -238,7 +240,7 @@ namespace CrimeSketcher.Tools
             {
                 if (!ctrlPressed && !shiftPressed)
                 {
-                    DesselcionarTodos();
+                    DesselecionarTodos();
                     SelectionChanged?.Invoke(this, null);
                     var lista = _objetosSelecionados.ToList();
                     MultiSelectionChanged?.Invoke(this, lista);
@@ -390,7 +392,7 @@ namespace CrimeSketcher.Tools
 
                 if (!ctrlPressed)
                 {
-                    DesselcionarTodos();
+                    DesselecionarTodos();
                 }
 
                 foreach (var obj in objetosNaArea)
@@ -398,12 +400,10 @@ namespace CrimeSketcher.Tools
                     AdicionarSelecionado(obj);
                 }
 
-                if (objetosNaArea.Count > 0)
-                {
-                    ObjetoSelecionado = objetosNaArea.Last();
-                    var lista = _objetosSelecionados.ToList();
-                    MultiSelectionChanged?.Invoke(this, lista);
-                }
+                ObjetoSelecionado = _objetosSelecionados.LastOrDefault();
+                SelectionChanged?.Invoke(this, ObjetoSelecionado);
+                var lista = _objetosSelecionados.ToList();
+                MultiSelectionChanged?.Invoke(this, lista);
             }
 
             _arrastando = false;
@@ -732,7 +732,7 @@ namespace CrimeSketcher.Tools
                     {
                         _doc.RemoverObjeto(obj);
                     }
-                    DesselcionarTodos();
+                    DesselecionarTodos();
                     SelectionChanged?.Invoke(this, null);
                     var lista = _objetosSelecionados.ToList();
                     MultiSelectionChanged?.Invoke(this, lista);
@@ -808,11 +808,14 @@ namespace CrimeSketcher.Tools
         public void Cancelar()
         {
             _arrastando = false;
+            _arrastoPendente = false;
             _redimensionando = false;
             _rotacionando = false;
             _alcaAtiva = -1;
+            _objetoArrastando = null;
             _objetoTransformando = null;
             _selecionandoArea = false;
+            _selecaoRetangular = RectangleF.Empty;
             _arrastandoVerticeArea = false;
             _areaEditandoVertice = null;
             _indiceVerticeArea = -1;
@@ -821,7 +824,8 @@ namespace CrimeSketcher.Tools
             _arrastandoArticulacaoCorpo = false;
             _corpoArticulando = null;
             _articulacaoCorpoAtiva = ArticulacaoCorpoHandle.Nenhuma;
-            DesselcionarTodos();
+            _posicoesAnterioresGrupo.Clear();
+            DesselecionarTodos();
         }
 
         /// <summary>
@@ -829,7 +833,7 @@ namespace CrimeSketcher.Tools
         /// </summary>
         public void SelecionarObjeto(BaseSketchObject obj)
         {
-            DesselcionarTodos();
+            DesselecionarTodos();
             if (obj != null)
             {
                 AdicionarSelecionado(obj);
@@ -845,7 +849,7 @@ namespace CrimeSketcher.Tools
         /// </summary>
         public void LimparSelecao()
         {
-            DesselcionarTodos();
+            DesselecionarTodos();
             SelectionChanged?.Invoke(this, null);
             var lista = _objetosSelecionados.ToList();
             MultiSelectionChanged?.Invoke(this, lista);

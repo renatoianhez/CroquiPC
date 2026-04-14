@@ -1,6 +1,7 @@
 using CrimeSketcher.Core;
 using CrimeSketcher.Utils;
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Drawing;
 using System.Drawing.Drawing2D;
@@ -16,8 +17,13 @@ namespace CrimeSketcher.Objects
     }
 
     [Serializable]
-    public class AutoIntersectionObject : BaseSketchObject
+    public class AutoIntersectionObject : BaseSketchObject, ICustomTypeDescriptor
     {
+        private const float AJUSTE_LARGURA_RUA = 4f;
+        private const float DESLOCAMENTO_RUA2_OFFSET = 50f;
+        private const float ACRESCIMO_ESTACIONAMENTO = 30f;
+        private const float ACRESCIMO_CICLOFAIXA = 17f;
+
         private float _larguraRua1 = 80f;
         private float _larguraRua2 = 80f;
         private float _angulo1 = 0f;
@@ -45,7 +51,7 @@ namespace CrimeSketcher.Objects
         public float LarguraRua1
         {
             get => _larguraRua1;
-            set => _larguraRua1 = Math.Max(10f, value) - 4f;
+            set => _larguraRua1 = Math.Max(10f, value) - AJUSTE_LARGURA_RUA;
         }
 
         [Category("Dimensões")]
@@ -54,7 +60,7 @@ namespace CrimeSketcher.Objects
         public float LarguraRua2
         {
             get => _larguraRua2;
-            set => _larguraRua2 = Math.Max(10f, value) - 4f;
+            set => _larguraRua2 = Math.Max(10f, value) - AJUSTE_LARGURA_RUA;
         }
 
         [Category("Dimensões")]
@@ -79,7 +85,7 @@ namespace CrimeSketcher.Objects
         [TypeConverter(typeof(MetrosTypeConverter))]
         public float DeslocamentoRua2
         {
-            get => _deslocamentoRua2 - 50f;
+            get => _deslocamentoRua2 - DESLOCAMENTO_RUA2_OFFSET;
             set => _deslocamentoRua2 = value;
         }
 
@@ -278,8 +284,8 @@ namespace CrimeSketcher.Objects
                 var centroR1 = new PointF(vet1.X * deslocamentoR1, vet1.Y * deslocamentoR1);
                 var vetPontaR2 = ObterDirecaoPontaR2(vet2, pontoEntrada);
 
-                float l1Half = _larguraRua1 / 2f;
-                float l2Half = _larguraRua2 / 2f;
+                float l1Half = ObterMeiaLarguraRua1Efetiva();
+                float l2Half = ObterMeiaLarguraRua2Efetiva();
 
                 var smoothingAnterior = g.SmoothingMode;
                 g.SmoothingMode = SmoothingMode.None;
@@ -365,32 +371,35 @@ namespace CrimeSketcher.Objects
             float fatorAngularR1 = ObterFatorAngularR1();
             float acrescimoR1 = ObterAcrescimoComprimentoR1PorFaixasRua1();
 
-            semiComprimentoR1 = (_larguraRua2 / 2f) * fatorAngularR1 + margem + acrescimoR1;
+            float halfW1 = ObterMeiaLarguraRua1Efetiva();
+            float halfW2 = ObterMeiaLarguraRua2Efetiva();
+
+            semiComprimentoR1 = halfW2 * fatorAngularR1 + margem + acrescimoR1;
 
             if (TipoCruzamento == Core.IntersectionType.Cruz && InsercaoQuaseOrtogonal())
             {
                 float acrescimoR2 = ObterAcrescimoComprimentoR2PorFaixasRua2();
-                comprimentoR2 = (_larguraRua1 / 2f) + margem + acrescimoR2;
+                comprimentoR2 = halfW1 + margem + acrescimoR2;
             }
             else
             {
-                comprimentoR2 = (BASE_COMPRIMENTO_R2 + _larguraRua1 / 2f + margem) * fatorAngular;
+                comprimentoR2 = (BASE_COMPRIMENTO_R2 + halfW1 + margem) * fatorAngular;
             }
         }
 
         private float ObterAcrescimoComprimentoR1PorFaixasRua1()
         {
             float acrescimo = 0f;
-            if (_temEstacionamentoRua1) acrescimo += 30f;
-            if (_temCiclofaixaRua1) acrescimo += 17f;
+            if (_temEstacionamentoRua1) acrescimo += ACRESCIMO_ESTACIONAMENTO;
+            if (_temCiclofaixaRua1) acrescimo += ACRESCIMO_CICLOFAIXA;
             return acrescimo;
         }
 
         private float ObterAcrescimoComprimentoR2PorFaixasRua2()
         {
             float acrescimo = 0f;
-            if (_temEstacionamentoRua2) acrescimo += 30f;
-            if (_temCiclofaixaRua2) acrescimo += 17f;
+            if (_temEstacionamentoRua2) acrescimo += ACRESCIMO_ESTACIONAMENTO;
+            if (_temCiclofaixaRua2) acrescimo += ACRESCIMO_CICLOFAIXA;
             return acrescimo;
         }
 
@@ -425,7 +434,7 @@ namespace CrimeSketcher.Objects
                 return 1f;
 
             float margem = Math.Max(0f, MARGEM_BRACO);
-            float baseMinima = _larguraRua2 / 2f + margem;
+            float baseMinima = ObterMeiaLarguraRua2Efetiva() + margem;
 
             ObterDimensoesBaseCruzamento(out float semiComprimentoR1, out _);
             float extra = Math.Max(0f, semiComprimentoR1 - baseMinima);
@@ -444,7 +453,7 @@ namespace CrimeSketcher.Objects
                 return 0f;
 
             float margem = Math.Max(0f, MARGEM_BRACO);
-            float baseMinima = -10f + BASE_COMPRIMENTO_R2 + _larguraRua1 / 2f + margem;
+            float baseMinima = -10f + BASE_COMPRIMENTO_R2 + ObterMeiaLarguraRua1Efetiva() + margem;
 
             ObterDimensoesBaseCruzamento(out _, out float comprimentoR2);
             float extra = Math.Max(0f, comprimentoR2 - baseMinima);
@@ -588,8 +597,8 @@ namespace CrimeSketcher.Objects
             var centroR1 = new PointF(vet1.X * deslocamentoR1, vet1.Y * deslocamentoR1);
             var vetPontaR2 = ObterDirecaoPontaR2(vet2, pontoEntrada);
 
-            float halfW1 = _larguraRua1 / 2f;
-            float halfW2 = _larguraRua2 / 2f;
+            float halfW1 = ObterMeiaLarguraRua1Efetiva();
+            float halfW2 = ObterMeiaLarguraRua2Efetiva();
 
             r1 = CriarRetanguloSimetrico(centroR1, vet1, perp1, semiComprimentoR1, halfW1);
             r2 = ehCruz
@@ -663,6 +672,44 @@ namespace CrimeSketcher.Objects
 
             using var pen = new Pen(Color.Black, Math.Max(1f, tolerancia * 2f));
             return path.IsOutlineVisible(pontoLocal, pen);
+        }
+
+        private float ObterLarguraFaixasAdicionaisPorLadoRua1()
+        {
+            float extra = 0f;
+            if (_temEstacionamentoRua1) extra += ACRESCIMO_ESTACIONAMENTO;
+            if (_temCiclofaixaRua1) extra += ACRESCIMO_CICLOFAIXA;
+            return extra;
+        }
+
+        private float ObterLarguraFaixasAdicionaisPorLadoRua2()
+        {
+            float extra = 0f;
+            if (_temEstacionamentoRua2) extra += ACRESCIMO_ESTACIONAMENTO;
+            if (_temCiclofaixaRua2) extra += ACRESCIMO_CICLOFAIXA;
+            return extra;
+        }
+
+        private float ObterMeiaLarguraRua1Efetiva()
+        {
+            float meiaBase = _larguraRua1 / 2f;
+            float extraPorLado = ObterLarguraFaixasAdicionaisPorLadoRua1();
+            if (extraPorLado <= 0f)
+                return Math.Max(5f, meiaBase);
+
+            bool larguraJaIncluiExtras = (_larguraRua1 - extraPorLado * 2f) >= 10f;
+            return Math.Max(5f, larguraJaIncluiExtras ? meiaBase : meiaBase + extraPorLado);
+        }
+
+        private float ObterMeiaLarguraRua2Efetiva()
+        {
+            float meiaBase = _larguraRua2 / 2f;
+            float extraPorLado = ObterLarguraFaixasAdicionaisPorLadoRua2();
+            if (extraPorLado <= 0f)
+                return Math.Max(5f, meiaBase);
+
+            bool larguraJaIncluiExtras = (_larguraRua2 - extraPorLado * 2f) >= 10f;
+            return Math.Max(5f, larguraJaIncluiExtras ? meiaBase : meiaBase + extraPorLado);
         }
 
         private static void DesenharSinalizacaoVia(
@@ -796,5 +843,54 @@ namespace CrimeSketcher.Objects
 
             return melhor;
         }
+
+        // ── ICustomTypeDescriptor: filtro dinâmico por Parte ───────────────────
+        AttributeCollection ICustomTypeDescriptor.GetAttributes() => TypeDescriptor.GetAttributes(this, true);
+        string ICustomTypeDescriptor.GetClassName() => TypeDescriptor.GetClassName(this, true);
+        string ICustomTypeDescriptor.GetComponentName() => TypeDescriptor.GetComponentName(this, true);
+        TypeConverter ICustomTypeDescriptor.GetConverter() => TypeDescriptor.GetConverter(this, true);
+        EventDescriptor ICustomTypeDescriptor.GetDefaultEvent() => TypeDescriptor.GetDefaultEvent(this, true);
+        PropertyDescriptor ICustomTypeDescriptor.GetDefaultProperty() => TypeDescriptor.GetDefaultProperty(this, true);
+        object ICustomTypeDescriptor.GetEditor(Type editorBaseType) => TypeDescriptor.GetEditor(this, editorBaseType, true);
+        EventDescriptorCollection ICustomTypeDescriptor.GetEvents() => TypeDescriptor.GetEvents(this, true);
+        EventDescriptorCollection ICustomTypeDescriptor.GetEvents(Attribute[] attributes) => TypeDescriptor.GetEvents(this, attributes, true);
+        PropertyDescriptorCollection ICustomTypeDescriptor.GetProperties() => ((ICustomTypeDescriptor)this).GetProperties(null);
+
+        PropertyDescriptorCollection ICustomTypeDescriptor.GetProperties(Attribute[] attributes)
+        {
+            var originem = TypeDescriptor.GetProperties(typeof(AutoIntersectionObject), attributes);
+            var filtradas = new List<PropertyDescriptor>();
+
+            foreach (PropertyDescriptor pd in originem)
+            {
+                if (DeveExibirPropriedade(pd.Name))
+                    filtradas.Add(pd);
+            }
+
+            return new PropertyDescriptorCollection(filtradas.ToArray(), true);
+        }
+
+        object ICustomTypeDescriptor.GetPropertyOwner(PropertyDescriptor pd) => this;
+
+        private bool DeveExibirPropriedade(string nomePropriedade)
+        {
+            if (Parte == AutoIntersectionParte.Ambas)
+                return true;
+
+            if (Parte == AutoIntersectionParte.Rua1)
+                return !EhPropriedadeDaRua2(nomePropriedade);
+
+            if (Parte == AutoIntersectionParte.Rua2)
+                return !EhPropriedadeDaRua1(nomePropriedade);
+
+            return true;
+        }
+
+        private static bool EhPropriedadeDaRua1(string nomePropriedade)
+            => nomePropriedade.EndsWith("Rua1", StringComparison.Ordinal);
+
+        private static bool EhPropriedadeDaRua2(string nomePropriedade)
+            => nomePropriedade.EndsWith("Rua2", StringComparison.Ordinal)
+               || string.Equals(nomePropriedade, nameof(DeslocamentoRua2), StringComparison.Ordinal);
     }
 }
