@@ -62,10 +62,12 @@ namespace CrimeSketcher.Objects
                 if (!TemCurva)
                     TemCurva = true;
 
-                CurvaCircular = true;
                 var referencia = PontoCurva ?? ObterReferenciaCurvaCircular();
                 if (GeometryHelper.TryGetPontoCurvaArcoPorRaio(PontoInicial, PontoFinal, value, referencia, out var pontoCurva))
+                {
                     PontoCurva = pontoCurva;
+                    CurvaCircular = true;
+                }
             }
         }
 
@@ -133,7 +135,7 @@ namespace CrimeSketcher.Objects
         {
             if (!Visivel) return;
 
-            ObterPontosRotacionados(out var pontoInicial, out var pontoFinal, out var pontoCurva);
+            ObterPontosMundo(out var pontoInicial, out var pontoFinal, out var pontoCurva);
 
             using (var pen = new Pen(CorContorno, EspessuraContorno))
             {
@@ -204,7 +206,7 @@ namespace CrimeSketcher.Objects
 
         public override bool ContemPonto(PointF ponto, float tolerancia)
         {
-            ObterPontosRotacionados(out var pontoInicial, out var pontoFinal, out var pontoCurva);
+            ObterPontosMundo(out var pontoInicial, out var pontoFinal, out var pontoCurva);
 
             using (var path = CriarCaminhoSeta(pontoInicial, pontoFinal, pontoCurva))
             using (var pen = new Pen(Color.Black, EspessuraContorno + tolerancia + 5f))
@@ -215,7 +217,7 @@ namespace CrimeSketcher.Objects
 
         public override RectangleF GetBounds()
         {
-            ObterPontosRotacionados(out var pontoInicial, out var pontoFinal, out var pontoCurva);
+            ObterPontosMundo(out var pontoInicial, out var pontoFinal, out var pontoCurva);
 
             using (var path = CriarCaminhoSeta(pontoInicial, pontoFinal, pontoCurva))
             {
@@ -230,7 +232,7 @@ namespace CrimeSketcher.Objects
         {
             if (!TemCurva || !PontoCurva.HasValue) return false;
 
-            ObterPontosRotacionados(out _, out _, out var pontoCurva);
+            ObterPontosMundo(out _, out _, out var pontoCurva);
             if (!pontoCurva.HasValue) return false;
 
             float dx = ponto.X - pontoCurva.Value.X;
@@ -290,7 +292,7 @@ namespace CrimeSketcher.Objects
                 return path;
             }
 
-            if (CurvaCircular && Utils.GeometryHelper.TryGetArcoCircular(
+            if (CurvaCircular && GeometryHelper.TryGetArcoCircular(
                 pontoInicial,
                 pontoCurva.Value,
                 pontoFinal,
@@ -303,7 +305,7 @@ namespace CrimeSketcher.Objects
                 const int segmentos = 30;
                 for (int i = 0; i <= segmentos; i++)
                 {
-                    pontos.Add(Utils.GeometryHelper.ObterPontoArcoCircular(
+                    pontos.Add(GeometryHelper.ObterPontoArcoCircular(
                         centro,
                         raio,
                         anguloInicial,
@@ -330,7 +332,7 @@ namespace CrimeSketcher.Objects
                     (pontoInicial.Y + pontoFinal.Y) / 2f);
             }
 
-            if (CurvaCircular && Utils.GeometryHelper.TryGetArcoCircular(
+            if (CurvaCircular && GeometryHelper.TryGetArcoCircular(
                 pontoInicial,
                 pontoCurva.Value,
                 pontoFinal,
@@ -339,7 +341,7 @@ namespace CrimeSketcher.Objects
                 out var anguloInicial,
                 out var varredura))
             {
-                return Utils.GeometryHelper.ObterPontoArcoCircular(centro, raio, anguloInicial, varredura, 0.5f);
+                return GeometryHelper.ObterPontoArcoCircular(centro, raio, anguloInicial, varredura, 0.5f);
             }
 
             // Quadrática em t=0.5
@@ -350,7 +352,7 @@ namespace CrimeSketcher.Objects
                 u * u * pontoInicial.Y + 2f * u * t * pontoCurva.Value.Y + t * t * pontoFinal.Y);
         }
 
-        private void ObterPontosRotacionados(out PointF pInicial, out PointF pFinal, out PointF? pCurva)
+        private void ObterPontosMundo(out PointF pInicial, out PointF pFinal, out PointF? pCurva)
         {
             // A geometria da seta já é mantida em coordenadas de mundo
             // pelos métodos de transformação (Mover/Escalar/RotacionarAoRedor).
@@ -360,7 +362,7 @@ namespace CrimeSketcher.Objects
             pCurva = PontoCurva;
         }
 
-        private new static PointF RotacionarPonto(PointF ponto, PointF centro, float anguloGraus)
+        private static PointF RotacionarPontoLocal(PointF ponto, PointF centro, float anguloGraus)
         {
             double rad = anguloGraus * Math.PI / 180.0;
             double cos = Math.Cos(rad);
@@ -401,16 +403,16 @@ namespace CrimeSketcher.Objects
 
         public override void RotacionarAoRedor(PointF centro, float deltaGraus)
         {
-            PontoInicial = RotacionarPonto(PontoInicial, centro, deltaGraus);
-            PontoFinal = RotacionarPonto(PontoFinal, centro, deltaGraus);
+            PontoInicial = RotacionarPontoLocal(PontoInicial, centro, deltaGraus);
+            PontoFinal = RotacionarPontoLocal(PontoFinal, centro, deltaGraus);
 
             if (PontoCurva.HasValue)
             {
-                PontoCurva = RotacionarPonto(PontoCurva.Value, centro, deltaGraus);
+                PontoCurva = RotacionarPontoLocal(PontoCurva.Value, centro, deltaGraus);
             }
 
             Rotacao += deltaGraus;
-            Posicao = RotacionarPonto(Posicao, centro, deltaGraus);
+            Posicao = RotacionarPontoLocal(Posicao, centro, deltaGraus);
         }
 
         private PointF ObterReferenciaCurvaCircular()
