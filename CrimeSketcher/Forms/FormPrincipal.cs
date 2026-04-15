@@ -2631,6 +2631,84 @@ namespace CrimeSketcher.Forms
             menuBloqueio.DropDownItems.Add(CriarItemMenuContexto("Desbloquear", () => DefinirBloqueioSelecionados(false), algumBloqueado));
             menu.Items.Add(menuBloqueio);
 
+            if (selecaoUnica && selecionados[0] is WallObject parede)
+            {
+                menu.Items.Add(new ToolStripSeparator());
+                var menuAbertura = new ToolStripMenuItem("🚪 Aberturas");
+
+                if (parede.TemPorta)
+                {
+                    menuAbertura.DropDownItems.Add(CriarItemMenuContexto("Remover Porta", () =>
+                    {
+                        parede.TemPorta = false;
+                        documento.NotificarAlteracao();
+                        canvas.Invalidate();
+                        propGrid.Refresh();
+                        statusLabel.Text = "Porta removida";
+                    }));
+                    menuAbertura.DropDownItems.Add(CriarItemMenuContexto("Posicionar Porta com Mouse", () =>
+                    {
+                        wallTool.EntrarModoPosicionamento(parede, ModoAberturaWall.PosicionandoPorta, () =>
+                        {
+                            canvas.FerramentaAtual = selectTool;
+                            propGrid.Refresh();
+                            statusLabel.Text = "✓ Porta posicionada";
+                        });
+                        canvas.FerramentaAtual = wallTool;
+                        statusLabel.Text = "Clique na parede para posicionar a porta  •  Esc para cancelar";
+                    }));
+                }
+                else
+                {
+                    menuAbertura.DropDownItems.Add(CriarItemMenuContexto("Adicionar Porta", () =>
+                    {
+                        parede.TemPorta = true;
+                        documento.NotificarAlteracao();
+                        canvas.Invalidate();
+                        propGrid.Refresh();
+                        statusLabel.Text = "Porta adicionada";
+                    }));
+                }
+
+                menuAbertura.DropDownItems.Add(new ToolStripSeparator());
+
+                if (parede.TemJanela)
+                {
+                    menuAbertura.DropDownItems.Add(CriarItemMenuContexto("Remover Janela", () =>
+                    {
+                        parede.TemJanela = false;
+                        documento.NotificarAlteracao();
+                        canvas.Invalidate();
+                        propGrid.Refresh();
+                        statusLabel.Text = "Janela removida";
+                    }));
+                    menuAbertura.DropDownItems.Add(CriarItemMenuContexto("Posicionar Janela com Mouse", () =>
+                    {
+                        wallTool.EntrarModoPosicionamento(parede, ModoAberturaWall.PosicionandoJanela, () =>
+                        {
+                            canvas.FerramentaAtual = selectTool;
+                            propGrid.Refresh();
+                            statusLabel.Text = "✓ Janela posicionada";
+                        });
+                        canvas.FerramentaAtual = wallTool;
+                        statusLabel.Text = "Clique na parede para posicionar a janela  •  Esc para cancelar";
+                    }));
+                }
+                else
+                {
+                    menuAbertura.DropDownItems.Add(CriarItemMenuContexto("Adicionar Janela", () =>
+                    {
+                        parede.TemJanela = true;
+                        documento.NotificarAlteracao();
+                        canvas.Invalidate();
+                        propGrid.Refresh();
+                        statusLabel.Text = "Janela adicionada";
+                    }));
+                }
+
+                menu.Items.Add(menuAbertura);
+            }
+
             menu.Items.Add(new ToolStripSeparator());
             menu.Items.Add(CriarItemMenuContexto("Excluir", ExcluirSelecao));
 

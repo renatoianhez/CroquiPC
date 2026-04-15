@@ -533,6 +533,12 @@ namespace CrimeSketcher.Core
                     return;
                 }
 
+                if (selectTool.EstaSobreHandleParede(worldPos, 10f))
+                {
+                    this.Cursor = Cursors.Hand;
+                    return;
+                }
+
                 var objetoSelecionado = selectTool.ObjetoSelecionado;
 
                 if (objetoSelecionado != null)

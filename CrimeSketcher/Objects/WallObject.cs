@@ -8,16 +8,14 @@ using System.Drawing.Drawing2D;
 
 namespace CrimeSketcher.Objects
 {
-    public enum LadoAberturaPorta
-    {
-        Direita,
-        Esquerda
-    }
+    public enum LadoAberturaPorta { Direita, Esquerda }
+    public enum SentidoAberturaPorta { Dentro, Fora }
 
-    public enum SentidoAberturaPorta
+    public enum WallHandleType
     {
-        Dentro,
-        Fora
+        PosicaoPorta,
+        AnguloPorta,
+        PosicaoJanela
     }
 
     [Serializable]
@@ -419,6 +417,132 @@ namespace CrimeSketcher.Objects
             PontoFinal = RotacionarPonto(PontoFinal, centro, deltaGraus);
             Posicao = RotacionarPonto(Posicao, centro, deltaGraus);
             Rotacao += deltaGraus;
+        }
+
+        // ── Handle support ────────────────────────────────────────────────────
+
+        /// <summary>Returns world-space positions for all interactive handles.</summary>
+        public Dictionary<WallHandleType, PointF> GetHandlesMundo()
+        {
+            var result = new Dictionary<WallHandleType, PointF>();
+
+            float dx = PontoFinal.X - PontoInicial.X;
+            float dy = PontoFinal.Y - PontoInicial.Y;
+            float comp = (float)Math.Sqrt(dx * dx + dy * dy);
+            if (comp < 0.1f) return result;
+
+            float nx = dx / comp;
+            float ny = dy / comp;
+
+            if (TemPorta && TentarCalcularAbertura(PosicaoPorta, LarguraPorta, comp, out float iniP, out float fimP))
+            {
+                float centro = (iniP + fimP) / 2f;
+                result[WallHandleType.PosicaoPorta] = new PointF(
+                    PontoInicial.X + nx * centro,
+                    PontoInicial.Y + ny * centro);
+
+                if (MostrarFolhaPorta && TentarObterGeometriaPorta(comp, nx, ny,
+                    out var pontoDobradica, out _,
+                    out float vx, out float vy,
+                    out float fatorDobradica, out float fatorSentido))
+                {
+                    float angAbertura = Math.Max(5f, Math.Min(170f, AnguloAberturaPorta));
+                    float thetaRad = fatorDobradica * fatorSentido * angAbertura * (float)Math.PI / 180f;
+                    float cosT = (float)Math.Cos(thetaRad);
+                    float sinT = (float)Math.Sin(thetaRad);
+                    result[WallHandleType.AnguloPorta] = new PointF(
+                        pontoDobradica.X + vx * cosT - vy * sinT,
+                        pontoDobradica.Y + vx * sinT + vy * cosT);
+                }
+            }
+
+            if (TemJanela && TentarCalcularAbertura(PosicaoJanela, LarguraJanela, comp, out float iniJ, out float fimJ))
+            {
+                float centro = (iniJ + fimJ) / 2f;
+                result[WallHandleType.PosicaoJanela] = new PointF(
+                    PontoInicial.X + nx * centro,
+                    PontoInicial.Y + ny * centro);
+            }
+
+            return result;
+        }
+
+        /// <summary>Updates the property controlled by <paramref name="tipo"/> from a world drag position.</summary>
+        public bool AtualizarPorHandle(WallHandleType tipo, PointF worldPos)
+        {
+            float dx = PontoFinal.X - PontoInicial.X;
+            float dy = PontoFinal.Y - PontoInicial.Y;
+            float comp = (float)Math.Sqrt(dx * dx + dy * dy);
+            if (comp < 0.1f) return false;
+
+            float nx = dx / comp;
+            float ny = dy / comp;
+
+            switch (tipo)
+            {
+                case WallHandleType.PosicaoPorta:
+                {
+                    float t = ((worldPos.X - PontoInicial.X) * nx + (worldPos.Y - PontoInicial.Y) * ny) / comp;
+                    PosicaoPorta = Math.Max(0.05f, Math.Min(0.95f, t));
+                    return true;
+                }
+                case WallHandleType.PosicaoJanela:
+                {
+                    float t = ((worldPos.X - PontoInicial.X) * nx + (worldPos.Y - PontoInicial.Y) * ny) / comp;
+                    PosicaoJanela = Math.Max(0.05f, Math.Min(0.95f, t));
+                    return true;
+                }
+                case WallHandleType.AnguloPorta:
+                {
+                    if (!TentarObterGeometriaPorta(comp, nx, ny,
+                        out var pontoDobradica, out _,
+                        out float vx, out float vy,
+                        out float fatorDobradica, out float fatorSentido))
+                        return false;
+
+                    float baseAngle = (float)Math.Atan2(vy, vx);
+                    float mouseAngle = (float)Math.Atan2(
+                        worldPos.Y - pontoDobradica.Y,
+                        worldPos.X - pontoDobradica.X);
+                    float thetaGraus = (mouseAngle - baseAngle) * 180f / (float)Math.PI;
+
+                    while (thetaGraus > 180f) thetaGraus -= 360f;
+                    while (thetaGraus < -180f) thetaGraus += 360f;
+
+                    float anguloAbertura = thetaGraus / (fatorDobradica * fatorSentido);
+                    AnguloAberturaPorta = Math.Max(5f, Math.Min(170f, anguloAbertura));
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        private bool TentarObterGeometriaPorta(float comp, float nx, float ny,
+            out PointF pontoDobradica, out PointF pontoLivre,
+            out float vx, out float vy,
+            out float fatorDobradica, out float fatorSentido)
+        {
+            pontoDobradica = default;
+            pontoLivre = default;
+            vx = vy = fatorDobradica = fatorSentido = 0;
+
+            if (!TentarCalcularAbertura(PosicaoPorta, LarguraPorta, comp, out float ini, out float fim))
+                return false;
+
+            var p2 = new PointF(PontoInicial.X + nx * ini, PontoInicial.Y + ny * ini);
+            var p3 = new PointF(PontoInicial.X + nx * fim, PontoInicial.Y + ny * fim);
+
+            bool dobradicaEhP2 = LadoAberturaPorta == LadoAberturaPorta.Direita
+                ? p2.X >= p3.X
+                : p2.X <= p3.X;
+
+            pontoDobradica = dobradicaEhP2 ? p2 : p3;
+            pontoLivre = dobradicaEhP2 ? p3 : p2;
+            vx = pontoLivre.X - pontoDobradica.X;
+            vy = pontoLivre.Y - pontoDobradica.Y;
+            fatorDobradica = dobradicaEhP2 ? 1f : -1f;
+            fatorSentido = SentidoAberturaPorta == SentidoAberturaPorta.Fora ? -1f : 1f;
+            return true;
         }
     }
 }
