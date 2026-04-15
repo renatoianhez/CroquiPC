@@ -59,6 +59,11 @@ namespace CrimeSketcher.Tools
         private StickFigure _corpoArticulando = null;
         private ArticulacaoCorpoHandle _articulacaoCorpoAtiva = ArticulacaoCorpoHandle.Nenhuma;
 
+        // Controle de handles de abertura de parede
+        private bool _arrastandoHandleParede = false;
+        private WallObject _paredeComHandle = null;
+        private WallHandleType _tipoHandleParede;
+
         // Múltipla seleção
         private readonly HashSet<BaseSketchObject> _objetosSelecionados = new HashSet<BaseSketchObject>();
         private readonly Dictionary<BaseSketchObject, PointF> _posicoesAnterioresGrupo = new Dictionary<BaseSketchObject, PointF>();
@@ -180,6 +185,23 @@ namespace CrimeSketcher.Tools
                 }
             }
 
+            if (ObjetoSelecionado is WallObject paredeHandles && !paredeHandles.Bloqueado)
+            {
+                float tolH = PixelsParaMundo(10f);
+                foreach (var kv in paredeHandles.GetHandlesMundo())
+                {
+                    float ddx = worldPos.X - kv.Value.X;
+                    float ddy = worldPos.Y - kv.Value.Y;
+                    if ((float)Math.Sqrt(ddx * ddx + ddy * ddy) <= tolH)
+                    {
+                        _arrastandoHandleParede = true;
+                        _paredeComHandle = paredeHandles;
+                        _tipoHandleParede = kv.Key;
+                        return;
+                    }
+                }
+            }
+
             if (ObjetoSelecionado != null && !ObjetoSelecionado.Bloqueado)
             {
                 int handle = ObjetoSelecionado.GetHandleAtPoint(worldPos, PixelsParaMundo(8f), ZoomLevel);
@@ -279,6 +301,10 @@ namespace CrimeSketcher.Tools
             {
                 AjustarArticulacaoPorArraste(_corpoArticulando, _articulacaoCorpoAtiva, worldPos);
             }
+            else if (_arrastandoHandleParede && _paredeComHandle != null)
+            {
+                _paredeComHandle.AtualizarPorHandle(_tipoHandleParede, worldPos);
+            }
             else if (_redimensionando && _objetoTransformando != null)
             {
                 AplicarRedimensionamento(_objetoTransformando, worldPos);
@@ -358,6 +384,11 @@ namespace CrimeSketcher.Tools
                 _arrastandoArticulacaoCorpo = false;
                 _corpoArticulando = null;
                 _articulacaoCorpoAtiva = ArticulacaoCorpoHandle.Nenhuma;
+            }
+            else if (_arrastandoHandleParede)
+            {
+                _arrastandoHandleParede = false;
+                _paredeComHandle = null;
             }
             else if (_arrastando && _objetoArrastando != null)
             {
@@ -783,6 +814,56 @@ namespace CrimeSketcher.Tools
                 if (!corpo.Bloqueado)
                     DesenharPontosArticulacao(g, corpo);
             }
+
+            foreach (var parede in _objetosSelecionados.OfType<WallObject>())
+            {
+                if (!parede.Bloqueado)
+                    DesenharHandlesParede(g, parede);
+            }
+        }
+
+        private void DesenharHandlesParede(Graphics g, WallObject parede)
+        {
+            var handles = parede.GetHandlesMundo();
+            if (handles.Count == 0) return;
+
+            var elements = g.Transform.Elements;
+            float zoom = Math.Max(0.0001f,
+                (float)Math.Sqrt(elements[0] * elements[0] + elements[1] * elements[1]));
+            float raio = 4.5f / zoom;
+            float penW = 1.5f / zoom;
+
+            foreach (var kv in handles)
+            {
+                Color cor = kv.Key switch
+                {
+                    WallHandleType.PosicaoPorta  => Color.FromArgb(230, 0, 170, 60),
+                    WallHandleType.PosicaoJanela => Color.FromArgb(230, 30, 130, 220),
+                    WallHandleType.AnguloPorta   => Color.FromArgb(230, 215, 80, 0),
+                    _                            => Color.Gray
+                };
+                var p = kv.Value;
+                using var brush = new SolidBrush(cor);
+                using var pen   = new Pen(Color.White, penW);
+                g.FillEllipse(brush, p.X - raio, p.Y - raio, raio * 2f, raio * 2f);
+                g.DrawEllipse(pen,   p.X - raio, p.Y - raio, raio * 2f, raio * 2f);
+            }
+        }
+
+        public bool EstaSobreHandleParede(PointF worldPos, float toleranciaPixels = 10f)
+        {
+            if (ObjetoSelecionado is not WallObject parede || parede.Bloqueado)
+                return false;
+
+            float tol = PixelsParaMundo(toleranciaPixels);
+            foreach (var kv in parede.GetHandlesMundo())
+            {
+                float ddx = worldPos.X - kv.Value.X;
+                float ddy = worldPos.Y - kv.Value.Y;
+                if ((float)Math.Sqrt(ddx * ddx + ddy * ddy) <= tol)
+                    return true;
+            }
+            return false;
         }
 
         private void DesenharPontosArticulacao(Graphics g, StickFigure corpo)
@@ -824,6 +905,8 @@ namespace CrimeSketcher.Tools
             _arrastandoArticulacaoCorpo = false;
             _corpoArticulando = null;
             _articulacaoCorpoAtiva = ArticulacaoCorpoHandle.Nenhuma;
+            _arrastandoHandleParede = false;
+            _paredeComHandle = null;
             _posicoesAnterioresGrupo.Clear();
             DesselecionarTodos();
         }
