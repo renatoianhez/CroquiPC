@@ -2101,7 +2101,7 @@ namespace CrimeSketcher.Forms
         private void MostrarSobre()
         {
             MessageBox.Show(
-                "🔍 CroquiPC v1.7.3\n\n" +
+                "🔍 CroquiPC v2.1.0\n\n" +
                 "Aplicação para elaboração de croquis\n" +
                 "técnicos de locais de crime.\n\n" +
                 "Renato Ianhez - Perito Criminal\n\n" +

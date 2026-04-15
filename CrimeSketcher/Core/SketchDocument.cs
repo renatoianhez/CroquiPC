@@ -201,7 +201,6 @@ namespace CrimeSketcher.Core
                 return tipo switch
                 {
                     "Parede" => JsonSerializer.Deserialize<WallObject>(json, options),
-                    "Cômodo" => JsonSerializer.Deserialize<RoomObject>(json, options),
                     "Rua" or "Estrada" => JsonSerializer.Deserialize<StreetObject>(json, options),
                     "Cruzamento" => JsonSerializer.Deserialize<IntersectionObject>(json, options),
                     "AutoCruzamento" => JsonSerializer.Deserialize<AutoIntersectionObject>(json, options),

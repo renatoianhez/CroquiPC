@@ -129,6 +129,7 @@ namespace CrimeSketcher.Objects
         [DisplayName("Sentido de Abertura")]
         [Description("Dentro/Fora: faz o flip vertical da abertura da porta")]
         public SentidoAberturaPorta SentidoAberturaPorta { get; set; } = SentidoAberturaPorta.Fora;
+        public Color CorArcoPorta { get; private set; }
 
         public WallObject()
         {
@@ -340,17 +341,18 @@ namespace CrimeSketcher.Objects
 
                     using (var penPorta = new Pen(CorPorta, Math.Max(1f, EspessuraPorta)))
                     {
-                        penPorta.DashStyle = DashStyle.Dash;
-
-                        float anguloBaseFolha = (float)(Math.Atan2(vy, vx) * 180 / Math.PI);
-
-                        g.DrawArc(penPorta,
-                            pontoDobradica.X - doorLength, pontoDobradica.Y - doorLength,
-                            doorLength * 2, doorLength * 2,
-                            anguloBaseFolha, thetaGraus);
-
                         penPorta.DashStyle = DashStyle.Solid;
                         g.DrawLine(penPorta, pontoDobradica, pFolha);
+                    }
+                    CorArcoPorta = Color.FromArgb(100, Color.Black);
+                    using (var arcPen = new Pen(CorArcoPorta, Math.Max(1f, EspessuraPorta * 0.3f)))
+                    {
+                        arcPen.DashStyle = DashStyle.Dash;
+                        var rect = new RectangleF(
+                            pontoDobradica.X - doorLength, pontoDobradica.Y - doorLength,
+                            2 * doorLength, 2 * doorLength);
+                        float startAngle = (float)(Math.Atan2(vy, vx) * 180 / Math.PI);
+                        g.DrawArc(arcPen, rect, startAngle, thetaGraus);
                     }
                 }
                 else
