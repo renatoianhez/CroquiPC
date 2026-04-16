@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
+using System.Linq;
 using System.Windows.Forms;
 
 namespace CrimeSketcher.Core
@@ -281,34 +282,15 @@ namespace CrimeSketcher.Core
             // Objetos do documento
             if (_documento != null)
             {
-                // Separar objetos por camada
-                var camadaInferior = new List<BaseSketchObject>();
-                var camadaSuperior = new List<BaseSketchObject>();
-                foreach (var obj in _documento.Objetos)
-                {
-                    if (!obj.Visivel) continue;
-                    string tipo = obj.Tipo?.ToLowerInvariant() ?? "";
-                    if (tipo.Contains("símbolo") || tipo.Contains("symbol") ||
-                        tipo.Contains("corpo") || tipo.Contains("stickfigure") ||
-                        tipo.Contains("seta") || tipo.Contains("arrow") ||
-                        tipo.Contains("marca") || tipo.Contains("mark") ||
-                        tipo.Contains("texto") || tipo.Contains("text"))
-                    {
-                        camadaSuperior.Add(obj);
-                    }
-                    else
-                    {
-                        camadaInferior.Add(obj);
-                    }
-                }
+                var objetosOrdenados = _documento.Objetos
+                    .Select((obj, indice) => new { Objeto = obj, Indice = indice })
+                    .Where(x => x.Objeto.Visivel)
+                    .OrderBy(x => x.Objeto.Camada)
+                    .ThenBy(x => x.Indice)
+                    .Select(x => x.Objeto)
+                    .ToList();
 
-                // Desenhar camada inferior (ruas, cruzamentos, paredes, etc)
-                foreach (var obj in camadaInferior)
-                {
-                    DesenharObjetoComOpacidade(g, obj);
-                }
-                // Desenhar camada superior (símbolos, corpos, setas, marcas, textos)
-                foreach (var obj in camadaSuperior)
+                foreach (var obj in objetosOrdenados)
                 {
                     DesenharObjetoComOpacidade(g, obj);
                 }
