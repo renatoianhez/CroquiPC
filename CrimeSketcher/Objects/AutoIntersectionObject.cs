@@ -483,8 +483,8 @@ namespace CrimeSketcher.Objects
         private static PointF[] CriarRetanguloSimetrico(
             PointF centro, PointF vet, PointF perp, float semiComprimento, float halfWidth)
         {
-            float far = semiComprimento;
-            float near = -semiComprimento;
+            float far = semiComprimento + 20f; // Aqui que tem que atuar para aumentar ou diminuir os retângulos de cruzamento
+            float near = -semiComprimento - 20f;
 
             return
             [
@@ -758,8 +758,8 @@ namespace CrimeSketcher.Objects
             StringFormat sfCentro)
         {
             float baseOffset = Math.Max(2f, alcance + 8f - 25f);
-            float crosswalkOffset = baseOffset + 8f;
-            float pareOffset = baseOffset + 12f;
+            float crosswalkOffset = baseOffset + 4f;
+            float pareOffset = baseOffset + 25f;
 
             if (desenharFaixaPedestre)
             {
