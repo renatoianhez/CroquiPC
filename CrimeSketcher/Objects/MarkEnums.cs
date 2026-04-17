@@ -42,7 +42,32 @@ namespace CrimeSketcher.Objects
         /// <summary>
         /// Marca genérica personalizada
         /// </summary>
-        Personalizada = 6
+        Personalizada = 6,
+
+        /// <summary>
+        /// Risco - traço fino
+        /// </summary>
+        Risco = 7,
+
+        /// <summary>
+        /// Cerca - padrão traço-x-traço
+        /// </summary>
+        Cerca = 8,
+
+        /// <summary>
+        /// Muro - padrão de linha de tijolos
+        /// </summary>
+        Muro = 9,
+
+        /// <summary>
+        /// Canaleta - linha grossa com gradiente longitudinal
+        /// </summary>
+        Canaleta = 10,
+
+        /// <summary>
+        /// Meio-fio - padrão de duas linhas paralelas
+        /// </summary>
+        MeioFio = 11
     }
 
     /// <summary>
