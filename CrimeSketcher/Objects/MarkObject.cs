@@ -621,7 +621,7 @@ namespace CrimeSketcher.Objects
         private void DesenharMarcaCanaleta(Graphics g, float opacidade)
         {
             Color corBase = Color.FromArgb((int)(255 * opacidade), CorMarca);
-            Color corClara = ClarearCor(CorMarca, 70);
+            Color corClara = ClarearCor(CorMarca, 100);
 
             float espessuraBase = Math.Max(6f, Largura);
             DesenharLinhaParalela(g, 0f, corBase, espessuraBase, DashStyle.Solid);
