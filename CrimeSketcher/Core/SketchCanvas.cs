@@ -1,9 +1,7 @@
 ﻿// Core/SketchCanvas.cs
-using CrimeSketcher.Library;
-using CrimeSketcher.Tools;
 using CrimeSketcher.Objects;
+using CrimeSketcher.Tools;
 using System;
-using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
@@ -530,7 +528,7 @@ namespace CrimeSketcher.Core
                     {
                         this.Cursor = Cursors.Hand;
                         return;
-                      }
+                    }
                     if (handle >= 0)
                     {
                         this.Cursor = Cursors.SizeNWSE;

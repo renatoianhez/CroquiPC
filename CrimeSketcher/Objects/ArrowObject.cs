@@ -1,10 +1,10 @@
 ﻿// Objects/ArrowObject.cs
 using CrimeSketcher.Utils;
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Drawing;
 using System.Drawing.Drawing2D;
-using System.Collections.Generic;
 
 namespace CrimeSketcher.Objects
 {

@@ -20,9 +20,9 @@ namespace CrimeSketcher.Objects
         private bool _temCanteiroCentral = false;
         private float _larguraCanteiroCentral = 12f;
         private bool _estacionamentoRuaNorte = true;
-        private bool _estacionamentoRuaSul    = true;
-        private bool _estacionamentoRuaLeste  = true;
-        private bool _estacionamentoRuaOeste  = true;
+        private bool _estacionamentoRuaSul = true;
+        private bool _estacionamentoRuaLeste = true;
+        private bool _estacionamentoRuaOeste = true;
         private bool _temFaixaEstacionamento = false;
         private float _larguraFaixaEstacionamento = 30f;
 
@@ -302,10 +302,10 @@ namespace CrimeSketcher.Objects
 
         private void DesenharCruzamento(Graphics g, float meiaRua, float meiaTamanho)
         {
-            bool temCima     = TipoCruzamento != TipoCruzamento.TParaBaixo;
-            bool temBaixo    = TipoCruzamento != TipoCruzamento.TParaCima;
+            bool temCima = TipoCruzamento != TipoCruzamento.TParaBaixo;
+            bool temBaixo = TipoCruzamento != TipoCruzamento.TParaCima;
             bool temEsquerda = TipoCruzamento != TipoCruzamento.TParaDireita;
-            bool temDireita  = TipoCruzamento != TipoCruzamento.TParaEsquerda;
+            bool temDireita = TipoCruzamento != TipoCruzamento.TParaEsquerda;
             float ext = Math.Max(0f, ExtensaoVias) + EXTENSAO_BRACOS_ADICIONAL;
 
             float extraX = ObterExtraEstacionamentoEixoX();
@@ -370,18 +370,18 @@ namespace CrimeSketcher.Objects
             {
                 g.FillRectangle(brush, -meiaTamanho, -meiaRua, meiaTamanho * 2, LarguraRua);
                 if (temEsquerda) g.FillRectangle(brush, -meiaTamanho - ext, -meiaRua, ext, LarguraRua);
-                if (temDireita)  g.FillRectangle(brush, meiaTamanho, -meiaRua, ext, LarguraRua);
-                if (temCima)     g.FillRectangle(brush, -meiaRua, -meiaTamanho - ext, LarguraRua, ext + meiaTamanho);
-                if (temBaixo)    g.FillRectangle(brush, -meiaRua, 0, LarguraRua, meiaTamanho + ext);
+                if (temDireita) g.FillRectangle(brush, meiaTamanho, -meiaRua, ext, LarguraRua);
+                if (temCima) g.FillRectangle(brush, -meiaRua, -meiaTamanho - ext, LarguraRua, ext + meiaTamanho);
+                if (temBaixo) g.FillRectangle(brush, -meiaRua, 0, LarguraRua, meiaTamanho + ext);
             }
 
             using (var brush = new HatchBrush(HatchStyle.Percent10, Color.FromArgb(20, 0, 0, 0), Color.Transparent))
             {
                 g.FillRectangle(brush, -meiaTamanho, -meiaRua, meiaTamanho * 2, LarguraRua);
                 if (temEsquerda) g.FillRectangle(brush, -meiaTamanho - ext, -meiaRua, ext, LarguraRua);
-                if (temDireita)  g.FillRectangle(brush, meiaTamanho, -meiaRua, ext, LarguraRua);
-                if (temCima)     g.FillRectangle(brush, -meiaRua, -meiaTamanho - ext, LarguraRua, ext + meiaTamanho);
-                if (temBaixo)    g.FillRectangle(brush, -meiaRua, 0, LarguraRua, meiaTamanho + ext);
+                if (temDireita) g.FillRectangle(brush, meiaTamanho, -meiaRua, ext, LarguraRua);
+                if (temCima) g.FillRectangle(brush, -meiaRua, -meiaTamanho - ext, LarguraRua, ext + meiaTamanho);
+                if (temBaixo) g.FillRectangle(brush, -meiaRua, 0, LarguraRua, meiaTamanho + ext);
             }
 
             AjustarBracosSemCanteiro(g, meiaRua, meiaTamanho, ext,

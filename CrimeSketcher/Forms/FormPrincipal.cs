@@ -924,7 +924,7 @@ namespace CrimeSketcher.Forms
             foreach (ToolStripItem item in items)
             {
                 item.ForeColor = corTexto;
-                
+
                 // Preservar fonte customizada se for um dropdown button ou menu item com fonte específica
                 if (item is ToolStripDropDownButton || item is ToolStripButton)
                 {
@@ -1597,13 +1597,13 @@ namespace CrimeSketcher.Forms
             }
 
             foreach (var obj in documento.Objetos)
-            obj.Selecionado = true;
+                obj.Selecionado = true;
 
-        var ultimo = documento.Objetos.Last();
-        selectTool.SelecionarObjeto(ultimo);
-        propGrid.SelectedObject = ultimo;
-        canvas.Invalidate();
-        statusLabel.Text = $"✓ {documento.Objetos.Count} objeto(s) selecionado(s)";
+            var ultimo = documento.Objetos.Last();
+            selectTool.SelecionarObjeto(ultimo);
+            propGrid.SelectedObject = ultimo;
+            canvas.Invalidate();
+            statusLabel.Text = $"✓ {documento.Objetos.Count} objeto(s) selecionado(s)";
         }
 
         private void Agrupar()

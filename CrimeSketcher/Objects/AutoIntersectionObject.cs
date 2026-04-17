@@ -1,4 +1,3 @@
-using CrimeSketcher.Core;
 using CrimeSketcher.Utils;
 using System;
 using System.Collections.Generic;
@@ -758,7 +757,7 @@ namespace CrimeSketcher.Objects
             StringFormat sfCentro)
         {
             float baseOffset = Math.Max(2f, alcance - 19f); // deslocamento offset mínimo para que a sinalização não fique colada no cruzamento
-            float crosswalkOffset = baseOffset +9f; //Posição da faixa de pedestres em relação ao deslocamento offset
+            float crosswalkOffset = baseOffset + 9f; //Posição da faixa de pedestres em relação ao deslocamento offset
             float pareOffset = baseOffset + 30f; // Posição da marcação de PARE em relação ao deslocamento offset
 
             if (desenharFaixaPedestre)

@@ -570,9 +570,8 @@ namespace CrimeSketcher.Objects
             Color corSecundaria = Color.FromArgb((int)(200 * opacidade), CorMarca);
 
             DesenharLinhaParalela(g, 0f, corPrincipal, Math.Max(1.5f, Largura / 8f), DashStyle.Dash);
-
-            float larguraX = Math.Max(3f, Largura / 3f);
-            int segmentos = Math.Max(4, (int)(Comprimento / 22f));
+            float larguraX = Math.Max(4f, Largura / 4f);
+            int segmentos = Math.Max(4, (int)(Comprimento / 40f));
             using var penX = new Pen(corSecundaria, Math.Max(1.2f, Largura / 10f));
 
             for (int i = 1; i < segmentos; i++)

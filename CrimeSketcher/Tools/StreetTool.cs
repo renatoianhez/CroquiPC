@@ -468,9 +468,9 @@ namespace CrimeSketcher.Tools
         private void CriarCruzamentoSeNecessario()
         {
             var ruas = _doc.Objetos.OfType<StreetObject>().ToList();
-            
+
             var todosOsCruzamentos = new List<(StreetObject rua1, StreetObject rua2, PointF ponto, IntersectionType tipo)>();
-            
+
             for (int i = 0; i < ruas.Count; i++)
             {
                 for (int j = i + 1; j < ruas.Count; j++)
