@@ -757,9 +757,9 @@ namespace CrimeSketcher.Objects
             Font fontePare,
             StringFormat sfCentro)
         {
-            float baseOffset = Math.Max(2f, alcance + 8f - 25f);
-            float crosswalkOffset = baseOffset + 4f;
-            float pareOffset = baseOffset + 25f;
+            float baseOffset = Math.Max(2f, alcance - 19f); // deslocamento offset mínimo para que a sinalização não fique colada no cruzamento
+            float crosswalkOffset = baseOffset +9f; //Posição da faixa de pedestres em relação ao deslocamento offset
+            float pareOffset = baseOffset + 30f; // Posição da marcação de PARE em relação ao deslocamento offset
 
             if (desenharFaixaPedestre)
             {
