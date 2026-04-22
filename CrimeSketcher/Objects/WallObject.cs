@@ -31,7 +31,7 @@ namespace CrimeSketcher.Objects
         [DisplayName("Espessura da Parede (m)")]
         [Description("Espessura da parede em metros")]
         [TypeConverter(typeof(MetrosTypeConverter))]
-        public float Espessura { get; set; } = 8f;
+        public float Espessura { get; set; } = 7f;
 
         [Category("Dimensões")]
         [DisplayName("Comprimento (m)")]
@@ -79,7 +79,7 @@ namespace CrimeSketcher.Objects
         [DisplayName("Largura da Porta (m)")]
         [Description("Largura da porta em metros")]
         [TypeConverter(typeof(MetrosTypeConverter))]
-        public float LarguraPorta { get; set; } = 50f;
+        public float LarguraPorta { get; set; } = 38f;
 
         [Category("Aberturas")]
         [DisplayName("Posição da Janela")]
@@ -90,7 +90,7 @@ namespace CrimeSketcher.Objects
         [DisplayName("Largura da Janela (m)")]
         [Description("Largura da janela em metros")]
         [TypeConverter(typeof(MetrosTypeConverter))]
-        public float LarguraJanela { get; set; } = 50f;
+        public float LarguraJanela { get; set; } = 47f;
 
         [Category("Aberturas")]
         [DisplayName("Cor da Porta")]

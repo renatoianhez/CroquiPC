@@ -2718,9 +2718,8 @@ namespace CrimeSketcher.Forms
         private void SelecionarObjetoNaCena(BaseSketchObject obj)
         {
             if (obj == null) return;
-            foreach (var o in documento.Objetos)
-                o.Selecionado = false;
-            obj.Selecionado = true;
+
+            selectTool?.SelecionarObjeto(obj);
             canvas.Invalidate();
             propGrid.SelectedObject = obj;
         }
