@@ -648,9 +648,7 @@ namespace CrimeSketcher.Objects
         private void DesenharMarcaMeioFio(Graphics g, float opacidade)
         {
             Color corComAlpha = Color.FromArgb((int)(255 * opacidade), CorMarca);
-            float offset = Largura / 2f;
-            DesenharLinhaParalela(g, -offset, corComAlpha, 2.5f, DashStyle.Solid);
-            DesenharLinhaParalela(g, offset, corComAlpha, 2.5f, DashStyle.Solid);
+            DesenharLinhaParalela(g, 0f, corComAlpha, 2.5f, DashStyle.Solid);
         }
 
         private static Color ClarearCor(Color cor, int acrescimo)

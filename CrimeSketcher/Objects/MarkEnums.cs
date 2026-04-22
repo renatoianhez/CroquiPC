@@ -65,7 +65,7 @@ namespace CrimeSketcher.Objects
         Canaleta = 10,
 
         /// <summary>
-        /// Meio-fio - padrão de duas linhas paralelas
+        /// Meio-fio - linha única
         /// </summary>
         MeioFio = 11
     }
