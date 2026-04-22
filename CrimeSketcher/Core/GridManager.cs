@@ -25,6 +25,7 @@ namespace CrimeSketcher.Core
         private int _cachedCorPrincipal;
         private int _cachedSubdivisoes;
         private const int TILE_RESOLUTION = 128;
+        private const int TILE_PERIODOS = 4;
 
         public GridManager(ScaleManager scale)
         {
@@ -124,9 +125,10 @@ namespace CrimeSketcher.Core
 
             _tileCache = new Bitmap(TILE_RESOLUTION, TILE_RESOLUTION, PixelFormat.Format32bppPArgb);
 
-            float tileWorldSize = spacing * sub;
+            int totalSubdivisoes = sub * TILE_PERIODOS;
+            float tileWorldSize = spacing * totalSubdivisoes;
             float invScale = TILE_RESOLUTION / tileWorldSize;
-            float cellPx = (float)TILE_RESOLUTION / sub;
+            float cellPx = (float)TILE_RESOLUTION / totalSubdivisoes;
 
             using (var tg = Graphics.FromImage(_tileCache))
             {
@@ -135,17 +137,18 @@ namespace CrimeSketcher.Core
 
                 // Linhas menores (sólidas — substituem DashStyle.Dot que era ~5x mais caro)
                 float penMinorW = Math.Max(1f, 0.5f * invScale);
+                float penMajorW = Math.Max(1f, 1f * invScale);
                 using var penFina = new Pen(CorGrade, penMinorW);
-                for (int i = 1; i < sub; i++)
+                using var penGrossa = new Pen(CorGradePrincipal, penMajorW);
+                for (int i = 1; i < totalSubdivisoes; i++)
                 {
                     float pos = i * cellPx;
-                    tg.DrawLine(penFina, pos, 0, pos, TILE_RESOLUTION);
-                    tg.DrawLine(penFina, 0, pos, TILE_RESOLUTION, pos);
+                    var penAtual = (i % sub == 0) ? penGrossa : penFina;
+                    tg.DrawLine(penAtual, pos, 0, pos, TILE_RESOLUTION);
+                    tg.DrawLine(penAtual, 0, pos, TILE_RESOLUTION, pos);
                 }
 
-                // Linhas principais (mais espessas)
-                float penMajorW = Math.Max(1f, 1f * invScale);
-                using var penGrossa = new Pen(CorGradePrincipal, penMajorW);
+                // Linha principal de origem
                 tg.DrawLine(penGrossa, 0, 0, 0, TILE_RESOLUTION);
                 tg.DrawLine(penGrossa, 0, 0, TILE_RESOLUTION, 0);
             }

@@ -203,7 +203,6 @@ namespace CrimeSketcher.Forms
                 CriarMenuItem("Salvar &Como...", "Ctrl+Shift+S", SalvarComo),
                 new ToolStripSeparator(),
                 CriarMenuItem("Exportar como &Imagem...", "", ExportarImagem),
-                CriarMenuItem("Exportar como &PDF...", "", ExportarPDF),
                 new ToolStripSeparator(),
                 CriarMenuItem("&Imprimir...", "Ctrl+Shift+I", Imprimir),
                 new ToolStripSeparator(),
