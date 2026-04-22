@@ -2,7 +2,7 @@
   "Titulo": "Novo Croqui",
   "NumeroProcedimento": "",
   "Perito": "",
-  "DataLevantamento": "2026-04-22T09:54:25.5100817-03:00",
+  "DataLevantamento": "2026-04-22T14:45:59.5998183-03:00",
   "Endereco": "",
   "Observacoes": "",
   "LarguraPapelCm": 42,
@@ -15,50 +15,50 @@
           "Vertices": [
             {
               "IsEmpty": false,
-              "X": 807.7703,
-              "Y": 261.17355
+              "X": 741.7703,
+              "Y": 366.67355
             },
             {
               "IsEmpty": false,
-              "X": 751.2586,
-              "Y": 261.17355
+              "X": 685.2586,
+              "Y": 366.67355
             },
             {
               "IsEmpty": false,
-              "X": 751.2586,
-              "Y": 319.59512
+              "X": 685.2586,
+              "Y": 425.09512
             },
             {
               "IsEmpty": false,
-              "X": 765.5001,
-              "Y": 320.47855
+              "X": 699.5001,
+              "Y": 425.97855
             },
             {
               "IsEmpty": false,
-              "X": 766.4387,
-              "Y": 296.18588
+              "X": 700.4387,
+              "Y": 401.68588
             },
             {
               "IsEmpty": false,
-              "X": 782.3979,
-              "Y": 278.6952
+              "X": 716.3979,
+              "Y": 384.1952
             },
             {
               "IsEmpty": false,
-              "X": 808.68286,
-              "Y": 277.72345
+              "X": 742.68286,
+              "Y": 383.22345
             }
           ],
           "CorTexturaArgb": 1519818380,
           "Textura": 4,
           "EditarVertices": false,
-          "Id": "b8ccb4d7-582c-4bfc-b66e-ef55553593b1",
+          "Id": "f32197e7-777a-46f2-a356-75705cc03af9",
           "Nome": "",
           "Tipo": "\u00C1rea",
           "Posicao": {
             "IsEmpty": false,
-            "X": 776.18665,
-            "Y": 287.86075
+            "X": 710.18665,
+            "Y": 393.36075
           },
           "Rotacao": 0,
           "EscalaX": -0.9418642,
@@ -76,50 +76,50 @@
           "Vertices": [
             {
               "IsEmpty": false,
-              "X": 611.4244,
-              "Y": 261.17355
+              "X": 545.4244,
+              "Y": 366.67355
             },
             {
               "IsEmpty": false,
-              "X": 667.9361,
-              "Y": 261.17355
+              "X": 601.9361,
+              "Y": 366.67355
             },
             {
               "IsEmpty": false,
-              "X": 667.9361,
-              "Y": 319.59512
+              "X": 601.9361,
+              "Y": 425.09512
             },
             {
               "IsEmpty": false,
-              "X": 653.6946,
-              "Y": 320.47855
+              "X": 587.6946,
+              "Y": 425.97855
             },
             {
               "IsEmpty": false,
-              "X": 652.756,
-              "Y": 296.18588
+              "X": 586.756,
+              "Y": 401.68588
             },
             {
               "IsEmpty": false,
-              "X": 636.7968,
-              "Y": 278.6952
+              "X": 570.7968,
+              "Y": 384.1952
             },
             {
               "IsEmpty": false,
-              "X": 610.51184,
-              "Y": 277.72345
+              "X": 544.51184,
+              "Y": 383.22345
             }
           ],
           "CorTexturaArgb": 1519818380,
           "Textura": 4,
           "EditarVertices": false,
-          "Id": "b8ccb4d7-582c-4bfc-b66e-ef55553593b1",
+          "Id": "367d7bc0-673b-4fb7-8b55-672da5046721",
           "Nome": "",
           "Tipo": "\u00C1rea",
           "Posicao": {
             "IsEmpty": false,
-            "X": 643.00806,
-            "Y": 287.86075
+            "X": 577.00806,
+            "Y": 393.36075
           },
           "Rotacao": 0,
           "EscalaX": 0.9418642,
@@ -136,13 +136,13 @@
         {
           "PontoInicial": {
             "IsEmpty": false,
-            "X": 460,
-            "Y": 220
+            "X": 394,
+            "Y": 325.5
           },
           "PontoFinal": {
             "IsEmpty": false,
-            "X": 980,
-            "Y": 220
+            "X": 914,
+            "Y": 325.5
           },
           "PontoCurva": null,
           "CurvaCircular": false,
@@ -181,13 +181,13 @@
           "ExtremidadeFinal": 0,
           "IdConexaoInicial": null,
           "IdConexaoFinal": null,
-          "Id": "ca644ec6-d21b-416d-b6fd-62cc42a8190b",
+          "Id": "15dc2dbb-ab75-43cd-bbc3-aaec6b7f0f15",
           "Nome": "",
           "Tipo": "Rua",
           "Posicao": {
-            "IsEmpty": true,
-            "X": 0,
-            "Y": 0
+            "IsEmpty": false,
+            "X": -66,
+            "Y": 105.5
           },
           "Rotacao": 0,
           "EscalaX": 1,
@@ -204,13 +204,13 @@
         {
           "PontoInicial": {
             "IsEmpty": false,
-            "X": 710,
-            "Y": 520
+            "X": 644,
+            "Y": 625.5
           },
           "PontoFinal": {
             "IsEmpty": false,
-            "X": 710,
-            "Y": 220
+            "X": 644,
+            "Y": 325.5
           },
           "PontoCurva": null,
           "CurvaCircular": false,
@@ -249,13 +249,13 @@
           "ExtremidadeFinal": 0,
           "IdConexaoInicial": null,
           "IdConexaoFinal": null,
-          "Id": "e64eac7f-ae13-43dd-8e8c-b141e36ebf92",
+          "Id": "9bab72a0-a376-478a-a25f-366195886872",
           "Nome": "",
           "Tipo": "Rua",
           "Posicao": {
-            "IsEmpty": true,
-            "X": 0,
-            "Y": 0
+            "IsEmpty": false,
+            "X": -66,
+            "Y": 105.5
           },
           "Rotacao": 0,
           "EscalaX": 1,
@@ -271,11 +271,11 @@
         },
         {
           "TipoCruzamento": 0,
-          "LarguraRua1": 76,
-          "LarguraRua2": 76,
+          "LarguraRua1": 72,
+          "LarguraRua2": 72,
           "AnguloRua1": 0,
           "AnguloRua2": 270,
-          "DeslocamentoRua2": -100,
+          "DeslocamentoRua2": -150,
           "IdRua1": "ca644ec6-d21b-416d-b6fd-62cc42a8190b",
           "IdRua2": "e64eac7f-ae13-43dd-8e8c-b141e36ebf92",
           "Parte": 1,
@@ -296,13 +296,13 @@
           "CorAsfaltoArgb": -4934476,
           "CorCalcadaArgb": -3618616,
           "CorCiclofaixaArgb": 16777215,
-          "Id": "81a98119-bb00-45b8-8b62-620c3560f5fb",
+          "Id": "2d123293-88df-4f4e-a40d-832a63737c72",
           "Nome": "Cruzamento Autom\u00E1tico (Rua 1)",
           "Tipo": "AutoCruzamento",
           "Posicao": {
             "IsEmpty": false,
-            "X": 710,
-            "Y": 220
+            "X": 644,
+            "Y": 325.5
           },
           "Rotacao": 0,
           "EscalaX": 1,
@@ -318,11 +318,11 @@
         },
         {
           "TipoCruzamento": 0,
-          "LarguraRua1": 76,
-          "LarguraRua2": 76,
+          "LarguraRua1": 72,
+          "LarguraRua2": 72,
           "AnguloRua1": 0,
           "AnguloRua2": 270,
-          "DeslocamentoRua2": -100,
+          "DeslocamentoRua2": -150,
           "IdRua1": "ca644ec6-d21b-416d-b6fd-62cc42a8190b",
           "IdRua2": "e64eac7f-ae13-43dd-8e8c-b141e36ebf92",
           "Parte": 2,
@@ -343,13 +343,13 @@
           "CorAsfaltoArgb": -4934476,
           "CorCalcadaArgb": -3618616,
           "CorCiclofaixaArgb": 16777215,
-          "Id": "8026fdb5-8938-4728-8171-e68006b8db98",
+          "Id": "9f37c80a-e360-4e81-b257-1df00db38c17",
           "Nome": "Cruzamento Autom\u00E1tico (Rua 2)",
           "Tipo": "AutoCruzamento",
           "Posicao": {
             "IsEmpty": false,
-            "X": 710,
-            "Y": 220
+            "X": 644,
+            "Y": 272.5
           },
           "Rotacao": 0,
           "EscalaX": 1,
@@ -366,13 +366,13 @@
         {
           "PontoInicial": {
             "IsEmpty": false,
-            "X": 607.7567,
-            "Y": 279.63852
+            "X": 541.7567,
+            "Y": 384.13852
           },
           "PontoFinal": {
             "IsEmpty": false,
-            "X": 635.9195,
-            "Y": 279.63852
+            "X": 569.9195,
+            "Y": 384.13852
           },
           "PontoCurva": null,
           "CurvaCircular": false,
@@ -384,13 +384,13 @@
           "Descricao": "",
           "MostrarDescricao": true,
           "CorMarcaArgb": -14145496,
-          "Id": "7dc14520-5bdd-4fcd-a446-8abcec0afa62",
+          "Id": "c894cd92-dfe4-4189-8e7c-39f00ed09746",
           "Nome": "",
           "Tipo": "Marca",
           "Posicao": {
             "IsEmpty": false,
-            "X": 607.7567,
-            "Y": 279.63852
+            "X": 541.7567,
+            "Y": 384.13852
           },
           "Rotacao": 0,
           "EscalaX": 1,
@@ -407,13 +407,13 @@
         {
           "PontoInicial": {
             "IsEmpty": false,
-            "X": 634.04193,
-            "Y": 278.66684
+            "X": 568.04193,
+            "Y": 384.16684
           },
           "PontoFinal": {
             "IsEmpty": false,
-            "X": 652.8172,
-            "Y": 298.10104
+            "X": 586.8172,
+            "Y": 403.60104
           },
           "PontoCurva": null,
           "CurvaCircular": false,
@@ -425,13 +425,13 @@
           "Descricao": "",
           "MostrarDescricao": true,
           "CorMarcaArgb": -14145496,
-          "Id": "1ce6e58b-4ca7-4eab-9c5a-36d9fa167ac6",
+          "Id": "f028dd1c-a6b4-4e2d-a1be-720a3d852702",
           "Nome": "",
           "Tipo": "Marca",
           "Posicao": {
             "IsEmpty": false,
-            "X": 634.04193,
-            "Y": 278.66684
+            "X": 568.04193,
+            "Y": 384.16684
           },
           "Rotacao": 0,
           "EscalaX": 1,
@@ -448,13 +448,13 @@
         {
           "PontoInicial": {
             "IsEmpty": false,
-            "X": 651.87836,
-            "Y": 297.12924
+            "X": 585.87836,
+            "Y": 402.62924
           },
           "PontoFinal": {
             "IsEmpty": false,
-            "X": 651.87836,
-            "Y": 326.28052
+            "X": 585.87836,
+            "Y": 431.78052
           },
           "PontoCurva": null,
           "CurvaCircular": false,
@@ -466,13 +466,13 @@
           "Descricao": "",
           "MostrarDescricao": true,
           "CorMarcaArgb": -14145496,
-          "Id": "4e087fa3-4313-4035-82d7-76b17e96013d",
+          "Id": "364485da-ca86-43ea-88a7-4eba856dad97",
           "Nome": "",
           "Tipo": "Marca",
           "Posicao": {
             "IsEmpty": false,
-            "X": 651.87836,
-            "Y": 297.12924
+            "X": 585.87836,
+            "Y": 402.62924
           },
           "Rotacao": 0,
           "EscalaX": 1,
@@ -489,18 +489,18 @@
         {
           "PontoInicial": {
             "IsEmpty": false,
-            "X": 645.0971,
-            "Y": 247.1329
+            "X": 579.0971,
+            "Y": 352.6329
           },
           "PontoFinal": {
             "IsEmpty": false,
-            "X": 681.1828,
-            "Y": 281.51108
+            "X": 615.1828,
+            "Y": 387.01108
           },
           "PontoCurva": {
             "IsEmpty": false,
-            "X": 680.97986,
-            "Y": 246.60866
+            "X": 614.97986,
+            "Y": 352.10864
           },
           "CurvaCircular": false,
           "TemCurva": true,
@@ -538,13 +538,13 @@
           "ExtremidadeFinal": 0,
           "IdConexaoInicial": null,
           "IdConexaoFinal": null,
-          "Id": "2145aa88-fa05-4a1a-b055-e3d1d8c074d6",
+          "Id": "3405927f-4b7a-4277-890c-07f51ab55123",
           "Nome": "",
           "Tipo": "Rua",
           "Posicao": {
             "IsEmpty": false,
-            "X": 449.43964,
-            "Y": 95.4693
+            "X": 383.43964,
+            "Y": 200.9693
           },
           "Rotacao": 45,
           "EscalaX": 1,
@@ -561,18 +561,18 @@
         {
           "PontoInicial": {
             "IsEmpty": false,
-            "X": 669.8001,
-            "Y": 280.91302
+            "X": 603.8001,
+            "Y": 386.41302
           },
           "PontoFinal": {
             "IsEmpty": false,
-            "X": 645.75464,
-            "Y": 259.7214
+            "X": 579.75464,
+            "Y": 365.2214
           },
           "PontoCurva": {
             "IsEmpty": false,
-            "X": 666.8986,
-            "Y": 258.02588
+            "X": 600.8986,
+            "Y": 363.52588
           },
           "CurvaCircular": false,
           "RaioCurva": 0,
@@ -583,13 +583,13 @@
           "Descricao": "",
           "MostrarDescricao": true,
           "CorMarcaArgb": -6908276,
-          "Id": "26e12803-299e-45e9-8a1f-6959f6c1fb43",
+          "Id": "cb584550-dd69-4ca7-a82d-f2bb33aef2ed",
           "Nome": "",
           "Tipo": "Marca",
           "Posicao": {
             "IsEmpty": false,
-            "X": 669.8001,
-            "Y": 280.91302
+            "X": 603.8001,
+            "Y": 386.41302
           },
           "Rotacao": 0,
           "EscalaX": 1,
@@ -606,13 +606,13 @@
         {
           "PontoInicial": {
             "IsEmpty": false,
-            "X": 812.438,
-            "Y": 280.63852
+            "X": 746.438,
+            "Y": 384.13852
           },
           "PontoFinal": {
             "IsEmpty": false,
-            "X": 784.2752,
-            "Y": 280.63852
+            "X": 718.2752,
+            "Y": 384.13852
           },
           "PontoCurva": null,
           "CurvaCircular": false,
@@ -624,13 +624,13 @@
           "Descricao": "",
           "MostrarDescricao": true,
           "CorMarcaArgb": -14145496,
-          "Id": "7dc14520-5bdd-4fcd-a446-8abcec0afa62",
+          "Id": "3ae0daca-b128-464c-a0ac-51a629170896",
           "Nome": "",
           "Tipo": "Marca",
           "Posicao": {
             "IsEmpty": false,
-            "X": 812.438,
-            "Y": 280.63852
+            "X": 746.438,
+            "Y": 384.13852
           },
           "Rotacao": 0,
           "EscalaX": 1,
@@ -647,13 +647,13 @@
         {
           "PontoInicial": {
             "IsEmpty": false,
-            "X": 786.1528,
-            "Y": 279.66684
+            "X": 720.1528,
+            "Y": 384.16684
           },
           "PontoFinal": {
             "IsEmpty": false,
-            "X": 767.3775,
-            "Y": 299.10104
+            "X": 701.3775,
+            "Y": 403.60104
           },
           "PontoCurva": null,
           "CurvaCircular": false,
@@ -665,13 +665,13 @@
           "Descricao": "",
           "MostrarDescricao": true,
           "CorMarcaArgb": -14145496,
-          "Id": "1ce6e58b-4ca7-4eab-9c5a-36d9fa167ac6",
+          "Id": "0822f98f-1d8d-4c15-beac-c0016ca0708c",
           "Nome": "",
           "Tipo": "Marca",
           "Posicao": {
             "IsEmpty": false,
-            "X": 786.1528,
-            "Y": 279.66684
+            "X": 720.1528,
+            "Y": 384.16684
           },
           "Rotacao": 0,
           "EscalaX": 1,
@@ -688,13 +688,13 @@
         {
           "PontoInicial": {
             "IsEmpty": false,
-            "X": 768.31635,
-            "Y": 298.12924
+            "X": 702.31635,
+            "Y": 402.62924
           },
           "PontoFinal": {
             "IsEmpty": false,
-            "X": 768.31635,
-            "Y": 327.28052
+            "X": 702.31635,
+            "Y": 431.78052
           },
           "PontoCurva": null,
           "CurvaCircular": false,
@@ -706,13 +706,13 @@
           "Descricao": "",
           "MostrarDescricao": true,
           "CorMarcaArgb": -14145496,
-          "Id": "4e087fa3-4313-4035-82d7-76b17e96013d",
+          "Id": "c9b08fbb-8805-4fe0-80fc-405bea3396b8",
           "Nome": "",
           "Tipo": "Marca",
           "Posicao": {
             "IsEmpty": false,
-            "X": 768.31635,
-            "Y": 298.12924
+            "X": 702.31635,
+            "Y": 402.62924
           },
           "Rotacao": 0,
           "EscalaX": 1,
@@ -729,18 +729,18 @@
         {
           "PontoInicial": {
             "IsEmpty": false,
-            "X": 775.0976,
-            "Y": 248.1329
+            "X": 709.0976,
+            "Y": 353.6329
           },
           "PontoFinal": {
             "IsEmpty": false,
-            "X": 739.0119,
-            "Y": 282.51108
+            "X": 673.0119,
+            "Y": 388.01108
           },
           "PontoCurva": {
             "IsEmpty": false,
-            "X": 739.21484,
-            "Y": 247.60866
+            "X": 673.21484,
+            "Y": 353.10864
           },
           "CurvaCircular": false,
           "TemCurva": true,
@@ -778,13 +778,13 @@
           "ExtremidadeFinal": 0,
           "IdConexaoInicial": null,
           "IdConexaoFinal": null,
-          "Id": "2145aa88-fa05-4a1a-b055-e3d1d8c074d6",
+          "Id": "072f8e25-fb9d-4354-9251-753cb47a6d9c",
           "Nome": "",
           "Tipo": "Rua",
           "Posicao": {
             "IsEmpty": false,
-            "X": 970.75507,
-            "Y": 96.4693
+            "X": 904.75507,
+            "Y": 201.9693
           },
           "Rotacao": 45,
           "EscalaX": 1,
@@ -801,18 +801,18 @@
         {
           "PontoInicial": {
             "IsEmpty": false,
-            "X": 750.3946,
-            "Y": 281.91302
+            "X": 683.3946,
+            "Y": 386.41302
           },
           "PontoFinal": {
             "IsEmpty": false,
-            "X": 774.44006,
-            "Y": 260.7214
+            "X": 707.44006,
+            "Y": 365.2214
           },
           "PontoCurva": {
             "IsEmpty": false,
-            "X": 753.2961,
-            "Y": 259.02588
+            "X": 686.2961,
+            "Y": 363.52588
           },
           "CurvaCircular": false,
           "RaioCurva": 0,
@@ -823,13 +823,13 @@
           "Descricao": "",
           "MostrarDescricao": true,
           "CorMarcaArgb": -6908276,
-          "Id": "26e12803-299e-45e9-8a1f-6959f6c1fb43",
+          "Id": "c9f65217-581e-4796-a26b-920a1ee530a5",
           "Nome": "",
           "Tipo": "Marca",
           "Posicao": {
             "IsEmpty": false,
-            "X": 750.3946,
-            "Y": 281.91302
+            "X": 683.3946,
+            "Y": 386.41302
           },
           "Rotacao": 0,
           "EscalaX": 1,
@@ -845,20 +845,20 @@
         }
       ],
       "TipoGrupo": "Grupo",
-      "Id": "a489bb3a-c267-4df2-8894-22ea5c324059",
+      "Id": "e36f5f6b-8a09-46e4-ad57-1031c054c2a1",
       "Nome": "Grupo",
       "Tipo": "Grupo",
       "Posicao": {
         "IsEmpty": false,
-        "X": 460,
-        "Y": 165
+        "X": 394,
+        "Y": 270.5
       },
       "Rotacao": 0,
       "EscalaX": 1,
       "EscalaY": 1,
       "Visivel": true,
       "Bloqueado": false,
-      "Selecionado": false,
+      "Selecionado": true,
       "Camada": 0,
       "Opacidade": 1,
       "CorPreenchimentoArgb": 16777215,

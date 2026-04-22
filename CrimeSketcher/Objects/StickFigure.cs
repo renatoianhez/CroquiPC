@@ -575,21 +575,11 @@ namespace CrimeSketcher.Objects
                     diametro);
             }
 
-            using (var brushPele = new SolidBrush(AplicarOpacidade(CorPele, opacidade)))
-            {
-                float diametro = Math.Max(LarguraCabeca, AlturaCabeca) * 0.84f;
-                g.FillEllipse(brushPele,
-                    cx - diametro / 2,
-                    cy - diametro / 2,
-                    diametro,
-                    diametro);
-            }
-
             if (MostrarContorno)
             {
                 using (var pen = new Pen(AplicarOpacidade(Color.FromArgb(80, 60, 50), opacidade), EspessuraContorno))
                 {
-                    float diametro = Math.Max(LarguraCabeca, AlturaCabeca) * 0.84f;
+                    float diametro = Math.Max(LarguraCabeca, AlturaCabeca) + 1f;
                     g.DrawEllipse(pen,
                         cx - diametro / 2,
                         cy - diametro / 2,
