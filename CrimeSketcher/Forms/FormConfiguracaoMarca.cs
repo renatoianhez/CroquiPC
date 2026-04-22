@@ -64,7 +64,12 @@ namespace CrimeSketcher.Forms
                 "Arranhão",
                 "Rastro",
                 "Impacto",
-                "Personalizada"
+                "Personalizada",
+                "Risco",
+                "Cerca",
+                "Muro",
+                "Canaleta",
+                "Meio-fio"
             });
             cmbTipoMarca.SelectedIndexChanged += (s, e) => AtualizarPreview();
             Controls.Add(cmbTipoMarca);
@@ -232,6 +237,11 @@ namespace CrimeSketcher.Forms
                 TipoMarca.Rastro => "Rastro: Marca de arrasto, útil para indicar movimento de objetos ou corpos.",
                 TipoMarca.Impacto => "Marca de impacto: Padrão irregular e disperso resultante de impacto ou queda.",
                 TipoMarca.Personalizada => "Marca personalizada: Estilo básico para casos específicos.",
+                TipoMarca.Risco => "Risco: Traço fino para marcações discretas e lineares.",
+                TipoMarca.Cerca => "Cerca: Padrão traço-x-traço para representar cercamento/grade linear.",
+                TipoMarca.Muro => "Muro: Faixa com juntas transversais simulando linha de tijolos.",
+                TipoMarca.Canaleta => "Canaleta: Linha grossa com gradiente longitudinal mais claro no meio.",
+                TipoMarca.MeioFio => "Meio-fio: Duas linhas paralelas com o mesmo padrão visual do meio-fio da ferramenta Rua.",
                 _ => ""
             };
         }

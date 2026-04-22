@@ -4,7 +4,6 @@ using CrimeSketcher.Utils;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
-using System.Linq;
 
 namespace CrimeSketcher.Core
 {
@@ -19,7 +18,7 @@ namespace CrimeSketcher.Core
         /// <summary>
         /// Verifica se uma nova rua intercepta ruas existentes e retorna possíveis cruzamentos
         /// </summary>
-        public static List<(StreetObject rua1, StreetObject rua2, PointF ponto, IntersectionType tipo)> 
+        public static List<(StreetObject rua1, StreetObject rua2, PointF ponto, IntersectionType tipo)>
             DetectarCruzamentos(StreetObject novaRua, IEnumerable<BaseSketchObject> objetosExistentes)
         {
             var cruzamentos = new List<(StreetObject, StreetObject, PointF, IntersectionType)>();
@@ -52,7 +51,7 @@ namespace CrimeSketcher.Core
         ///      interseção das retas (extensão infinita dos eixos).
         /// </summary>
         private static List<(PointF ponto, IntersectionType tipo)> DetectarIntercepcao(
-            StreetObject rua1, 
+            StreetObject rua1,
             StreetObject rua2)
         {
             var resultados = new List<(PointF, IntersectionType)>();
@@ -211,7 +210,7 @@ namespace CrimeSketcher.Core
             if (comp2 == 0)
                 return GeometryHelper.Distancia(ponto, p1);
 
-            float t = Math.Max(0, Math.Min(1, 
+            float t = Math.Max(0, Math.Min(1,
                 ((ponto.X - p1.X) * dx + (ponto.Y - p1.Y) * dy) / comp2));
 
             var projecao = new PointF(
@@ -262,7 +261,7 @@ namespace CrimeSketcher.Core
         /// <summary>
         /// Encontra a rua mais próxima que este ponto deveria conectar
         /// </summary>
-        public static StreetObject FindNearestStreet(PointF ponto, IEnumerable<BaseSketchObject> objetos, 
+        public static StreetObject FindNearestStreet(PointF ponto, IEnumerable<BaseSketchObject> objetos,
             out float distancia, StreetObject excluir = null)
         {
             distancia = float.MaxValue;

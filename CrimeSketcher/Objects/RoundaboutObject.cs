@@ -78,7 +78,7 @@ namespace CrimeSketcher.Objects
         public int CorIlhaArgb { get; set; } = Color.FromArgb(120, 180, 120).ToArgb();
 
         [Browsable(false)]
-        public int CorFaixaArgb { get; set; } = Color.White.ToArgb();
+        public int CorFaixaArgb { get; set; } = Color.FromArgb(255, 200, 0).ToArgb();
 
         [Category("Aparência")]
         [DisplayName("Cor do Asfalto")]
@@ -295,7 +295,7 @@ namespace CrimeSketcher.Objects
                     g.FillPolygon(brushAsfalto, pontosAsfalto);
 
                     // Faixa central da saída
-                    using (var pen = new Pen(Color.Yellow, 2f))
+                    using (var pen = new Pen(Color.FromArgb(CorFaixaArgb), 2f))
                     {
                         pen.DashStyle = DashStyle.Custom;
                         pen.DashPattern = new float[] { 8, 6 };

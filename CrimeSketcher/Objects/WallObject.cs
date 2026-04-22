@@ -31,7 +31,7 @@ namespace CrimeSketcher.Objects
         [DisplayName("Espessura da Parede (m)")]
         [Description("Espessura da parede em metros")]
         [TypeConverter(typeof(MetrosTypeConverter))]
-        public float Espessura { get; set; } = 8f;
+        public float Espessura { get; set; } = 7f;
 
         [Category("Dimensões")]
         [DisplayName("Comprimento (m)")]
@@ -79,7 +79,7 @@ namespace CrimeSketcher.Objects
         [DisplayName("Largura da Porta (m)")]
         [Description("Largura da porta em metros")]
         [TypeConverter(typeof(MetrosTypeConverter))]
-        public float LarguraPorta { get; set; } = 50f;
+        public float LarguraPorta { get; set; } = 38f;
 
         [Category("Aberturas")]
         [DisplayName("Posição da Janela")]
@@ -90,7 +90,7 @@ namespace CrimeSketcher.Objects
         [DisplayName("Largura da Janela (m)")]
         [Description("Largura da janela em metros")]
         [TypeConverter(typeof(MetrosTypeConverter))]
-        public float LarguraJanela { get; set; } = 50f;
+        public float LarguraJanela { get; set; } = 47f;
 
         [Category("Aberturas")]
         [DisplayName("Cor da Porta")]
@@ -481,38 +481,38 @@ namespace CrimeSketcher.Objects
             switch (tipo)
             {
                 case WallHandleType.PosicaoPorta:
-                {
-                    float t = ((worldPos.X - PontoInicial.X) * nx + (worldPos.Y - PontoInicial.Y) * ny) / comp;
-                    PosicaoPorta = Math.Max(0.05f, Math.Min(0.95f, t));
-                    return true;
-                }
+                    {
+                        float t = ((worldPos.X - PontoInicial.X) * nx + (worldPos.Y - PontoInicial.Y) * ny) / comp;
+                        PosicaoPorta = Math.Max(0.05f, Math.Min(0.95f, t));
+                        return true;
+                    }
                 case WallHandleType.PosicaoJanela:
-                {
-                    float t = ((worldPos.X - PontoInicial.X) * nx + (worldPos.Y - PontoInicial.Y) * ny) / comp;
-                    PosicaoJanela = Math.Max(0.05f, Math.Min(0.95f, t));
-                    return true;
-                }
+                    {
+                        float t = ((worldPos.X - PontoInicial.X) * nx + (worldPos.Y - PontoInicial.Y) * ny) / comp;
+                        PosicaoJanela = Math.Max(0.05f, Math.Min(0.95f, t));
+                        return true;
+                    }
                 case WallHandleType.AnguloPorta:
-                {
-                    if (!TentarObterGeometriaPorta(comp, nx, ny,
-                        out var pontoDobradica, out _,
-                        out float vx, out float vy,
-                        out float fatorDobradica, out float fatorSentido))
-                        return false;
+                    {
+                        if (!TentarObterGeometriaPorta(comp, nx, ny,
+                            out var pontoDobradica, out _,
+                            out float vx, out float vy,
+                            out float fatorDobradica, out float fatorSentido))
+                            return false;
 
-                    float baseAngle = (float)Math.Atan2(vy, vx);
-                    float mouseAngle = (float)Math.Atan2(
-                        worldPos.Y - pontoDobradica.Y,
-                        worldPos.X - pontoDobradica.X);
-                    float thetaGraus = (mouseAngle - baseAngle) * 180f / (float)Math.PI;
+                        float baseAngle = (float)Math.Atan2(vy, vx);
+                        float mouseAngle = (float)Math.Atan2(
+                            worldPos.Y - pontoDobradica.Y,
+                            worldPos.X - pontoDobradica.X);
+                        float thetaGraus = (mouseAngle - baseAngle) * 180f / (float)Math.PI;
 
-                    while (thetaGraus > 180f) thetaGraus -= 360f;
-                    while (thetaGraus < -180f) thetaGraus += 360f;
+                        while (thetaGraus > 180f) thetaGraus -= 360f;
+                        while (thetaGraus < -180f) thetaGraus += 360f;
 
-                    float anguloAbertura = thetaGraus / (fatorDobradica * fatorSentido);
-                    AnguloAberturaPorta = Math.Max(5f, Math.Min(170f, anguloAbertura));
-                    return true;
-                }
+                        float anguloAbertura = thetaGraus / (fatorDobradica * fatorSentido);
+                        AnguloAberturaPorta = Math.Max(5f, Math.Min(170f, anguloAbertura));
+                        return true;
+                    }
             }
             return false;
         }

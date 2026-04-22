@@ -1,4 +1,3 @@
-using CrimeSketcher.Core;
 using CrimeSketcher.Utils;
 using System;
 using System.Collections.Generic;
@@ -483,8 +482,8 @@ namespace CrimeSketcher.Objects
         private static PointF[] CriarRetanguloSimetrico(
             PointF centro, PointF vet, PointF perp, float semiComprimento, float halfWidth)
         {
-            float far = semiComprimento;
-            float near = -semiComprimento;
+            float far = semiComprimento + 20f; // Aqui que tem que atuar para aumentar ou diminuir os retângulos de cruzamento
+            float near = -semiComprimento - 20f;
 
             return
             [
@@ -757,9 +756,9 @@ namespace CrimeSketcher.Objects
             Font fontePare,
             StringFormat sfCentro)
         {
-            float baseOffset = Math.Max(2f, alcance + 8f - 25f);
-            float crosswalkOffset = baseOffset + 8f;
-            float pareOffset = baseOffset + 12f;
+            float baseOffset = Math.Max(2f, alcance - 19f); // deslocamento offset mínimo para que a sinalização não fique colada no cruzamento
+            float crosswalkOffset = baseOffset + 9f; //Posição da faixa de pedestres em relação ao deslocamento offset
+            float pareOffset = baseOffset + 30f; // Posição da marcação de PARE em relação ao deslocamento offset
 
             if (desenharFaixaPedestre)
             {

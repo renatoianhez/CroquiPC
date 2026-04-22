@@ -1,0 +1,338 @@
+{
+  "Titulo": "Novo Croqui",
+  "NumeroProcedimento": "",
+  "Perito": "",
+  "DataLevantamento": "2026-04-22T11:09:32.4147124-03:00",
+  "Endereco": "",
+  "Observacoes": "",
+  "LarguraPapelCm": 42,
+  "AlturaPapelCm": 29.7,
+  "EscalaDenominador": 100,
+  "Objetos": [
+    {
+      "ObjetosMembro": [
+        {
+          "Vertices": [
+            {
+              "IsEmpty": false,
+              "X": 123.27359,
+              "Y": 337.39645
+            },
+            {
+              "IsEmpty": false,
+              "X": 158.20087,
+              "Y": 337.93756
+            },
+            {
+              "IsEmpty": false,
+              "X": 158.06073,
+              "Y": 370.64725
+            },
+            {
+              "IsEmpty": false,
+              "X": 145.30771,
+              "Y": 370.17435
+            },
+            {
+              "IsEmpty": false,
+              "X": 145.30771,
+              "Y": 356.98315
+            },
+            {
+              "IsEmpty": false,
+              "X": 137.7557,
+              "Y": 350.6546
+            },
+            {
+              "IsEmpty": false,
+              "X": 123.27359,
+              "Y": 350.38403
+            }
+          ],
+          "CorTexturaArgb": 1512581160,
+          "Textura": 4,
+          "EditarVertices": true,
+          "Id": "dc57f0ba-daaa-494e-b0f0-6723a8b99af5",
+          "Nome": "",
+          "Tipo": "\u00C1rea",
+          "Posicao": {
+            "IsEmpty": false,
+            "X": 141.59714,
+            "Y": 353.45392
+          },
+          "Rotacao": 0,
+          "EscalaX": 0.9852334,
+          "EscalaY": 0.62586045,
+          "Visivel": true,
+          "Bloqueado": false,
+          "Selecionado": false,
+          "Camada": 0,
+          "Opacidade": 1,
+          "CorPreenchimentoArgb": -2960696,
+          "CorContornoArgb": 764843660,
+          "EspessuraContorno": 2
+        },
+        {
+          "PontoInicial": {
+            "IsEmpty": false,
+            "X": 132.7313,
+            "Y": 320.2518
+          },
+          "PontoFinal": {
+            "IsEmpty": false,
+            "X": 174.50896,
+            "Y": 363.63596
+          },
+          "PontoCurva": {
+            "IsEmpty": false,
+            "X": 174.26482,
+            "Y": 320.44485
+          },
+          "CurvaCircular": false,
+          "TemCurva": true,
+          "Largura": 30.637083,
+          "TemCanteiroCentral": false,
+          "LarguraCanteiroCentral": 12,
+          "TemCiclofaixa": false,
+          "TemFaixaEstacionamento": false,
+          "NomeRua": "",
+          "FonteNomeRua": "Segoe UI",
+          "TamanhoFonteNomeRua": 9,
+          "DeslocamentoNomeRuaX": 0,
+          "DeslocamentoNomeRuaY": 0,
+          "NumeroFaixas": 1,
+          "MaoUnica": true,
+          "TemCalcada": false,
+          "LarguraCalcada": 11.488909,
+          "TemMeioFio": false,
+          "CorCalcadaArgb": -2960696,
+          "CorMeioFioArgb": -6908276,
+          "CorCanteiroArgb": -8871846,
+          "TipoLinhaEstacionamento": 0,
+          "CorEstacionamentoArgb": 16777215,
+          "CorLinhaEstacionamentoArgb": -1,
+          "CorFaixaAmarelaArgb": -14336,
+          "CorFaixaBrancaArgb": -1,
+          "CorSinalizacao": 0,
+          "TipoFaixaCentral": 0,
+          "MostrarFaixasLaterais": true,
+          "EspacamentoTracejado": 7.612626,
+          "ComprimentoTracejado": 12.68772,
+          "EspessuraFaixa": 1.0739195,
+          "FaixasLateraisConfig": [],
+          "ExtremidadeInicial": 0,
+          "ExtremidadeFinal": 0,
+          "IdConexaoInicial": null,
+          "IdConexaoFinal": null,
+          "Id": "e20dc1e6-12ab-442e-8f82-6309495ab628",
+          "Nome": "",
+          "Tipo": "Rua",
+          "Posicao": {
+            "IsEmpty": false,
+            "X": 68.27905,
+            "Y": -1.1899261
+          },
+          "Rotacao": 45,
+          "EscalaX": 1,
+          "EscalaY": 1,
+          "Visivel": true,
+          "Bloqueado": false,
+          "Selecionado": false,
+          "Camada": 0,
+          "Opacidade": 1,
+          "CorPreenchimentoArgb": -4934476,
+          "CorContornoArgb": -10197916,
+          "EspessuraContorno": 2
+        },
+        {
+          "PontoInicial": {
+            "IsEmpty": false,
+            "X": 131.27457,
+            "Y": 336.40005
+          },
+          "PontoFinal": {
+            "IsEmpty": false,
+            "X": 159.1911,
+            "Y": 365.3759
+          },
+          "PontoCurva": {
+            "IsEmpty": false,
+            "X": 161.28485,
+            "Y": 334.22687
+          },
+          "CurvaCircular": false,
+          "RaioCurva": 0,
+          "TemCurva": true,
+          "TipoMarca": 11,
+          "Largura": 15.113006,
+          "Intensidade": 3,
+          "Descricao": "",
+          "MostrarDescricao": true,
+          "CorMarcaArgb": -6908276,
+          "Id": "d0d696e6-676f-4d9d-b4fa-0e39731f8264",
+          "Nome": "",
+          "Tipo": "Marca",
+          "Posicao": {
+            "IsEmpty": false,
+            "X": 131.27457,
+            "Y": 336.40005
+          },
+          "Rotacao": 45,
+          "EscalaX": 1,
+          "EscalaY": 1,
+          "Visivel": true,
+          "Bloqueado": false,
+          "Selecionado": false,
+          "Camada": 0,
+          "Opacidade": 1,
+          "CorPreenchimentoArgb": 16777215,
+          "CorContornoArgb": -16777216,
+          "EspessuraContorno": 2
+        },
+        {
+          "PontoInicial": {
+            "IsEmpty": false,
+            "X": 122.03531,
+            "Y": 350.6535
+          },
+          "PontoFinal": {
+            "IsEmpty": false,
+            "X": 136.43845,
+            "Y": 350.6535
+          },
+          "PontoCurva": null,
+          "CurvaCircular": false,
+          "RaioCurva": 0,
+          "TemCurva": false,
+          "TipoMarca": 9,
+          "Largura": 2.810523,
+          "Intensidade": 3,
+          "Descricao": "",
+          "MostrarDescricao": true,
+          "CorMarcaArgb": -8355712,
+          "Id": "20bf9135-7f05-4af1-9fd7-e4cc9a8f5dcd",
+          "Nome": "",
+          "Tipo": "Marca",
+          "Posicao": {
+            "IsEmpty": false,
+            "X": 122.03531,
+            "Y": 350.6535
+          },
+          "Rotacao": 0,
+          "EscalaX": 1,
+          "EscalaY": 1,
+          "Visivel": true,
+          "Bloqueado": false,
+          "Selecionado": false,
+          "Camada": 0,
+          "Opacidade": 1,
+          "CorPreenchimentoArgb": 16777215,
+          "CorContornoArgb": -16777216,
+          "EspessuraContorno": 2
+        },
+        {
+          "PontoInicial": {
+            "IsEmpty": false,
+            "X": 135.71835,
+            "Y": 349.86777
+          },
+          "PontoFinal": {
+            "IsEmpty": false,
+            "X": 142.91977,
+            "Y": 357.72565
+          },
+          "PontoCurva": null,
+          "CurvaCircular": false,
+          "RaioCurva": 0,
+          "TemCurva": false,
+          "TipoMarca": 9,
+          "Largura": 2.810523,
+          "Intensidade": 3,
+          "Descricao": "",
+          "MostrarDescricao": true,
+          "CorMarcaArgb": -8355712,
+          "Id": "f23c4b29-66e9-4f36-a648-40b1e9b94d00",
+          "Nome": "",
+          "Tipo": "Marca",
+          "Posicao": {
+            "IsEmpty": false,
+            "X": 135.71835,
+            "Y": 349.86777
+          },
+          "Rotacao": 0,
+          "EscalaX": 1,
+          "EscalaY": 1,
+          "Visivel": true,
+          "Bloqueado": false,
+          "Selecionado": false,
+          "Camada": 0,
+          "Opacidade": 1,
+          "CorPreenchimentoArgb": 16777215,
+          "CorContornoArgb": -16777216,
+          "EspessuraContorno": 2
+        },
+        {
+          "PontoInicial": {
+            "IsEmpty": false,
+            "X": 142.19955,
+            "Y": 356.93982
+          },
+          "PontoFinal": {
+            "IsEmpty": false,
+            "X": 142.19955,
+            "Y": 372.6556
+          },
+          "PontoCurva": null,
+          "CurvaCircular": false,
+          "RaioCurva": 0,
+          "TemCurva": false,
+          "TipoMarca": 9,
+          "Largura": 2.810523,
+          "Intensidade": 3,
+          "Descricao": "",
+          "MostrarDescricao": true,
+          "CorMarcaArgb": -8355712,
+          "Id": "5969b209-2c6e-48b8-be42-dc6ce488d49a",
+          "Nome": "",
+          "Tipo": "Marca",
+          "Posicao": {
+            "IsEmpty": false,
+            "X": 142.19955,
+            "Y": 356.93982
+          },
+          "Rotacao": 0,
+          "EscalaX": 1,
+          "EscalaY": 1,
+          "Visivel": true,
+          "Bloqueado": false,
+          "Selecionado": false,
+          "Camada": 0,
+          "Opacidade": 1,
+          "CorPreenchimentoArgb": 16777215,
+          "CorContornoArgb": -16777216,
+          "EspessuraContorno": 2
+        }
+      ],
+      "TipoGrupo": "Grupo",
+      "Id": "556dc111-f45d-48a2-bee4-85630f00b379",
+      "Nome": "Grupo",
+      "Tipo": "Grupo",
+      "Posicao": {
+        "IsEmpty": false,
+        "X": 118.630035,
+        "Y": 304.9334
+      },
+      "Rotacao": 0,
+      "EscalaX": 1,
+      "EscalaY": 1,
+      "Visivel": true,
+      "Bloqueado": false,
+      "Selecionado": false,
+      "Camada": 0,
+      "Opacidade": 1,
+      "CorPreenchimentoArgb": 16777215,
+      "CorContornoArgb": -16777216,
+      "EspessuraContorno": 2
+    }
+  ]
+}

@@ -837,16 +837,16 @@ namespace CrimeSketcher.Tools
             {
                 Color cor = kv.Key switch
                 {
-                    WallHandleType.PosicaoPorta  => Color.FromArgb(230, 0, 170, 60),
+                    WallHandleType.PosicaoPorta => Color.FromArgb(230, 0, 170, 60),
                     WallHandleType.PosicaoJanela => Color.FromArgb(230, 30, 130, 220),
-                    WallHandleType.AnguloPorta   => Color.FromArgb(230, 215, 80, 0),
-                    _                            => Color.Gray
+                    WallHandleType.AnguloPorta => Color.FromArgb(230, 215, 80, 0),
+                    _ => Color.Gray
                 };
                 var p = kv.Value;
                 using var brush = new SolidBrush(cor);
-                using var pen   = new Pen(Color.White, penW);
+                using var pen = new Pen(Color.White, penW);
                 g.FillEllipse(brush, p.X - raio, p.Y - raio, raio * 2f, raio * 2f);
-                g.DrawEllipse(pen,   p.X - raio, p.Y - raio, raio * 2f, raio * 2f);
+                g.DrawEllipse(pen, p.X - raio, p.Y - raio, raio * 2f, raio * 2f);
             }
         }
 

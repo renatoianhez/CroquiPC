@@ -203,7 +203,6 @@ namespace CrimeSketcher.Forms
                 CriarMenuItem("Salvar &Como...", "Ctrl+Shift+S", SalvarComo),
                 new ToolStripSeparator(),
                 CriarMenuItem("Exportar como &Imagem...", "", ExportarImagem),
-                CriarMenuItem("Exportar como &PDF...", "", ExportarPDF),
                 new ToolStripSeparator(),
                 CriarMenuItem("&Imprimir...", "Ctrl+Shift+I", Imprimir),
                 new ToolStripSeparator(),
@@ -924,7 +923,7 @@ namespace CrimeSketcher.Forms
             foreach (ToolStripItem item in items)
             {
                 item.ForeColor = corTexto;
-                
+
                 // Preservar fonte customizada se for um dropdown button ou menu item com fonte específica
                 if (item is ToolStripDropDownButton || item is ToolStripButton)
                 {
@@ -1597,13 +1596,13 @@ namespace CrimeSketcher.Forms
             }
 
             foreach (var obj in documento.Objetos)
-            obj.Selecionado = true;
+                obj.Selecionado = true;
 
-        var ultimo = documento.Objetos.Last();
-        selectTool.SelecionarObjeto(ultimo);
-        propGrid.SelectedObject = ultimo;
-        canvas.Invalidate();
-        statusLabel.Text = $"✓ {documento.Objetos.Count} objeto(s) selecionado(s)";
+            var ultimo = documento.Objetos.Last();
+            selectTool.SelecionarObjeto(ultimo);
+            propGrid.SelectedObject = ultimo;
+            canvas.Invalidate();
+            statusLabel.Text = $"✓ {documento.Objetos.Count} objeto(s) selecionado(s)";
         }
 
         private void Agrupar()
@@ -2101,7 +2100,7 @@ namespace CrimeSketcher.Forms
         private void MostrarSobre()
         {
             MessageBox.Show(
-                "🔍 CroquiPC v2.2.0\n\n" +
+                "🔍 CroquiPC v2.3.0\n\n" +
                 "Aplicação para elaboração de croquis\n" +
                 "técnicos de locais de crime.\n\n" +
                 "Renato Ianhez - Perito Criminal\n\n" +
@@ -2719,9 +2718,8 @@ namespace CrimeSketcher.Forms
         private void SelecionarObjetoNaCena(BaseSketchObject obj)
         {
             if (obj == null) return;
-            foreach (var o in documento.Objetos)
-                o.Selecionado = false;
-            obj.Selecionado = true;
+
+            selectTool?.SelecionarObjeto(obj);
             canvas.Invalidate();
             propGrid.SelectedObject = obj;
         }

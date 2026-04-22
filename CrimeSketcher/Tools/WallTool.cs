@@ -31,7 +31,7 @@ namespace CrimeSketcher.Tools
         private float _posicaoPreview = 0.5f;
         private Action _onPosicionamentoConcluido;
 
-        public float Espessura { get; set; } = 8f;
+        public float Espessura { get; set; } = 7f;
         public bool ComPorta { get; set; } = false;
         public bool ComJanela { get; set; } = false;
 

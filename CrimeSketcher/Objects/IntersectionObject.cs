@@ -15,13 +15,14 @@ namespace CrimeSketcher.Objects
     [Serializable]
     public class IntersectionObject : BaseSketchObject
     {
+        private const float EXTENSAO_BRACOS_ADICIONAL = 20f;
         private float _larguraRua = 80f;
         private bool _temCanteiroCentral = false;
         private float _larguraCanteiroCentral = 12f;
         private bool _estacionamentoRuaNorte = true;
-        private bool _estacionamentoRuaSul    = true;
-        private bool _estacionamentoRuaLeste  = true;
-        private bool _estacionamentoRuaOeste  = true;
+        private bool _estacionamentoRuaSul = true;
+        private bool _estacionamentoRuaLeste = true;
+        private bool _estacionamentoRuaOeste = true;
         private bool _temFaixaEstacionamento = false;
         private float _larguraFaixaEstacionamento = 30f;
 
@@ -301,11 +302,11 @@ namespace CrimeSketcher.Objects
 
         private void DesenharCruzamento(Graphics g, float meiaRua, float meiaTamanho)
         {
-            bool temCima     = TipoCruzamento != TipoCruzamento.TParaBaixo;
-            bool temBaixo    = TipoCruzamento != TipoCruzamento.TParaCima;
+            bool temCima = TipoCruzamento != TipoCruzamento.TParaBaixo;
+            bool temBaixo = TipoCruzamento != TipoCruzamento.TParaCima;
             bool temEsquerda = TipoCruzamento != TipoCruzamento.TParaDireita;
-            bool temDireita  = TipoCruzamento != TipoCruzamento.TParaEsquerda;
-            float ext = Math.Max(0f, ExtensaoVias);
+            bool temDireita = TipoCruzamento != TipoCruzamento.TParaEsquerda;
+            float ext = Math.Max(0f, ExtensaoVias) + EXTENSAO_BRACOS_ADICIONAL;
 
             float extraX = ObterExtraEstacionamentoEixoX();
             float extraY = ObterExtraEstacionamentoEixoY();
@@ -369,18 +370,18 @@ namespace CrimeSketcher.Objects
             {
                 g.FillRectangle(brush, -meiaTamanho, -meiaRua, meiaTamanho * 2, LarguraRua);
                 if (temEsquerda) g.FillRectangle(brush, -meiaTamanho - ext, -meiaRua, ext, LarguraRua);
-                if (temDireita)  g.FillRectangle(brush, meiaTamanho, -meiaRua, ext, LarguraRua);
-                if (temCima)     g.FillRectangle(brush, -meiaRua, -meiaTamanho - ext, LarguraRua, ext + meiaTamanho);
-                if (temBaixo)    g.FillRectangle(brush, -meiaRua, 0, LarguraRua, meiaTamanho + ext);
+                if (temDireita) g.FillRectangle(brush, meiaTamanho, -meiaRua, ext, LarguraRua);
+                if (temCima) g.FillRectangle(brush, -meiaRua, -meiaTamanho - ext, LarguraRua, ext + meiaTamanho);
+                if (temBaixo) g.FillRectangle(brush, -meiaRua, 0, LarguraRua, meiaTamanho + ext);
             }
 
             using (var brush = new HatchBrush(HatchStyle.Percent10, Color.FromArgb(20, 0, 0, 0), Color.Transparent))
             {
                 g.FillRectangle(brush, -meiaTamanho, -meiaRua, meiaTamanho * 2, LarguraRua);
                 if (temEsquerda) g.FillRectangle(brush, -meiaTamanho - ext, -meiaRua, ext, LarguraRua);
-                if (temDireita)  g.FillRectangle(brush, meiaTamanho, -meiaRua, ext, LarguraRua);
-                if (temCima)     g.FillRectangle(brush, -meiaRua, -meiaTamanho - ext, LarguraRua, ext + meiaTamanho);
-                if (temBaixo)    g.FillRectangle(brush, -meiaRua, 0, LarguraRua, meiaTamanho + ext);
+                if (temDireita) g.FillRectangle(brush, meiaTamanho, -meiaRua, ext, LarguraRua);
+                if (temCima) g.FillRectangle(brush, -meiaRua, -meiaTamanho - ext, LarguraRua, ext + meiaTamanho);
+                if (temBaixo) g.FillRectangle(brush, -meiaRua, 0, LarguraRua, meiaTamanho + ext);
             }
 
             AjustarBracosSemCanteiro(g, meiaRua, meiaTamanho, ext,
@@ -570,7 +571,7 @@ namespace CrimeSketcher.Objects
             using var pen = new Pen(Color.FromArgb(CorFaixaArgb), 3f);
             using var brush = new SolidBrush(Color.FromArgb(CorFaixaArgb));
             using var fonte = new Font("Arial", 12f, FontStyle.Bold, GraphicsUnit.Pixel);
-            float deslocLinha = 20f;
+            float deslocLinha = ObterDeslocamentoLinhaPare(meiaTamanho);
             float deslocTexto = 10f;
             float meiaExt = Math.Min(meiaRua, 35f) + 3;
             SizeF sz = g.MeasureString("PARE", fonte);
@@ -613,14 +614,18 @@ namespace CrimeSketcher.Objects
             }
         }
 
-        private void DesenharTextoCentralizadoRotacionado(Graphics g, string texto, Font fonte, Brush brush, float x, float y, float angulo)
+        private float ObterDeslocamentoLinhaPare(float meiaTamanho)
         {
-            var state = g.Save();
-            g.TranslateTransform(x, y);
-            g.RotateTransform(angulo);
-            var tamanho = g.MeasureString(texto, fonte);
-            g.DrawString(texto, fonte, brush, -tamanho.Width / 2f, -tamanho.Height / 2f);
-            g.Restore(state);
+            const float deslocamentoPadrao = 20f;
+            const float margemEntreFaixaEPare = 8f;
+
+            if (!TemFaixaPedestre)
+                return deslocamentoPadrao;
+
+            float distanciaFaixa = meiaTamanho + 5f;
+            float bordaExternaFaixa = distanciaFaixa + (LarguraFaixaPedestre / 2f);
+            float deslocamentoMinimo = bordaExternaFaixa - meiaTamanho + margemEntreFaixaEPare;
+            return Math.Max(deslocamentoPadrao, deslocamentoMinimo);
         }
 
         private GraphicsPath CriarContornoCruz(float meiaRua)
@@ -919,6 +924,20 @@ namespace CrimeSketcher.Objects
                 g.FillRectangle(brush, r);
                 g.DrawRectangle(pen, r.X, r.Y, r.Width, r.Height);
             }
+        }
+
+        private void DesenharTextoCentralizadoRotacionado(Graphics g, string texto, Font fonte, Brush brush, float x, float y, float angulo)
+        {
+            var state = g.Save();
+            g.TranslateTransform(x, y);
+            g.RotateTransform(angulo);
+            using (var format = new StringFormat())
+            {
+                format.Alignment = StringAlignment.Center;
+                format.LineAlignment = StringAlignment.Center;
+                g.DrawString(texto, fonte, brush, 0f, 0f, format);
+            }
+            g.Restore(state);
         }
     }
 }

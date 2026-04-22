@@ -340,6 +340,21 @@ namespace CrimeSketcher.Objects
                 case TipoMarca.Personalizada:
                     DesenharMarcaPersonalizada(g, opacidadeBase);
                     break;
+                case TipoMarca.Risco:
+                    DesenharMarcaRisco(g, opacidadeBase);
+                    break;
+                case TipoMarca.Cerca:
+                    DesenharMarcaCerca(g, opacidadeBase);
+                    break;
+                case TipoMarca.Muro:
+                    DesenharMarcaMuro(g, opacidadeBase);
+                    break;
+                case TipoMarca.Canaleta:
+                    DesenharMarcaCanaleta(g, opacidadeBase);
+                    break;
+                case TipoMarca.MeioFio:
+                    DesenharMarcaMeioFio(g, opacidadeBase);
+                    break;
             }
 
             // Descrição
@@ -541,6 +556,107 @@ namespace CrimeSketcher.Objects
             // Marca personalizada: linha simples
             Color corComAlpha = Color.FromArgb((int)(255 * opacidade), CorMarca);
             DesenharLinhaParalela(g, 0, corComAlpha, Largura, DashStyle.Solid);
+        }
+
+        private void DesenharMarcaRisco(Graphics g, float opacidade)
+        {
+            Color corComAlpha = Color.FromArgb((int)(255 * opacidade), CorMarca);
+            DesenharLinhaParalela(g, 0f, corComAlpha, Math.Max(1f, Largura / 6f), DashStyle.Solid);
+        }
+
+        private void DesenharMarcaCerca(Graphics g, float opacidade)
+        {
+            Color corPrincipal = Color.FromArgb((int)(240 * opacidade), CorMarca);
+            Color corSecundaria = Color.FromArgb((int)(200 * opacidade), CorMarca);
+
+            DesenharLinhaParalela(g, 0f, corPrincipal, Math.Max(1.5f, Largura / 8f), DashStyle.Dash);
+            float larguraX = Math.Max(4f, Largura / 4f);
+            int segmentos = Math.Max(4, (int)(Comprimento / 40f));
+            using var penX = new Pen(corSecundaria, Math.Max(1.2f, Largura / 10f));
+
+            for (int i = 1; i < segmentos; i++)
+            {
+                float t = i / (float)segmentos;
+                var centro = GetPontoNaCurva(t);
+                var tang = GetTangenteNaCurva(t);
+                var perp = GetPerpendicularNaCurva(t);
+
+                var p1 = new PointF(centro.X + tang.X * larguraX + perp.X * larguraX, centro.Y + tang.Y * larguraX + perp.Y * larguraX);
+                var p2 = new PointF(centro.X - tang.X * larguraX - perp.X * larguraX, centro.Y - tang.Y * larguraX - perp.Y * larguraX);
+                var p3 = new PointF(centro.X + tang.X * larguraX - perp.X * larguraX, centro.Y + tang.Y * larguraX - perp.Y * larguraX);
+                var p4 = new PointF(centro.X - tang.X * larguraX + perp.X * larguraX, centro.Y - tang.Y * larguraX + perp.Y * larguraX);
+
+                g.DrawLine(penX, p1, p2);
+                g.DrawLine(penX, p3, p4);
+            }
+        }
+
+        private void DesenharMarcaMuro(Graphics g, float opacidade)
+        {
+            Color corBase = Color.FromArgb((int)(220 * opacidade), CorMarca);
+            Color corJunta = Color.FromArgb((int)(250 * opacidade), ClarearCor(CorMarca, 40));
+
+            float espessuraFaixa = Math.Max(5f, Largura * 0.8f);
+            float halfW = espessuraFaixa / 2f;
+
+            DesenharLinhaParalela(g, 0f, corBase, espessuraFaixa, DashStyle.Solid);
+            DesenharLinhaParalela(g, -halfW, corJunta, 1.4f, DashStyle.Solid);
+            DesenharLinhaParalela(g, halfW, corJunta, 1.4f, DashStyle.Solid);
+
+            using var penJunta = new Pen(corJunta, 1.2f);
+            int segmentos = Math.Max(6, (int)(Comprimento / 16f));
+            for (int i = 1; i < segmentos; i++)
+            {
+                float t = i / (float)segmentos;
+                var centro = GetPontoNaCurva(t);
+                var perp = GetPerpendicularNaCurva(t);
+
+                var p1 = new PointF(centro.X - perp.X * halfW, centro.Y - perp.Y * halfW);
+                var p2 = new PointF(centro.X + perp.X * halfW, centro.Y + perp.Y * halfW);
+                g.DrawLine(penJunta, p1, p2);
+            }
+        }
+
+        private void DesenharMarcaCanaleta(Graphics g, float opacidade)
+        {
+            Color corBase = Color.FromArgb((int)(255 * opacidade), CorMarca);
+            Color corClara = ClarearCor(CorMarca, 100);
+
+            float espessuraBase = Math.Max(6f, Largura);
+            DesenharLinhaParalela(g, 0f, corBase, espessuraBase, DashStyle.Solid);
+
+            // Gradiente interno TRANSVERSAL: mais claro no centro e mais escuro nas bordas
+            int amostras = 8;
+            float half = espessuraBase / 2f;
+            float passo = half / amostras;
+            float espFaixa = Math.Max(1f, passo * 1.4f);
+
+            for (int i = -amostras; i <= amostras; i++)
+            {
+                float offset = i * passo;
+                float fatorCentro = 1f - (Math.Abs(offset) / half);
+                fatorCentro = Math.Clamp(fatorCentro, 0f, 1f);
+
+                int alpha = (int)(fatorCentro * 190f * opacidade);
+                if (alpha <= 0) continue;
+
+                Color corFaixa = Color.FromArgb(alpha, corClara);
+                DesenharLinhaParalela(g, offset, corFaixa, espFaixa, DashStyle.Solid);
+            }
+        }
+
+        private void DesenharMarcaMeioFio(Graphics g, float opacidade)
+        {
+            Color corComAlpha = Color.FromArgb((int)(255 * opacidade), CorMarca);
+            DesenharLinhaParalela(g, 0f, corComAlpha, 2.5f, DashStyle.Solid);
+        }
+
+        private static Color ClarearCor(Color cor, int acrescimo)
+        {
+            return Color.FromArgb(
+                Math.Min(255, cor.R + acrescimo),
+                Math.Min(255, cor.G + acrescimo),
+                Math.Min(255, cor.B + acrescimo));
         }
 
         private void DesenharLinhaCentral(Graphics g, Pen pen)

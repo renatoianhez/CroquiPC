@@ -1,8 +1,8 @@
 ﻿// Objects/TextLabel.cs
 using System;
 using System.ComponentModel;
-using System.Drawing.Design;
 using System.Drawing;
+using System.Drawing.Design;
 using System.Text.Json.Serialization;
 
 namespace CrimeSketcher.Objects

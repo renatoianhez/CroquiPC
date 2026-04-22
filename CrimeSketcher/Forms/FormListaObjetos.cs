@@ -99,7 +99,7 @@ namespace CrimeSketcher.Forms
                 var esc = ScaleManager.Atual;
                 int total = _documento.Objetos.Count;
 
-                for (int i = 0; i < total; i++)
+                for (int i = total - 1; i >= 0; i--)
                 {
                     var obj = _documento.Objetos[i];
                     var item = new ListViewItem(obj.Nome);

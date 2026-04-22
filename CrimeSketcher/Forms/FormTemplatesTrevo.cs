@@ -1,6 +1,5 @@
 using CrimeSketcher.Core;
 using CrimeSketcher.Objects;
-using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Drawing2D;
