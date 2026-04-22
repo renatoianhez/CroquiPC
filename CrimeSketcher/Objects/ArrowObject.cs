@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Drawing;
 using System.Drawing.Drawing2D;
+using System.Text.Json.Serialization;
 
 namespace CrimeSketcher.Objects
 {
@@ -124,11 +125,36 @@ namespace CrimeSketcher.Objects
         [Description("Texto descritivo para a seta (ex: Norte, Entrada)")]
         public string Rotulo { get; set; } = "";
 
+        [Category("Texto")]
+        [DisplayName("Fonte do Rótulo")]
+        [Description("Nome da família da fonte do rótulo")]
+        [TypeConverter(typeof(FontConverter.FontNameConverter))]
+        public string FonteRotulo { get; set; } = "Segoe UI";
+
+        [Category("Texto")]
+        [DisplayName("Tamanho da Fonte do Rótulo")]
+        [Description("Tamanho da fonte do rótulo em pontos")]
+        public float TamanhoFonteRotulo { get; set; } = 8f;
+
+        [Browsable(false)]
+        public int CorRotuloArgb { get; set; } = Color.DarkBlue.ToArgb();
+
+        [Category("Texto")]
+        [DisplayName("Cor do Rótulo")]
+        [Description("Cor do texto do rótulo")]
+        [JsonIgnore]
+        public Color CorRotulo
+        {
+            get => Color.FromArgb(CorRotuloArgb);
+            set => CorRotuloArgb = value.ToArgb();
+        }
+
         public ArrowObject()
         {
             Tipo = "Seta";
             CorContorno = Color.DarkBlue;
             EspessuraContorno = 2f;
+            CorRotulo = CorContorno;
         }
 
         public override void Desenhar(Graphics g)
@@ -170,7 +196,10 @@ namespace CrimeSketcher.Objects
             {
                 var centro = ObterPontoRotulo(pontoInicial, pontoFinal, pontoCurva);
 
-                using (var font = new Font("Segoe UI", 8f))
+                string nomeFonte = string.IsNullOrWhiteSpace(FonteRotulo) ? "Segoe UI" : FonteRotulo.Trim();
+                float tamanhoFonte = Math.Max(6f, TamanhoFonteRotulo);
+
+                using (var font = new Font(nomeFonte, tamanhoFonte))
                 using (var sf = new StringFormat())
                 {
                     sf.Alignment = StringAlignment.Center;
@@ -186,7 +215,7 @@ namespace CrimeSketcher.Objects
                             size.Width + 4, size.Height + 2);
                     }
 
-                    using (var brushTexto = new SolidBrush(CorContorno))
+                    using (var brushTexto = new SolidBrush(CorRotulo))
                     {
                         g.DrawString(Rotulo, font, brushTexto, centro, sf);
                     }
