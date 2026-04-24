@@ -485,20 +485,51 @@ namespace CrimeSketcher.Tools
 
             PointF local = WorldToLocal(corpo, pontoMundo);
 
-            float yTroncoTop = -corpo.AlturaTronco / 2f;
-            float yQuadril = corpo.AlturaTronco / 2f;
-
-            float compBracoSuperior = 18f;
+            PointF pescoco;
+            PointF ombroDir;
+            PointF ombroEsq;
+            PointF quadrilDir;
+            PointF quadrilEsq;
+            float compBracoSuperiorDir;
+            float compBracoSuperiorEsq;
             float compCoxa = corpo.AlturaPerna * 0.55f;
 
-            var pescoco = new PointF(0f, yTroncoTop - 2f);
-            var ombroDir = new PointF(corpo.LarguraOmbros / 2f, yTroncoTop + 8f);
-            var ombroEsq = new PointF(-corpo.LarguraOmbros / 2f, yTroncoTop + 8f);
-            var quadrilDir = new PointF(corpo.LarguraQuadril / 4f, yQuadril);
-            var quadrilEsq = new PointF(-corpo.LarguraQuadril / 4f, yQuadril);
+            if (corpo.Pose == PoseCorpo.DeLado)
+            {
+                float alturaTotal = corpo.AlturaCabeca + corpo.AlturaTronco + corpo.AlturaPerna + corpo.AlturaPe * 0.65f;
+                float yTopo = -alturaTotal / 2f;
+                float yTroncoTop = yTopo + corpo.AlturaCabeca - 2f;
+                float yQuadril = yTroncoTop + corpo.AlturaTronco;
 
-            var cotoveloDir = Somar(ombroDir, VetorRotacionado(compBracoSuperior, corpo.AnguloBracoDireito));
-            var cotoveloEsq = Somar(ombroEsq, VetorRotacionado(compBracoSuperior, corpo.AnguloBracoEsquerdo));
+                float larguraTronco = Math.Max(10f, corpo.LarguraCintura * 0.5f);
+                float xOmbro = larguraTronco * 0.42f;
+
+                pescoco = new PointF(0f, yTroncoTop - 1f);
+                ombroDir = new PointF(xOmbro, yTroncoTop + 9f);
+                ombroEsq = new PointF(xOmbro - 1.4f, yTroncoTop + 10f);
+                quadrilDir = new PointF(1.5f, yQuadril);
+                quadrilEsq = new PointF(-1.5f, yQuadril);
+
+                compBracoSuperiorDir = 16f;
+                compBracoSuperiorEsq = 16f * 0.92f;
+            }
+            else
+            {
+                float yTroncoTop = -corpo.AlturaTronco / 2f;
+                float yQuadril = corpo.AlturaTronco / 2f;
+
+                pescoco = new PointF(0f, yTroncoTop - 2f);
+                ombroDir = new PointF(corpo.LarguraOmbros / 2f, yTroncoTop + 8f);
+                ombroEsq = new PointF(-corpo.LarguraOmbros / 2f, yTroncoTop + 8f);
+                quadrilDir = new PointF(corpo.LarguraQuadril / 4f, yQuadril);
+                quadrilEsq = new PointF(-corpo.LarguraQuadril / 4f, yQuadril);
+
+                compBracoSuperiorDir = 18f;
+                compBracoSuperiorEsq = 18f;
+            }
+
+            var cotoveloDir = Somar(ombroDir, VetorRotacionado(compBracoSuperiorDir, corpo.AnguloBracoDireito));
+            var cotoveloEsq = Somar(ombroEsq, VetorRotacionado(compBracoSuperiorEsq, corpo.AnguloBracoEsquerdo));
             var joelhoDir = Somar(quadrilDir, VetorRotacionado(compCoxa, corpo.AnguloPernaDireita));
             var joelhoEsq = Somar(quadrilEsq, VetorRotacionado(compCoxa, corpo.AnguloPernaEsquerda));
 
@@ -558,25 +589,62 @@ namespace CrimeSketcher.Tools
 
         private Dictionary<ArticulacaoCorpoHandle, PointF> ObterPontosArticulacoesMundo(StickFigure corpo)
         {
-            float yTroncoTop = -corpo.AlturaTronco / 2f;
-            float yQuadril = corpo.AlturaTronco / 2f;
+            PointF pescoco;
+            PointF ombroDir;
+            PointF ombroEsq;
+            PointF quadrilDir;
+            PointF quadrilEsq;
 
-            float compBracoSuperior = 18f;
-            float compAntebraco = 17f;
+            float compBracoSuperiorDir;
+            float compBracoSuperiorEsq;
+            float compAntebracoDir;
+            float compAntebracoEsq;
             float compCoxa = corpo.AlturaPerna * 0.55f;
             float compCanela = corpo.AlturaPerna * 0.45f;
 
-            var pescoco = new PointF(0f, yTroncoTop - 2f);
-            var ombroDir = new PointF(corpo.LarguraOmbros / 2f, yTroncoTop + 8f);
-            var ombroEsq = new PointF(-corpo.LarguraOmbros / 2f, yTroncoTop + 8f);
-            var quadrilDir = new PointF(corpo.LarguraQuadril / 4f, yQuadril);
-            var quadrilEsq = new PointF(-corpo.LarguraQuadril / 4f, yQuadril);
+            if (corpo.Pose == PoseCorpo.DeLado)
+            {
+                float alturaTotal = corpo.AlturaCabeca + corpo.AlturaTronco + corpo.AlturaPerna + corpo.AlturaPe * 0.65f;
+                float yTopo = -alturaTotal / 2f;
+                float yTroncoTop = yTopo + corpo.AlturaCabeca - 2f;
+                float yQuadril = yTroncoTop + corpo.AlturaTronco;
 
-            var cotoveloDir = Somar(ombroDir, VetorRotacionado(compBracoSuperior, corpo.AnguloBracoDireito));
-            var cotoveloEsq = Somar(ombroEsq, VetorRotacionado(compBracoSuperior, corpo.AnguloBracoEsquerdo));
+                float larguraTronco = Math.Max(10f, corpo.LarguraCintura * 0.5f);
+                float xOmbro = larguraTronco * 0.42f;
 
-            var maoDir = Somar(cotoveloDir, VetorRotacionado(compAntebraco, corpo.AnguloBracoDireito + corpo.AnguloCotoveloDireito));
-            var maoEsq = Somar(cotoveloEsq, VetorRotacionado(compAntebraco, corpo.AnguloBracoEsquerdo + corpo.AnguloCotoveloEsquerdo));
+                pescoco = new PointF(0f, yTroncoTop - 1f);
+                ombroDir = new PointF(xOmbro, yTroncoTop + 9f);
+                ombroEsq = new PointF(xOmbro - 1.4f, yTroncoTop + 10f);
+                quadrilDir = new PointF(1.5f, yQuadril);
+                quadrilEsq = new PointF(-1.5f, yQuadril);
+
+                compBracoSuperiorDir = 16f;
+                compBracoSuperiorEsq = 16f * 0.92f;
+                compAntebracoDir = 14f;
+                compAntebracoEsq = 14f * 0.92f;
+            }
+            else
+            {
+                float yTroncoTop = -corpo.AlturaTronco / 2f;
+                float yQuadril = corpo.AlturaTronco / 2f;
+
+                pescoco = new PointF(0f, yTroncoTop - 2f);
+                ombroDir = new PointF(corpo.LarguraOmbros / 2f, yTroncoTop + 8f);
+                ombroEsq = new PointF(-corpo.LarguraOmbros / 2f, yTroncoTop + 8f);
+                quadrilDir = new PointF(corpo.LarguraQuadril / 4f, yQuadril);
+                quadrilEsq = new PointF(-corpo.LarguraQuadril / 4f, yQuadril);
+
+                compBracoSuperiorDir = 18f;
+                compBracoSuperiorEsq = 18f;
+                compAntebracoDir = 17f;
+                compAntebracoEsq = 17f;
+            }
+
+            var cotoveloDir = Somar(ombroDir, VetorRotacionado(compBracoSuperiorDir, corpo.AnguloBracoDireito));
+            var cotoveloEsq = Somar(ombroEsq, VetorRotacionado(compBracoSuperiorEsq, corpo.AnguloBracoEsquerdo));
+
+            var maoDir = Somar(cotoveloDir, VetorRotacionado(compAntebracoDir, corpo.AnguloBracoDireito + corpo.AnguloCotoveloDireito));
+            var maoEsq = Somar(cotoveloEsq, VetorRotacionado(compAntebracoEsq, corpo.AnguloBracoEsquerdo + corpo.AnguloCotoveloEsquerdo));
 
             var joelhoDir = Somar(quadrilDir, VetorRotacionado(compCoxa, corpo.AnguloPernaDireita));
             var joelhoEsq = Somar(quadrilEsq, VetorRotacionado(compCoxa, corpo.AnguloPernaEsquerda));
