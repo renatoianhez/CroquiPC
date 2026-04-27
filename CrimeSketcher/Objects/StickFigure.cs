@@ -16,7 +16,8 @@ namespace CrimeSketcher.Objects
     public enum PoseCorpo
     {
         EmPe = 0,
-        VistaAerea = 1
+        VistaAerea = 1,
+        DeLado = 2
     }
 
     /// <summary>
@@ -216,6 +217,9 @@ namespace CrimeSketcher.Objects
                 if (Pose == PoseCorpo.VistaAerea)
                     return Math.Max(AlturaCabeca + 16f, AlturaTronco * 0.45f) * EscalaCorpo;
 
+                if (Pose == PoseCorpo.DeLado)
+                    return (AlturaCabeca + AlturaTronco + AlturaPerna + AlturaPe * 0.65f) * EscalaCorpo;
+
                 return (AlturaCabeca + AlturaTronco + AlturaPerna + AlturaPe) * EscalaCorpo;
             }
         }
@@ -229,6 +233,14 @@ namespace CrimeSketcher.Objects
                 {
                     float larguraBracos = BracosEstendidos ? (LarguraOmbros + 78f) : (LarguraOmbros + 26f);
                     return larguraBracos * EscalaCorpo;
+                }
+
+                if (Pose == PoseCorpo.DeLado)
+                {
+                    float larguraPerfilCabeca = LarguraCabeca * 0.72f;
+                    float larguraPerfilTronco = LarguraCintura * 0.55f;
+                    float larguraPerfilBraco = 14f;
+                    return Math.Max(Math.Max(larguraPerfilCabeca, larguraPerfilTronco), larguraPerfilBraco) * EscalaCorpo * 1.5f;
                 }
 
                 float largMax = Math.Max(LarguraOmbros, LarguraQuadril);
@@ -309,6 +321,23 @@ namespace CrimeSketcher.Objects
                     AnguloCabeca = 0f;
                     BracosEstendidos = true;
                     break;
+
+                case "delado":
+                case "de lado":
+                case "lado":
+                case "lateral":
+                    Pose = PoseCorpo.DeLado;
+                    AnguloBracoDireito = 18f;
+                    AnguloBracoEsquerdo = 10f;
+                    AnguloCotoveloDireito = 16f;
+                    AnguloCotoveloEsquerdo = 10f;
+                    AnguloPernaDireita = 2f;
+                    AnguloPernaEsquerda = -4f;
+                    AnguloJoelhoDireito = 10f;
+                    AnguloJoelhoEsquerdo = 12f;
+                    AnguloCabeca = 2f;
+                    BracosEstendidos = false;
+                    break;
             }
         }
 
@@ -334,6 +363,8 @@ namespace CrimeSketcher.Objects
 
             if (Pose == PoseCorpo.VistaAerea)
                 DesenharCorpoVistaAerea(g, opacidade);
+            else if (Pose == PoseCorpo.DeLado)
+                DesenharCorpoDeLado(g, opacidade);
             else
                 DesenharCorpoEmPe(g, opacidade);
 
@@ -391,6 +422,231 @@ namespace CrimeSketcher.Objects
 
             if (AntebracoEsquerdoFrenteCabeca)
                 DesenharAntebracoEMao(g, xOmbroEsq, yOmbro, AnguloBracoEsquerdo, AnguloCotoveloEsquerdo, opacidade);
+        }
+
+        private void DesenharCorpoDeLado(Graphics g, float opacidade)
+        {
+            float alturaTotal = AlturaCabeca + AlturaTronco + AlturaPerna + AlturaPe * 0.65f;
+            float yTopo = -alturaTotal / 2f;
+
+            float yCabeca = yTopo + AlturaCabeca * 0.5f;
+            float yTroncoTop = yTopo + AlturaCabeca - 2f;
+            float yQuadril = yTroncoTop + AlturaTronco;
+
+            float larguraTronco = Math.Max(10f, LarguraCintura * 0.5f);
+            float larguraQuadril = Math.Max(9f, LarguraQuadril * 0.45f);
+            float larguraCabeca = Math.Max(8f, LarguraCabeca * 0.68f);
+            float alturaCabeca = AlturaCabeca;
+
+            float compCoxa = AlturaPerna * 0.55f;
+            float compCanela = AlturaPerna * 0.45f;
+
+            float xPernaTras = -1.5f;
+            float xPernaFrente = 1.5f;
+
+            void DesenharPernaPerfil(float xBase, float anguloPerna, float anguloJoelho, Color corBase, float fator)
+            {
+                var st = g.Save();
+                g.TranslateTransform(xBase, yQuadril);
+                g.RotateTransform(anguloPerna);
+
+                float largCoxa = LarguraPerna * 0.78f * fator;
+                float largCanela = LarguraPerna * 0.68f * fator;
+
+                using (var coxa = CriarRetanguloArredondado(-largCoxa / 2f, 0, largCoxa, compCoxa, 2.2f))
+                {
+                    if (Preenchido)
+                    {
+                        using (var brush = new SolidBrush(AplicarOpacidade(corBase, opacidade)))
+                            g.FillPath(brush, coxa);
+                    }
+                    if (MostrarContorno)
+                    {
+                        using (var pen = new Pen(AplicarOpacidade(Color.FromArgb(50, 50, 60), opacidade), EspessuraContorno * 0.7f))
+                            g.DrawPath(pen, coxa);
+                    }
+                }
+
+                g.TranslateTransform(0, compCoxa);
+                g.RotateTransform(anguloJoelho);
+
+                using (var canela = CriarRetanguloArredondado(-largCanela / 2f, 0, largCanela, compCanela, 2f))
+                {
+                    if (Preenchido)
+                    {
+                        using (var brush = new SolidBrush(AplicarOpacidade(EscurecerCor(corBase, 0.12f), opacidade)))
+                            g.FillPath(brush, canela);
+                    }
+                    if (MostrarContorno)
+                    {
+                        using (var pen = new Pen(AplicarOpacidade(Color.FromArgb(50, 50, 60), opacidade), EspessuraContorno * 0.68f))
+                            g.DrawPath(pen, canela);
+                    }
+                }
+
+                float larguraPe = LarguraPe * 1.6f * fator;
+                float alturaPe = AlturaPe * 0.52f * fator;
+                using (var brush = new SolidBrush(AplicarOpacidade(CorSapato, opacidade)))
+                {
+                    g.FillEllipse(brush, -largCanela * 0.45f, compCanela - alturaPe * 0.2f, larguraPe, alturaPe);
+                }
+
+                g.Restore(st);
+            }
+
+            void DesenharBracoPerfil(float xOmbro, float yOmbro, float angulo, float anguloCotovelo, Color corBase, float fator)
+            {
+                var st = g.Save();
+                g.TranslateTransform(xOmbro, yOmbro);
+                g.RotateTransform(angulo);
+
+                float larg = 7.0f * fator;
+                float compSup = 16f * fator;
+                float compAnte = 14f * fator;
+
+                using (var sup = CriarRetanguloArredondado(-larg / 2f, 0, larg, compSup, 2.2f))
+                {
+                    if (Preenchido)
+                    {
+                        using (var brush = new SolidBrush(AplicarOpacidade(corBase, opacidade)))
+                            g.FillPath(brush, sup);
+                    }
+                    if (MostrarContorno)
+                    {
+                        using (var pen = new Pen(AplicarOpacidade(Color.FromArgb(55, 55, 70), opacidade), EspessuraContorno * 0.7f))
+                            g.DrawPath(pen, sup);
+                    }
+                }
+
+                g.TranslateTransform(0, compSup);
+                g.RotateTransform(anguloCotovelo);
+
+                using (var ante = CriarRetanguloArredondado(-larg / 2f, 0, larg, compAnte, 2.2f))
+                {
+                    if (Preenchido)
+                    {
+                        using (var brush = new SolidBrush(AplicarOpacidade(EscurecerCor(corBase, 0.08f), opacidade)))
+                            g.FillPath(brush, ante);
+                    }
+                    if (MostrarContorno)
+                    {
+                        using (var pen = new Pen(AplicarOpacidade(Color.FromArgb(55, 55, 70), opacidade), EspessuraContorno * 0.68f))
+                            g.DrawPath(pen, ante);
+                    }
+                }
+
+                using (var brush = new SolidBrush(AplicarOpacidade(CorPele, opacidade)))
+                    g.FillEllipse(brush, -3f * fator, compAnte - 2f, 6f * fator, 7f * fator);
+
+                g.Restore(st);
+            }
+
+            DesenharPernaPerfil(xPernaTras, AnguloPernaEsquerda, AnguloJoelhoEsquerdo, EscurecerCor(CorCanela, 0.18f), 0.92f);
+
+            float xOmbro = larguraTronco * 0.42f;
+            float yOmbro = yTroncoTop + 9f;
+
+            DesenharBracoPerfil(xOmbro - 1.4f, yOmbro + 1f, AnguloBracoEsquerdo, AnguloCotoveloEsquerdo, EscurecerCor(CorBraco, 0.14f), 0.92f);
+
+            using (var tronco = CriarRetanguloArredondado(-larguraTronco / 2f, yTroncoTop, larguraTronco, AlturaTronco, 4.5f))
+            {
+                if (Preenchido)
+                {
+                    using (var brush = new SolidBrush(AplicarOpacidade(CorTronco, opacidade)))
+                        g.FillPath(brush, tronco);
+                }
+                if (MostrarContorno)
+                {
+                    using (var pen = new Pen(AplicarOpacidade(Color.FromArgb(60, 60, 80), opacidade), EspessuraContorno))
+                        g.DrawPath(pen, tronco);
+                }
+            }
+
+            using (var brush = new SolidBrush(AplicarOpacidade(EscurecerCor(CorTronco, 0.12f), opacidade)))
+                g.FillEllipse(brush, -larguraQuadril / 2f, yQuadril - 4f, larguraQuadril, 8f);
+
+            DesenharBracoPerfil(xOmbro, yOmbro, AnguloBracoDireito, AnguloCotoveloDireito, CorBraco, 1f);
+
+            DesenharPernaPerfil(xPernaFrente, AnguloPernaDireita, AnguloJoelhoDireito, CorCanela, 1f);
+
+            var head = g.Save();
+            g.TranslateTransform(0, yCabeca);
+            g.RotateTransform(AnguloCabeca);
+
+            if (Preenchido)
+            {
+                using (var face = new SolidBrush(AplicarOpacidade(CorPele, opacidade)))
+                    g.FillEllipse(face, -larguraCabeca / 2f, -alturaCabeca / 2f + 1.2f, larguraCabeca, alturaCabeca - 2.2f);
+
+                if (Genero == GeneroCorpo.Feminino)
+                {
+                    using (var hair = new SolidBrush(AplicarOpacidade(CorCabelo, opacidade)))
+                    using (var path = new GraphicsPath())
+                    {
+                        path.AddPolygon(new[]
+                        {
+                            new PointF(-larguraCabeca / 1.8f - 0.4f, -alturaCabeca / 2f + 2.4f), // Ponto inicial (x,y) da porção superior do trapézio do cabelo
+                            new PointF(larguraCabeca / 2f - 2.4f, -alturaCabeca / 2f + 3.2f), // Ponto final (x,y) da porção superior do trapézio do cabelo
+                            new PointF(larguraCabeca / 2f - 3.8f, alturaCabeca / 2.8f + 6.8f), // Ponto inicial (x,y) da porção inferior do trapézio do cabelo
+                            new PointF(-larguraCabeca / 2f - 5.2f, alturaCabeca / 2.8f + 7.6f) // Ponto final (x,y) da porção inferior do trapézio do cabelo
+                        });
+                        g.FillPath(hair, path);
+                        g.FillEllipse(hair,
+                            -larguraCabeca / 2f - 1.8f, // Posição horizontal da elipse do cabelo
+                            -alturaCabeca / 2f - 1.4f, // Posição vertical da elipse do cabelo
+                            larguraCabeca + 1.8f, // Largura da elipse do cabelo
+                            alturaCabeca * 0.6f); // Altura da elipse do cabelo para criar um efeito de cabelo mais cheio e volumoso
+                    }
+                }
+                else
+                {
+                    using (var hair = new SolidBrush(AplicarOpacidade(CorCabelo, opacidade)))
+                    {
+                        g.FillPie(hair,
+                            -larguraCabeca / 2f - 0.2f,
+                            -alturaCabeca / 2f - 1.2f,
+                            larguraCabeca * 0.96f,
+                            alturaCabeca * 0.64f,
+                            180f,
+                            180f);
+
+                        var hairState = g.Save();
+                        g.TranslateTransform(-larguraCabeca * 0.02f, -alturaCabeca * 0.01f);
+                        g.RotateTransform(-86f);
+                        g.FillPie(hair,
+                            -larguraCabeca * 0.43f, // Posição horizontal da elipse da parte de trás do cabelo
+                            -alturaCabeca * 0.30f, // Posição vertical da elipse da parte de trás do cabelo
+                            larguraCabeca * 1.4f, // Altura da elipse da parte de trás do cabelo
+                            alturaCabeca * 0.38f, // Largura da elipse da parte de trás da cabeça
+                            180f, // Início do arco na parte inferior
+                            180f); // Arco completo para criar um efeito de cabelo penteado para o lado
+                        g.Restore(hairState);
+                    }
+                }
+            }
+
+            using (var skin = new SolidBrush(AplicarOpacidade(CorPele, opacidade)))
+            {
+                var nariz = new[]
+                {
+                    new PointF(larguraCabeca / 2f - 0.5f, -2f),
+                    new PointF(larguraCabeca / 2f + 3.2f, 0f),
+                    new PointF(larguraCabeca / 2f - 0.5f, 2f)
+                };
+                g.FillPolygon(skin, nariz);
+            }
+
+            if (MostrarContorno)
+            {
+                using (var pen = new Pen(AplicarOpacidade(Color.FromArgb(80, 60, 50), opacidade), EspessuraContorno * 0.85f))
+                {
+                    g.DrawEllipse(pen, -larguraCabeca / 2f, -alturaCabeca / 2f, larguraCabeca, alturaCabeca);
+                    g.DrawLine(pen, larguraCabeca / 2f - 0.5f, -2f, larguraCabeca / 2f + 3.2f, 0f);
+                    g.DrawLine(pen, larguraCabeca / 2f + 3.2f, 0f, larguraCabeca / 2f - 0.5f, 2f);
+                }
+            }
+
+            g.Restore(head);
         }
 
         private void DesenharCorpoVistaAerea(Graphics g, float opacidade)
@@ -1166,4 +1422,28 @@ namespace CrimeSketcher.Objects
         #endregion
     }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
