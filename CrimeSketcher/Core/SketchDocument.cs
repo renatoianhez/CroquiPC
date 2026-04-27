@@ -109,6 +109,41 @@ namespace CrimeSketcher.Core
         public void NotificarAlteracao() => DocumentoAlterado?.Invoke(this, EventArgs.Empty);
 
         /// <summary>
+        /// Atualiza todos os AutoIntersectionObject vinculados a uma rua quando as propriedades
+        /// de largura ou faixas da rua são alteradas.
+        /// </summary>
+        public void SincronizarCruzamentosComRua(Objects.StreetObject rua)
+        {
+            if (rua == null) return;
+
+            foreach (var obj in Objetos.OfType<Objects.AutoIntersectionObject>())
+            {
+                bool ehRua1 = obj.IdRua1 == rua.Id;
+                bool ehRua2 = obj.IdRua2 == rua.Id;
+
+                if (!ehRua1 && !ehRua2) continue;
+
+                if (ehRua1)
+                {
+                    obj.LarguraRua1 = rua.Largura;
+                    obj.TemCalcadaRua1 = rua.TemCalcada;
+                    obj.LarguraCalcadaRua1 = rua.LarguraCalcada;
+                    obj.TemCiclofaixaRua1 = rua.TemCiclofaixa;
+                    obj.TemEstacionamentoRua1 = rua.TemFaixaEstacionamento;
+                }
+
+                if (ehRua2)
+                {
+                    obj.LarguraRua2 = rua.Largura;
+                    obj.TemCalcadaRua2 = rua.TemCalcada;
+                    obj.LarguraCalcadaRua2 = rua.LarguraCalcada;
+                    obj.TemCiclofaixaRua2 = rua.TemCiclofaixa;
+                    obj.TemEstacionamentoRua2 = rua.TemFaixaEstacionamento;
+                }
+            }
+        }
+
+        /// <summary>
         /// Agrupa múltiplos objetos em um GroupObject
         /// </summary>
         public GroupObject AgruparObjetos(List<BaseSketchObject> objetos, bool comUndo = true)

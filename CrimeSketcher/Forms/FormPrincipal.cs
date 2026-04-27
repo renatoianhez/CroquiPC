@@ -2157,6 +2157,11 @@ namespace CrimeSketcher.Forms
 
             canvas.Invalidate();
             documento.NotificarAlteracao();
+
+            if (propGrid.SelectedObject is StreetObject rua)
+            {
+                documento.SincronizarCruzamentosComRua(rua);
+            }
         }
 
         private void AtualizarStatusSnap()
