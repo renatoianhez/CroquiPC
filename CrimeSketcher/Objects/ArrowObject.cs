@@ -64,7 +64,20 @@ namespace CrimeSketcher.Objects
                     TemCurva = true;
 
                 var referencia = PontoCurva ?? ObterReferenciaCurvaCircular();
-                if (GeometryHelper.TryGetPontoCurvaArcoPorRaio(PontoInicial, PontoFinal, value, referencia, out var pontoCurva))
+                float? sweepPreferido = null;
+                if (CurvaCircular && PontoCurva.HasValue && GeometryHelper.TryGetArcoCircular(
+                    PontoInicial,
+                    PontoCurva.Value,
+                    PontoFinal,
+                    out _,
+                    out _,
+                    out _,
+                    out var varreduraAtual))
+                {
+                    sweepPreferido = varreduraAtual;
+                }
+
+                if (GeometryHelper.TryGetPontoCurvaArcoPorRaio(PontoInicial, PontoFinal, value, referencia, sweepPreferido, out var pontoCurva))
                 {
                     PontoCurva = pontoCurva;
                     CurvaCircular = true;
@@ -425,6 +438,19 @@ namespace CrimeSketcher.Objects
             if (PontoCurva.HasValue)
             {
                 PontoCurva = EscalarPonto(PontoCurva.Value, centro, fatorX, fatorY);
+            }
+
+            if (CurvaCircular && PontoCurva.HasValue)
+            {
+                var inicio = PontoInicial;
+                var passagem = PontoCurva.Value;
+                var fim = PontoFinal;
+                if (GeometryHelper.LimitarFechamentoArcoCircular(ref inicio, ref passagem, ref fim))
+                {
+                    PontoInicial = inicio;
+                    PontoCurva = passagem;
+                    PontoFinal = fim;
+                }
             }
 
             base.EscalarAoRedor(centro, fatorX, fatorY);

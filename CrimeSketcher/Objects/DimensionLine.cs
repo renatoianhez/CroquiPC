@@ -93,9 +93,14 @@ namespace CrimeSketcher.Objects
             float comp = (float)Math.Sqrt(dx * dx + dy * dy);
             if (comp < 1) return;
 
+            float dirX = dx / comp;
+            float dirY = dy / comp;
+
             // Direção perpendicular (para offset)
-            float perpX = -dy / comp * Offset;
-            float perpY = dx / comp * Offset;
+            float perpUnitX = -dirY;
+            float perpUnitY = dirX;
+            float perpX = perpUnitX * Offset;
+            float perpY = perpUnitY * Offset;
 
             // Pontos da linha de cota (com offset)
             var cotaP1 = new PointF(
@@ -105,13 +110,11 @@ namespace CrimeSketcher.Objects
 
             using (var pen = new Pen(CorContorno, EspessuraContorno))
             {
-                // Linhas de extensão
-                float extPerpX = perpX > 0 ?
-                    perpX + ExtensaoLinha * (-dy / comp) :
-                    perpX - ExtensaoLinha * (-dy / comp);
-                float extPerpY = perpY > 0 ?
-                    perpY + ExtensaoLinha * (dx / comp) :
-                    perpY - ExtensaoLinha * (dx / comp);
+                // Linhas de extensão (sempre perpendiculares)
+                float sinalOffset = Offset >= 0f ? 1f : -1f;
+                float distExtensao = Math.Abs(Offset) + ExtensaoLinha;
+                float extPerpX = perpUnitX * distExtensao * sinalOffset;
+                float extPerpY = perpUnitY * distExtensao * sinalOffset;
 
                 g.DrawLine(pen, PontoInicial,
                     new PointF(PontoInicial.X + extPerpX,
@@ -126,8 +129,6 @@ namespace CrimeSketcher.Objects
                 // Setas nas extremidades
                 float arrowSize = 8f;
                 float arrowAngle = 25f * (float)Math.PI / 180f;
-                float dirX = dx / comp;
-                float dirY = dy / comp;
 
                 DesenharSeta(g, pen, cotaP1, dirX, dirY,
                     arrowSize, arrowAngle);
