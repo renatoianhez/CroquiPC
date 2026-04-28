@@ -12,6 +12,8 @@ namespace CrimeSketcher.Utils
         private const float DELTA_RAIO_MINIMO = 0.01f;
         private const float GRAUS_PARA_RAD = (float)(Math.PI / 180.0);
         private const float RAD_PARA_GRAUS = (float)(180.0 / Math.PI);
+        private const float LIMIAR_FECHAMENTO_CIRCULO_GRAUS = 340f;
+        private const float VARREDURA_MAXIMA_CIRCULO_GRAUS = 359.5f;
 
         /// <summary>
         /// Calcula a distância de um ponto a um segmento de reta
@@ -226,6 +228,19 @@ namespace CrimeSketcher.Utils
                 : DeltaAnguloCw(angInicio, angFim);
 
             pontoCurva = ObterPontoArcoCircular(centro, raio, angInicio, sweep, 0.5f);
+            return true;
+        }
+
+        public static bool LimitarFechamentoArcoCircular(ref PointF inicio, ref PointF passagem, ref PointF fim)
+        {
+            if (!TryGetArcoCircular(inicio, passagem, fim, out var centro, out var raio, out var anguloInicial, out var varredura))
+                return false;
+
+            if (Math.Abs(varredura) < LIMIAR_FECHAMENTO_CIRCULO_GRAUS)
+                return false;
+
+            float varreduraLimitada = Math.Sign(varredura) * VARREDURA_MAXIMA_CIRCULO_GRAUS;
+            fim = ObterPontoArcoCircular(centro, raio, anguloInicial, varreduraLimitada, 1f);
             return true;
         }
 

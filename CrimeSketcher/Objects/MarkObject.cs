@@ -895,6 +895,19 @@ namespace CrimeSketcher.Objects
                 PontoCurva = EscalarPonto(PontoCurva.Value, centro, fatorX, fatorY);
             }
 
+            if (CurvaCircular && PontoCurva.HasValue)
+            {
+                var inicio = PontoInicial;
+                var passagem = PontoCurva.Value;
+                var fim = PontoFinal;
+                if (GeometryHelper.LimitarFechamentoArcoCircular(ref inicio, ref passagem, ref fim))
+                {
+                    PontoInicial = inicio;
+                    PontoCurva = passagem;
+                    PontoFinal = fim;
+                }
+            }
+
             float media = (Math.Abs(fatorX) + Math.Abs(fatorY)) / 2f;
             Largura = Math.Max(2f, Largura * media);
         }
