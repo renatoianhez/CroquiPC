@@ -1,4 +1,6 @@
 ﻿// Core/ScaleManager.cs
+using System;
+
 namespace CrimeSketcher.Core
 {
     /// <summary>
@@ -44,15 +46,15 @@ namespace CrimeSketcher.Core
         /// </summary>
         public string FormatarMedida(float pixels)
         {
-            float real = PixelsParaReal(pixels);
+            float real = MathF.Round(PixelsParaReal(pixels), 2, MidpointRounding.AwayFromZero);
             if (real >= 1f)
                 return $"{real:F2} {UnidadeReal}";
             else
-                return $"{real * 100f:F1} cm";
+                return $"{MathF.Round(real * 100f, 1, MidpointRounding.AwayFromZero):F1} cm";
         }
 
         /// <summary>
-        /// Texto da escala atual
+        ///Texto da escala atual
         /// </summary>
         public string TextoEscala =>
             $"1:{EscalaDenominador / EscalaNumerador:F0}";
@@ -79,10 +81,12 @@ namespace CrimeSketcher.Core
             float real = PixelsParaReal(pixels);
             if (FatorTransitoAtivo && FatorTransito > 0)
                 real *= FatorTransito;
+
+            real = MathF.Round(real, 2, MidpointRounding.AwayFromZero);
             if (real >= 1f)
                 return $"{real:F2} {UnidadeReal}";
             else
-                return $"{real * 100f:F1} cm";
+                return $"{MathF.Round(real * 100f, 1, MidpointRounding.AwayFromZero):F1} cm";
         }
     }
 }

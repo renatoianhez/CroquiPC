@@ -10,7 +10,20 @@ namespace CrimeSketcher.Core
     {
         public bool Visivel { get; set; } = true;
         public bool SnapAtivo { get; set; } = true;
-        public float EspacamentoPixels { get; set; } = 10f;
+        private float _espacamentoPixels;
+        public float EspacamentoPixels
+        {
+            get => _espacamentoPixels;
+            set
+            {
+                float novo = Math.Max(0.1f, (float)Math.Round(value, 4));
+                if (Math.Abs(_espacamentoPixels - novo) < 0.0001f)
+                    return;
+
+                _espacamentoPixels = novo;
+                InvalidarCache();
+            }
+        }
         public Color CorGrade { get; set; } = Color.FromArgb(40, 100, 100, 100);
         public Color CorGradePrincipal { get; set; } = Color.FromArgb(60, 80, 80, 80);
         public int SubdivisoesPrincipais { get; set; } = 5;
@@ -30,6 +43,9 @@ namespace CrimeSketcher.Core
         public GridManager(ScaleManager scale)
         {
             _scale = scale;
+            EspacamentoPixels = _scale != null
+                ? _scale.RealParaPixels(0.25f)
+                : 10f;
         }
 
         /// <summary>
@@ -50,7 +66,7 @@ namespace CrimeSketcher.Core
         {
             if (!SnapAtivo) return ponto;
 
-            float spacing = EspacamentoPixels * _scale.ZoomLevel;
+            float spacing = Math.Max(0.1f, EspacamentoPixels);
             float x = (float)Math.Round(ponto.X / spacing) * spacing;
             float y = (float)Math.Round(ponto.Y / spacing) * spacing;
             return new PointF(x, y);
@@ -80,8 +96,8 @@ namespace CrimeSketcher.Core
         {
             if (!Visivel) return;
 
-            float spacing = EspacamentoPixels * _scale.ZoomLevel;
-            if (spacing < 5f) spacing *= SubdivisoesPrincipais;
+            float spacing = Math.Max(0.1f, EspacamentoPixels);
+            if (spacing * _scale.ZoomLevel < 5f) spacing *= SubdivisoesPrincipais;
 
             RegenerarTileSeNecessario(spacing);
 

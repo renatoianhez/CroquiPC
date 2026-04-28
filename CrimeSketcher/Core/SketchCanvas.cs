@@ -388,29 +388,50 @@ namespace CrimeSketcher.Core
             using (var pen = new Pen(_corReguaLinha, 0.5f))
             using (var font = new Font("Segoe UI", 6f))
             {
+                float spacingWorld = Math.Max(0.1f, _grid.EspacamentoPixels);
+                float spacingScreen = spacingWorld * _escala.ZoomLevel;
+                int sub = Math.Max(1, _grid.SubdivisoesPrincipais);
+                float majorSpacingWorld = spacingWorld * sub;
+                float majorSpacingScreen = majorSpacingWorld * _escala.ZoomLevel;
+                bool desenharMenores = spacingScreen >= 6f;
+                int passoRotulo = Math.Max(1, (int)Math.Ceiling(50f / Math.Max(1f, majorSpacingScreen)));
+
                 if (horizontal)
                 {
                     g.FillRectangle(bgBrush, 0, 0, LarguraViewport, rulerSize);
                     g.DrawLine(pen, 0, rulerSize, LarguraViewport, rulerSize);
 
-                    float spacing = _grid.EspacamentoPixels * _escala.ZoomLevel;
-                    float start = _panOffset.X % spacing;
+                    float worldStart = ScreenToWorld(Point.Empty).X;
+                    float worldEnd = ScreenToWorld(new Point(LarguraViewport, 0)).X;
 
-                    for (float x = start; x < LarguraViewport; x += spacing)
+                    int primeiroIndice = (int)Math.Floor(Math.Min(worldStart, worldEnd) / spacingWorld);
+                    int ultimoIndice = (int)Math.Ceiling(Math.Max(worldStart, worldEnd) / spacingWorld);
+
+                    using var textBrush = new SolidBrush(_corReguaTexto);
+                    for (int i = primeiroIndice; i <= ultimoIndice; i++)
                     {
-                        float worldX = (x - _panOffset.X) / _escala.ZoomLevel;
-                        g.DrawLine(pen, x, rulerSize - 5, x, rulerSize);
+                        float worldX = i * spacingWorld;
+                        float x = worldX * _escala.ZoomLevel + _panOffset.X;
 
-                        if (Math.Abs(worldX % (_grid.EspacamentoPixels *
-                            _grid.SubdivisoesPrincipais)) < 1)
+                        if (x < -1f || x > LarguraViewport + 1f)
+                            continue;
+
+                        bool principal = i % sub == 0;
+                        if (principal)
                         {
                             g.DrawLine(pen, x, 0, x, rulerSize);
-                            using (var textBrush = new SolidBrush(_corReguaTexto))
+
+                            int indicePrincipal = i / sub;
+                            if (indicePrincipal % passoRotulo == 0)
                             {
                                 float realX = _escala.PixelsParaReal(worldX);
-                                g.DrawString($"{realX:F1}", font,
-                                    textBrush, x + 2, 2);
+                                realX = MathF.Round(realX, 2, MidpointRounding.AwayFromZero);
+                                g.DrawString($"{realX:0.##}", font, textBrush, x + 2f, 2f);
                             }
+                        }
+                        else if (desenharMenores)
+                        {
+                            g.DrawLine(pen, x, rulerSize - 5f, x, rulerSize);
                         }
                     }
                 }
@@ -419,28 +440,42 @@ namespace CrimeSketcher.Core
                     g.FillRectangle(bgBrush, 0, 0, rulerSize, AlturaViewport);
                     g.DrawLine(pen, rulerSize, 0, rulerSize, AlturaViewport);
 
-                    float spacing = _grid.EspacamentoPixels * _escala.ZoomLevel;
-                    float start = _panOffset.Y % spacing;
+                    float worldStart = ScreenToWorld(Point.Empty).Y;
+                    float worldEnd = ScreenToWorld(new Point(0, AlturaViewport)).Y;
 
-                    for (float y = start; y < AlturaViewport; y += spacing)
+                    int primeiroIndice = (int)Math.Floor(Math.Min(worldStart, worldEnd) / spacingWorld);
+                    int ultimoIndice = (int)Math.Ceiling(Math.Max(worldStart, worldEnd) / spacingWorld);
+
+                    using var textBrush = new SolidBrush(_corReguaTexto);
+                    for (int i = primeiroIndice; i <= ultimoIndice; i++)
                     {
-                        float worldY = (y - _panOffset.Y) / _escala.ZoomLevel;
-                        g.DrawLine(pen, rulerSize - 5, y, rulerSize, y);
+                        float worldY = i * spacingWorld;
+                        float y = worldY * _escala.ZoomLevel + _panOffset.Y;
 
-                        if (Math.Abs(worldY % (_grid.EspacamentoPixels *
-                            _grid.SubdivisoesPrincipais)) < 1)
+                        if (y < -1f || y > AlturaViewport + 1f)
+                            continue;
+
+                        bool principal = i % sub == 0;
+                        if (principal)
                         {
                             g.DrawLine(pen, 0, y, rulerSize, y);
-                            var state = g.Save();
-                            g.TranslateTransform(2, y + 2);
-                            g.RotateTransform(90);
-                            using (var textBrush = new SolidBrush(_corReguaTexto))
+
+                            int indicePrincipal = i / sub;
+                            if (indicePrincipal % passoRotulo == 0)
                             {
                                 float realY = _escala.PixelsParaReal(worldY);
-                                g.DrawString($"{realY:F1}", font,
-                                    textBrush, 0, 0);
+                                realY = MathF.Round(realY, 2, MidpointRounding.AwayFromZero);
+
+                                var state = g.Save();
+                                g.TranslateTransform(2f, y + 2f);
+                                g.RotateTransform(90);
+                                g.DrawString($"{realY:0.##}", font, textBrush, 0f, 0f);
+                                g.Restore(state);
                             }
-                            g.Restore(state);
+                        }
+                        else if (desenharMenores)
+                        {
+                            g.DrawLine(pen, rulerSize - 5f, y, rulerSize, y);
                         }
                     }
                 }

@@ -127,11 +127,11 @@ namespace CrimeSketcher.Forms
             {
                 Location = new System.Drawing.Point(140, 78),
                 Size = new System.Drawing.Size(80, 23),
-                Minimum = 0.1m,
+                Minimum = 0.05m,
                 Maximum = 10m,
-                Value = 0.5m,
+                Value = 0.25m,
                 DecimalPlaces = 2,
-                Increment = 0.1m
+                Increment = 0.05m
             };
             grpGrid.Controls.Add(nudGridSpacing);
 
