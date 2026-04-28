@@ -178,6 +178,17 @@ namespace CrimeSketcher.Utils
             PointF referenciaLado,
             out PointF pontoCurva)
         {
+            return TryGetPontoCurvaArcoPorRaio(inicio, fim, raioDesejado, referenciaLado, null, out pontoCurva);
+        }
+
+        public static bool TryGetPontoCurvaArcoPorRaio(
+            PointF inicio,
+            PointF fim,
+            float raioDesejado,
+            PointF referenciaLado,
+            float? sweepPreferidoGraus,
+            out PointF pontoCurva)
+        {
             pontoCurva = PontoMedio(inicio, fim);
 
             float dx = fim.X - inicio.X;
@@ -196,10 +207,25 @@ namespace CrimeSketcher.Utils
             if (lado == 0f)
                 lado = 1f;
 
-            pontoCurva = new PointF(
-                meio.X + perp.X * lado * (raio - h),
-                meio.Y + perp.Y * lado * (raio - h));
+            if (!sweepPreferidoGraus.HasValue)
+            {
+                pontoCurva = new PointF(
+                    meio.X + perp.X * lado * (raio - h),
+                    meio.Y + perp.Y * lado * (raio - h));
+                return true;
+            }
 
+            var centro = new PointF(
+                meio.X - perp.X * lado * h,
+                meio.Y - perp.Y * lado * h);
+
+            float angInicio = NormalizarAngulo360(AnguloGraus(centro, inicio));
+            float angFim = NormalizarAngulo360(AnguloGraus(centro, fim));
+            float sweep = sweepPreferidoGraus.Value >= 0f
+                ? DeltaAnguloCcw(angInicio, angFim)
+                : DeltaAnguloCw(angInicio, angFim);
+
+            pontoCurva = ObterPontoArcoCircular(centro, raio, angInicio, sweep, 0.5f);
             return true;
         }
 
