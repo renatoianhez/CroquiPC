@@ -383,7 +383,7 @@ namespace CrimeSketcher.Core
 
         private void DesenharRegua(Graphics g, bool horizontal)
         {
-            float rulerSize = 20f;
+            float rulerSize = horizontal ? 20f : 22f;
             using (var bgBrush = new SolidBrush(_corReguaFundo))
             using (var pen = new Pen(_corReguaLinha, 0.5f))
             using (var font = new Font("Segoe UI", 6f))
@@ -396,7 +396,7 @@ namespace CrimeSketcher.Core
                 bool desenharMenores = spacingScreen >= 6f;
                 int passoRotulo = Math.Max(1, (int)Math.Ceiling(50f / Math.Max(1f, majorSpacingScreen)));
 
-                if (horizontal)
+                if (horizontal) // regua horizontal
                 {
                     g.FillRectangle(bgBrush, 0, 0, LarguraViewport, rulerSize);
                     g.DrawLine(pen, 0, rulerSize, LarguraViewport, rulerSize);
@@ -435,7 +435,7 @@ namespace CrimeSketcher.Core
                         }
                     }
                 }
-                else
+                else  // regua vertical
                 {
                     g.FillRectangle(bgBrush, 0, 0, rulerSize, AlturaViewport);
                     g.DrawLine(pen, rulerSize, 0, rulerSize, AlturaViewport);
@@ -465,11 +465,13 @@ namespace CrimeSketcher.Core
                             {
                                 float realY = _escala.PixelsParaReal(worldY);
                                 realY = MathF.Round(realY, 2, MidpointRounding.AwayFromZero);
+                                string texto = $"{realY:0.##}";
+                                SizeF tamanhoTexto = g.MeasureString(texto, font);
 
                                 var state = g.Save();
-                                g.TranslateTransform(2f, y + 2f);
-                                g.RotateTransform(90);
-                                g.DrawString($"{realY:0.##}", font, textBrush, 0f, 0f);
+                                g.TranslateTransform(rulerSize - 2f - tamanhoTexto.Height, y + 2f + tamanhoTexto.Width);
+                                g.RotateTransform(-90f);
+                                g.DrawString(texto, font, textBrush, 0f, - 4f);
                                 g.Restore(state);
                             }
                         }
